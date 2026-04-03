@@ -21,7 +21,7 @@ Se inicializó el cliente móvil en apps/mobile con Expo + TypeScript.
 
 Se configuró navegación base con Expo Router (app/_layout.tsx, app/index.tsx).
 
-Se añadió configuración de entorno con dotenv + expo-constants en app.config.ts y .env.example.
+Se añadió configuración de entorno con dotenv + expo-constants en app.config.ts y .env.
 
 Se integró cliente Supabase en lib/supabase/client.ts con variables EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY.
 
