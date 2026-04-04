@@ -4,8 +4,9 @@
 
 1. Copy `.env.example` to `.env`.
 2. Add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
-3. Install dependencies with `npm install`.
-4. Start with `npm run start`.
+3. In Supabase Dashboard go to Auth > URL Configuration and add `acorn://auth/callback` to Redirect URLs.
+4. Install dependencies with `npm install`.
+5. Start with `npm run start`.
 
 ## Scripts
 
