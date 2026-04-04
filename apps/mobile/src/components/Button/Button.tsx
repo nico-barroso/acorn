@@ -1,37 +1,39 @@
-import { Pressable, Text, StyleSheet } from "react-native"
-import { colors } from "../../constants/theme";
+import React from 'react';
+import { TouchableOpacity, Text, Image, ImageSourcePropType } from 'react-native';
+import { styles } from './Button.styles';
 
-
-type ButtonProps = {
+export interface ButtonProps {
   label: string;
   onPress: () => void;
-};
-
-
-export const Button = ({ label, onPress }: ButtonProps) => (
-  <Pressable style={({ pressed }) => [
-    styles.button,
-    pressed && styles.buttonPressed
-  ]} onPress={onPress}>
-    <Text style={styles.label}>{label}</Text>
-  </Pressable>
-);
-
-
-const styles = StyleSheet.create({
-  button: {
-    width: '100%',
-    height:32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 8
-  },
-
-  buttonPressed: {
-    backgroundColor: '#C06E52'
-  },
-  label: {
-  color: '#FEFFFE'
+  icon?: ImageSourcePropType;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
 }
-})
+
+export function Button({
+  label,
+  onPress,
+  icon,
+  variant = 'primary',
+  disabled = false,
+}: ButtonProps) {
+  const isSecondary = variant === 'secondary';
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        isSecondary && styles.buttonSecondary,
+        disabled && styles.buttonDisabled,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.85}
+      disabled={disabled}
+    >
+      {icon && <Image source={icon} style={styles.buttonIcon} />}
+      <Text style={[styles.buttonLabel, isSecondary && styles.buttonSecondaryLabel]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
