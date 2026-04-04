@@ -17,10 +17,9 @@
 - `npm run typecheck`
 - `npm run format`
 
-
 Se inicializó el cliente móvil en apps/mobile con Expo + TypeScript.
 
-Se configuró navegación base con Expo Router (app/_layout.tsx, app/index.tsx).
+Se configuró navegación base con Expo Router (app/\_layout.tsx, app/index.tsx).
 
 Se añadió configuración de entorno con dotenv + expo-constants en app.config.ts y .env.
 
