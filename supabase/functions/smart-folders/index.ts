@@ -14,6 +14,20 @@ type AuthContext = {
   userId: string;
 };
 
+type ResourceCandidate = {
+  id: string;
+  type: string;
+  title: string | null;
+  description: string | null;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+  domain: string | null;
+  url: string | null;
+  tag_slugs: string[];
+  tag_names: string[];
+};
+
 type RuleInput = {
   field: string;
   operator: string;
@@ -82,6 +96,298 @@ function getFolderId(url: URL): string | null {
   }
 
   return candidate;
+}
+
+function parseBooleanLike(value: unknown): boolean | null {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (["true", "1", "yes", "visto", "read"].includes(normalized)) {
+    return true;
+  }
+
+  if (["false", "0", "no", "no-visto", "unread"].includes(normalized)) {
+    return false;
+  }
+
+  return null;
+}
+
+function parseDateIso(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const asDate = new Date(value);
+  if (Number.isNaN(asDate.getTime())) {
+    return null;
+  }
+
+  return asDate.toISOString();
+}
+
+function parseStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry) => typeof entry === "string")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    const one = value.trim().toLowerCase();
+    return one ? [one] : [];
+  }
+
+  return [];
+}
+
+function parseResourcesPagination(url: URL) {
+  const page = Math.max(1, Number(url.searchParams.get("resources_page") || "1"));
+  const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("resources_limit") || "50")));
+  const from = (page - 1) * limit;
+  const to = from + limit;
+
+  return { page, limit, from, to };
+}
+
+function evaluateStringOperator(actualRaw: string | null, operatorRaw: string, expected: unknown): boolean {
+  const actual = (actualRaw ?? "").toLowerCase();
+  const operator = operatorRaw.toLowerCase();
+  const expectedValues = parseStringArray(expected);
+  const expectedOne = expectedValues[0] ?? "";
+
+  if (operator === "equals") {
+    return expectedValues.includes(actual);
+  }
+
+  if (operator === "not_equals") {
+    return expectedValues.length > 0 && !expectedValues.includes(actual);
+  }
+
+  if (operator === "contains") {
+    return Boolean(expectedOne) && actual.includes(expectedOne);
+  }
+
+  if (operator === "starts_with") {
+    return Boolean(expectedOne) && actual.startsWith(expectedOne);
+  }
+
+  if (operator === "ends_with") {
+    return Boolean(expectedOne) && actual.endsWith(expectedOne);
+  }
+
+  if (operator === "in") {
+    return expectedValues.includes(actual);
+  }
+
+  if (operator === "not_in") {
+    return expectedValues.length > 0 && !expectedValues.includes(actual);
+  }
+
+  return false;
+}
+
+function evaluateDateOperator(actualIso: string, operatorRaw: string, expected: unknown): boolean {
+  const operator = operatorRaw.toLowerCase();
+  const actualMs = new Date(actualIso).getTime();
+
+  if (Number.isNaN(actualMs)) {
+    return false;
+  }
+
+  const asObj = (expected && typeof expected === "object") ? expected as Record<string, unknown> : null;
+  const fromIso = asObj ? parseDateIso(asObj.from) : null;
+  const toIso = asObj ? parseDateIso(asObj.to) : null;
+
+  const arrValues = Array.isArray(expected) ? expected : [];
+  const betweenFrom = parseDateIso(arrValues[0]);
+  const betweenTo = parseDateIso(arrValues[1]);
+
+  const expectedIso = parseDateIso(expected);
+
+  if (operator === "between") {
+    const minIso = fromIso ?? betweenFrom;
+    const maxIso = toIso ?? betweenTo;
+    if (!minIso || !maxIso) {
+      return false;
+    }
+
+    const minMs = new Date(minIso).getTime();
+    const maxMs = new Date(maxIso).getTime();
+    return actualMs >= minMs && actualMs <= maxMs;
+  }
+
+  if (!expectedIso) {
+    return false;
+  }
+
+  const expectedMs = new Date(expectedIso).getTime();
+
+  if (operator === "equals") {
+    return actualMs === expectedMs;
+  }
+
+  if (operator === "gt") {
+    return actualMs > expectedMs;
+  }
+
+  if (operator === "gte") {
+    return actualMs >= expectedMs;
+  }
+
+  if (operator === "lt") {
+    return actualMs < expectedMs;
+  }
+
+  if (operator === "lte") {
+    return actualMs <= expectedMs;
+  }
+
+  return false;
+}
+
+function evaluateTagOperator(actualValues: string[], operatorRaw: string, expected: unknown): boolean {
+  const operator = operatorRaw.toLowerCase();
+  const expectedValues = parseStringArray(expected);
+
+  if (expectedValues.length === 0) {
+    return false;
+  }
+
+  if (operator === "equals" || operator === "contains" || operator === "in") {
+    return expectedValues.some((value) => actualValues.includes(value));
+  }
+
+  if (operator === "all_in") {
+    return expectedValues.every((value) => actualValues.includes(value));
+  }
+
+  if (operator === "not_equals" || operator === "not_contains" || operator === "not_in") {
+    return expectedValues.every((value) => !actualValues.includes(value));
+  }
+
+  return false;
+}
+
+function evaluateRule(candidate: ResourceCandidate, rule: Record<string, unknown>): boolean {
+  const field = typeof rule.field === "string" ? rule.field.toLowerCase() : "";
+  const operator = typeof rule.operator === "string" ? rule.operator.toLowerCase() : "equals";
+  const expected = rule.value;
+  const isNegated = typeof rule.is_negated === "boolean" ? rule.is_negated : false;
+
+  let result = false;
+
+  if (field === "domain") {
+    result = evaluateStringOperator(candidate.domain, operator, expected);
+  } else if (field === "tag" || field === "tag_slug" || field === "tags") {
+    result = evaluateTagOperator(candidate.tag_slugs, operator, expected);
+  } else if (field === "tag_name") {
+    result = evaluateTagOperator(candidate.tag_names, operator, expected);
+  } else if (field === "is_read" || field === "status" || field === "visto") {
+    const expectedBoolean = parseBooleanLike(expected);
+    if (expectedBoolean !== null) {
+      result = operator === "not_equals"
+        ? candidate.is_read !== expectedBoolean
+        : candidate.is_read === expectedBoolean;
+    }
+  } else if (field === "created_at" || field === "date") {
+    result = evaluateDateOperator(candidate.created_at, operator, expected);
+  }
+
+  return isNegated ? !result : result;
+}
+
+function evaluateCandidate(
+  candidate: ResourceCandidate,
+  rules: Array<Record<string, unknown>>,
+  logic: "ALL" | "ANY" = "ALL",
+): boolean {
+  if (rules.length === 0) {
+    return true;
+  }
+
+  if (logic === "ANY") {
+    return rules.some((rule) => evaluateRule(candidate, rule));
+  }
+
+  return rules.every((rule) => evaluateRule(candidate, rule));
+}
+
+async function fetchCandidateResources(
+  context: AuthContext,
+): Promise<ResourceCandidate[]> {
+  const { data: items, error } = await context.supabase
+    .from("items")
+    .select("id,type,title,description,is_read,created_at,updated_at,links(url,domain)")
+    .eq("user_id", context.userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const itemIds = (items ?? []).map((item) => String(item.id));
+
+  const tagMap = new Map<string, { slugs: string[]; names: string[] }>();
+
+  if (itemIds.length > 0) {
+    const { data: itemTags, error: itemTagsError } = await context.supabase
+      .from("item_tags")
+      .select("item_id,tags(name,slug)")
+      .in("item_id", itemIds);
+
+    if (itemTagsError) {
+      throw itemTagsError;
+    }
+
+    for (const row of itemTags ?? []) {
+      const key = String(row.item_id);
+      const current = tagMap.get(key) ?? { slugs: [], names: [] };
+      const tagRel = Array.isArray(row.tags) ? row.tags[0] : row.tags;
+
+      if (tagRel && typeof tagRel === "object") {
+        const slug = typeof tagRel.slug === "string" ? tagRel.slug.toLowerCase() : "";
+        const name = typeof tagRel.name === "string" ? tagRel.name.toLowerCase() : "";
+
+        if (slug && !current.slugs.includes(slug)) {
+          current.slugs.push(slug);
+        }
+
+        if (name && !current.names.includes(name)) {
+          current.names.push(name);
+        }
+      }
+
+      tagMap.set(key, current);
+    }
+  }
+
+  return (items ?? []).map((item) => {
+    const itemKey = String(item.id);
+    const linkRel = Array.isArray(item.links) ? item.links[0] : item.links;
+    const tags = tagMap.get(itemKey) ?? { slugs: [], names: [] };
+
+    return {
+      id: itemKey,
+      type: typeof item.type === "string" ? item.type : "unknown",
+      title: typeof item.title === "string" ? item.title : null,
+      description: typeof item.description === "string" ? item.description : null,
+      is_read: Boolean(item.is_read),
+      created_at: String(item.created_at),
+      updated_at: String(item.updated_at),
+      domain: typeof linkRel?.domain === "string" ? linkRel.domain.toLowerCase() : null,
+      url: typeof linkRel?.url === "string" ? linkRel.url : null,
+      tag_slugs: tags.slugs,
+      tag_names: tags.names,
+    };
+  });
 }
 
 function parseRules(input: unknown): RuleInput[] {
@@ -325,11 +631,43 @@ async function handleRead(req: Request, context: AuthContext) {
     }
 
     const rulesMap = await fetchRulesForFolders(context.supabase, [String(folder.id)]);
+    const rules = rulesMap.get(String(folder.id)) ?? [];
+
+    const includeResources = requestUrl.searchParams.get("include_resources")?.toLowerCase() === "true"
+      || requestUrl.searchParams.get("evaluate")?.toLowerCase() === "true";
+
+    if (includeResources) {
+      const logicParam = requestUrl.searchParams.get("logic")?.toUpperCase();
+      const logic = logicParam === "ANY" ? "ANY" : "ALL";
+
+      const resourcesPagination = parseResourcesPagination(requestUrl);
+      const candidates = await fetchCandidateResources(context);
+      const matched = candidates.filter((candidate) => evaluateCandidate(candidate, rules, logic));
+      const paginated = matched.slice(resourcesPagination.from, resourcesPagination.to);
+
+      return jsonResponse(200, {
+        data: {
+          ...folder,
+          rules,
+          resources: paginated,
+          resources_pagination: {
+            page: resourcesPagination.page,
+            limit: resourcesPagination.limit,
+            total: matched.length,
+            has_next: matched.length > resourcesPagination.page * resourcesPagination.limit,
+          },
+          evaluation: {
+            logic,
+            matched_count: matched.length,
+          },
+        },
+      });
+    }
 
     return jsonResponse(200, {
       data: {
         ...folder,
-        rules: rulesMap.get(String(folder.id)) ?? [],
+        rules,
       },
     });
   }

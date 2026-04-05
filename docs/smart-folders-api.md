@@ -33,8 +33,15 @@ Expected response: `201` with created folder and `rules`.
 
 - List: `GET /functions/v1/smart-folders`
 - By id: `GET /functions/v1/smart-folders?id=<uuid>`
+- Evaluate rules and return matching resources:
+  - `GET /functions/v1/smart-folders?id=<uuid>&include_resources=true`
+  - Optional:
+    - `logic=ALL|ANY` (default `ALL`)
+    - `resources_page=<n>`
+    - `resources_limit=<n>`
 
 Expected response: `200` with folder(s) and nested `rules`.
+When `include_resources=true`, response includes `resources`, `resources_pagination` and `evaluation`.
 
 ## Update folder
 
