@@ -1,0 +1,10 @@
+# CODEOWNERS
+#
+# Each line is a file pattern followed by one or more owners.
+# Owners are automatically requested for review when someone
+# opens a pull request that modifies code they own.
+#
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners — required reviewers for all pull requests
+* @nico-barroso
