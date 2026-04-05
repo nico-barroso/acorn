@@ -8,9 +8,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
-  newArchEnabled: true,
-  scheme: 'acorn',
+  userInterfaceStyle: 'light',  scheme: 'acorn',
   splash: {
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
@@ -23,9 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
-    },
-    edgeToEdgeEnabled: true,
-    predictiveBackGestureEnabled: false,
+    },    predictiveBackGestureEnabled: false,
   },
   web: {
     favicon: './assets/favicon.png',
@@ -36,3 +32,4 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   },
 });
+
