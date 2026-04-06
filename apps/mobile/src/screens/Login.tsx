@@ -11,9 +11,14 @@ import { styles } from './Login.styles';
 type LoginScreenProps = {
   onLoginSuccess: () => void;
   onGoToRegister: () => void;
+  onGoToForgotPassword: () => void;
 };
 
-export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScreenProps) {
+export default function LoginScreen({
+  onLoginSuccess,
+  onGoToRegister,
+  onGoToForgotPassword,
+}: LoginScreenProps) {
   const { email, setEmail, password, setPassword, errors, loading, handleLogin } = useLogin({
     onSuccess: onLoginSuccess,
   });
@@ -61,6 +66,10 @@ export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScr
             onPress={handleLogin}
             disabled={isSubmitting}
           />
+
+          <TouchableOpacity onPress={onGoToForgotPassword} disabled={isSubmitting}>
+            <Text style={styles.link}>He olvidado mi contrasena</Text>
+          </TouchableOpacity>
 
           <Button
             label={oauthLoading ? 'Conectando con Google...' : 'Continuar con Google'}
