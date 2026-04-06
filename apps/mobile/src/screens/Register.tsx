@@ -1,27 +1,26 @@
 import React from 'react';
-import { View, KeyboardAvoidingView, Platform, Text, TouchableOpacity } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGoogleOAuth } from '../../hooks/useGoogleOAuth';
-import { useLogin } from '../../hooks/useLogin';
+import { useRegister } from '../../hooks/useRegister';
 import { Button } from '../components/Button/Button';
 import { Input } from '../components/Input/Input';
-import { styles } from './Login.styles';
+import { styles } from './Register.styles';
 
-type LoginScreenProps = {
-  onLoginSuccess: () => void;
-  onGoToRegister: () => void;
+type RegisterScreenProps = {
+  onRegisterSuccess: () => void;
+  onGoToLogin: () => void;
 };
 
-export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScreenProps) {
-  const { email, setEmail, password, setPassword, errors, loading, handleLogin } = useLogin({
-    onSuccess: onLoginSuccess,
-  });
+export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: RegisterScreenProps) {
+  const { email, setEmail, password, setPassword, errors, loading, registered, handleRegister } =
+    useRegister();
   const {
     loading: oauthLoading,
     error: oauthError,
     handleGoogleSignIn,
-  } = useGoogleOAuth({ onSuccess: onLoginSuccess });
+  } = useGoogleOAuth({ onSuccess: onRegisterSuccess });
 
   const isSubmitting = loading || oauthLoading;
 
@@ -32,8 +31,8 @@ export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScr
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.container}>
-          <Text style={styles.title}>Bienvenida de nuevo</Text>
-          <Text style={styles.subtitle}>Inicia sesion para acceder a tu espacio privado</Text>
+          <Text style={styles.title}>Crea tu cuenta</Text>
+          <Text style={styles.subtitle}>Empieza con email o con Google en un solo paso</Text>
 
           <Input
             label="Correo electronico"
@@ -53,12 +52,15 @@ export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScr
             secureTextEntry
           />
 
+          {registered ? (
+            <Text style={styles.infoText}>Revisa tu correo para confirmar la cuenta antes de entrar.</Text>
+          ) : null}
           {errors.general ? <Text style={styles.errorText}>{errors.general}</Text> : null}
           {oauthError ? <Text style={styles.errorText}>{oauthError}</Text> : null}
 
           <Button
-            label={loading ? 'Iniciando sesion...' : 'Iniciar sesion'}
-            onPress={handleLogin}
+            label={loading ? 'Creando cuenta...' : 'Registrarme'}
+            onPress={handleRegister}
             disabled={isSubmitting}
           />
 
@@ -71,8 +73,8 @@ export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScr
 
           <Text style={styles.helperText}>o</Text>
 
-          <TouchableOpacity onPress={onGoToRegister} disabled={isSubmitting}>
-            <Text style={styles.link}>Crear una cuenta</Text>
+          <TouchableOpacity onPress={onGoToLogin} disabled={isSubmitting}>
+            <Text style={styles.link}>Ya tengo cuenta, iniciar sesion</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
