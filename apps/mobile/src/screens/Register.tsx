@@ -14,8 +14,18 @@ type RegisterScreenProps = {
 };
 
 export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: RegisterScreenProps) {
-  const { email, setEmail, password, setPassword, errors, loading, registered, handleRegister } =
-    useRegister();
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    errors,
+    loading,
+    registered,
+    handleRegister,
+  } = useRegister({ onSuccess: onRegisterSuccess });
   const {
     loading: oauthLoading,
     error: oauthError,
@@ -48,6 +58,15 @@ export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: Regis
             value={password}
             onChangeText={setPassword}
             error={errors.password}
+            placeholder="********"
+            secureTextEntry
+          />
+
+          <Input
+            label="Confirmar contrasena"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            error={errors.confirmPassword}
             placeholder="********"
             secureTextEntry
           />
