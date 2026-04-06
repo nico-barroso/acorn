@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { getSupabaseBrowserClient } from '../lib/supabase'
 
 type UploadedFile = {
   id: string
@@ -29,6 +29,7 @@ export function useUploadFile({ onSuccess, onError }: UploadFileOptions = {}) {
     setLoading(true)
     setError(null)
     setProgress(0)
+    const supabase = getSupabaseBrowserClient()
 
     //Obtenemos el usuario actual para organizar los archivos por usuario
     const {
@@ -83,8 +84,8 @@ export function useUploadFile({ onSuccess, onError }: UploadFileOptions = {}) {
     setProgress(75)
 
     //Registrar el archivo en la tabla files
-    const { data: fileRecord, error: dbError } = await supabase
-      .from('files')
+    const { data: fileRecord, error: dbError } = await (supabase
+      .from('files') as any)
       .insert({
         storage_path: storagePath,
         file_name: file.name,
