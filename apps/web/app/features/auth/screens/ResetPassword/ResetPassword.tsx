@@ -46,16 +46,24 @@ export function ResetPassword() {
 
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error && active) {
-          setErrorMessage('El enlace de recuperacion no es valido o ha expirado.')
+        if (error) {
+          if (active) {
+            setErrorMessage('El enlace de recuperacion no es valido o ha expirado.')
+            setInitializing(false)
+          }
+          return
         }
       } else if (accessToken && refreshToken) {
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
         })
-        if (error && active) {
-          setErrorMessage('No se pudo validar el enlace de recuperacion.')
+        if (error) {
+          if (active) {
+            setErrorMessage('No se pudo validar el enlace de recuperacion.')
+            setInitializing(false)
+          }
+          return
         }
       }
 
