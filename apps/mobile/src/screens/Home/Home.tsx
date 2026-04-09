@@ -12,6 +12,7 @@ import {
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { styles } from './Home.styles';
 import { colors } from '../../theme/colors';
 
@@ -63,7 +64,11 @@ const MOCK_CARDS: ContentCardData[] = [
 ];
 
 // ─── NavBar ───────────────────────────────────────────────────────────────────
-function NavBar() {
+type NavBarProps = {
+  onAddPress: () => void;
+};
+
+function NavBar({ onAddPress }: NavBarProps) {
   return (
     <View style={styles.navbar}>
       <TouchableOpacity style={styles.navItem} activeOpacity={0.7}>
@@ -76,7 +81,7 @@ function NavBar() {
         <Text style={styles.navLabel}>Buscar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.navFab} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.navFab} activeOpacity={0.8} onPress={onAddPress}>
         <Text style={styles.navFabIcon}>＋</Text>
       </TouchableOpacity>
 
@@ -99,6 +104,8 @@ export default function HomeScreen({
   greeting = 'Buenos días',
   recentCards = MOCK_CARDS,
 }: HomeScreenProps) {
+  const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -169,7 +176,8 @@ export default function HomeScreen({
         </View>
       </ScrollView>
 
-      <NavBar />
+      <NavBar onAddPress={() => setSaveLinkOpen(true)} />
+      <SaveLinkFlow visible={saveLinkOpen} onClose={() => setSaveLinkOpen(false)} />
     </SafeAreaView>
   );
 }

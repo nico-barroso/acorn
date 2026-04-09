@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
 import { AuthShell } from '../../components/AuthShell/AuthShell'
 import { GoogleOAuthButton } from '../../components/GoogleOAuthButton/GoogleOAuthButton'
@@ -39,6 +40,9 @@ export function Login() {
       errorMessage={errorMessage}
     >
       <GoogleOAuthButton loading={loading} onClick={handleGoogleOAuth} />
+      <Link href='/forgot-password' style={loginStyles.forgotLink}>
+        Has olvidado tu contrasena?
+      </Link>
       <p style={loginStyles.helperText}>Usamos OAuth seguro de Google con Supabase Auth.</p>
     </AuthShell>
   )
