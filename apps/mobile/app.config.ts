@@ -8,7 +8,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'light',  scheme: 'acorn',
+  userInterfaceStyle: 'light',
+  scheme: 'acorn',
   splash: {
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
@@ -16,20 +17,35 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: true,
+    bundleIdentifier: 'com.nicobarroso.acornmobile',
   },
   android: {
+    package: 'com.nicobarroso.acornmobile',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
-    },    predictiveBackGestureEnabled: false,
+    },
+    predictiveBackGestureEnabled: false,
   },
   web: {
     favicon: './assets/favicon.png',
   },
-  plugins: ['expo-router', 'expo-web-browser'],
+  plugins: [
+    'expo-router',
+    'expo-web-browser',
+    [
+      'expo-share-intent',
+      {
+        iosActivationRules: {
+          NSExtensionActivationSupportsWebURLWithMaxCount: 1,
+          NSExtensionActivationSupportsWebPageWithMaxCount: 1,
+        },
+        androidIntentFilters: ['text/*'],
+      },
+    ],
+  ],
   extra: {
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   },
 });
-

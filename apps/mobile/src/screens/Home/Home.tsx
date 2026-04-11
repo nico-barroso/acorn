@@ -31,6 +31,8 @@ interface HomeScreenProps {
   userName?: string;
   greeting?: string;
   recentCards?: ContentCardData[];
+  sharedUrl?: string | null;
+  onSharedUrlHandled?: () => void;
 }
 
 const MOCK_CARDS: ContentCardData[] = [
@@ -103,8 +105,16 @@ export default function HomeScreen({
   userName = 'Laura M.',
   greeting = 'Buenos días',
   recentCards = MOCK_CARDS,
+  sharedUrl,
+  onSharedUrlHandled,
 }: HomeScreenProps) {
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (sharedUrl) {
+      setSaveLinkOpen(true);
+    }
+  }, [sharedUrl]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -177,7 +187,12 @@ export default function HomeScreen({
       </ScrollView>
 
       <NavBar onAddPress={() => setSaveLinkOpen(true)} />
-      <SaveLinkFlow visible={saveLinkOpen} onClose={() => setSaveLinkOpen(false)} />
+      <SaveLinkFlow
+        visible={saveLinkOpen}
+        onClose={() => setSaveLinkOpen(false)}
+        initialUrl={sharedUrl ?? undefined}
+        onInitialUrlConsumed={onSharedUrlHandled}
+      />
     </SafeAreaView>
   );
 }

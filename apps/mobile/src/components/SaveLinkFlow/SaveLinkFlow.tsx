@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 import { useSaveLinkFlow } from '../../../hooks/useSaveLinkFlow';
@@ -9,9 +9,16 @@ import { styles } from './SaveLinkFlow.styles';
 type SaveLinkFlowProps = {
   visible: boolean;
   onClose: () => void;
+  initialUrl?: string;
+  onInitialUrlConsumed?: () => void;
 };
 
-export function SaveLinkFlow({ visible, onClose }: SaveLinkFlowProps) {
+export function SaveLinkFlow({
+  visible,
+  onClose,
+  initialUrl,
+  onInitialUrlConsumed,
+}: SaveLinkFlowProps) {
   const {
     url,
     setUrl,
@@ -27,6 +34,15 @@ export function SaveLinkFlow({ visible, onClose }: SaveLinkFlowProps) {
     closeFlow,
     resetFlow,
   } = useSaveLinkFlow();
+
+  useEffect(() => {
+    if (!visible || !initialUrl || saved) {
+      return;
+    }
+
+    setUrl(initialUrl);
+    onInitialUrlConsumed?.();
+  }, [initialUrl, onInitialUrlConsumed, saved, setUrl, visible]);
 
   const handleClose = async () => {
     await closeFlow();

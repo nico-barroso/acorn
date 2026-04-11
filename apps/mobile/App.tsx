@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
+import { useShareIntent } from 'expo-share-intent';
 import { Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -16,7 +18,12 @@ import HomeScreen from './src/screens/Home/Home';
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent({
+    disabled: Constants.appOwnership === 'expo',
+  });
+
   const [session, setSession] = useState<Session | null>(null);
+  const [sharedUrl, setSharedUrl] = useState<string | null>(null);
   const [authScreen, setAuthScreen] = useState<
     'login' | 'register' | 'forgotPassword' | 'resetPassword'
   >('login');
@@ -52,6 +59,23 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasShareIntent) {
+      return;
+    }
+
+    const textValue = typeof shareIntent?.text === 'string' ? shareIntent.text : '';
+    const webUrl = typeof shareIntent?.webUrl === 'string' ? shareIntent.webUrl : '';
+    const fallbackMatch = textValue.match(/https?:\/\/[^\s]+/i);
+    const candidateUrl = (webUrl || fallbackMatch?.[0] || '').trim();
+
+    if (candidateUrl) {
+      setSharedUrl(candidateUrl);
+    }
+
+    resetShareIntent();
+  }, [hasShareIntent, resetShareIntent, shareIntent]);
 
   useEffect(() => {
     const parseParamsFromUrl = (url: string) => {
@@ -126,7 +150,11 @@ export default function App() {
   return (
     <SafeAreaProvider>
       {session ? (
-        <HomeScreen userName={session.user.email ?? 'Usuario'} />
+        <HomeScreen
+          userName={session.user.email ?? 'Usuario'}
+          sharedUrl={sharedUrl}
+          onSharedUrlHandled={() => setSharedUrl(null)}
+        />
       ) : authScreen === 'login' ? (
         <LoginScreen
           onLoginSuccess={() => undefined}
