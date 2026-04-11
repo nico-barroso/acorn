@@ -3,7 +3,7 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
+  Alert,
   TouchableOpacity,
   Image,
   ImageBackground,
@@ -12,6 +12,7 @@ import {
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { styles } from './Home.styles';
 import { colors } from '../../theme/colors';
@@ -109,6 +110,24 @@ export default function HomeScreen({
   onSharedUrlHandled,
 }: HomeScreenProps) {
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
+  const [saveFileOpen, setSaveFileOpen] = React.useState(false);
+
+  const handleFabPress = () => {
+    Alert.alert('Guardar recurso', 'Elige el tipo de contenido que quieres guardar', [
+      {
+        text: 'Enlace',
+        onPress: () => setSaveLinkOpen(true),
+      },
+      {
+        text: 'Archivo',
+        onPress: () => setSaveFileOpen(true),
+      },
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+    ]);
+  };
 
   React.useEffect(() => {
     if (sharedUrl) {
@@ -186,13 +205,14 @@ export default function HomeScreen({
         </View>
       </ScrollView>
 
-      <NavBar onAddPress={() => setSaveLinkOpen(true)} />
+      <NavBar onAddPress={handleFabPress} />
       <SaveLinkFlow
         visible={saveLinkOpen}
         onClose={() => setSaveLinkOpen(false)}
         initialUrl={sharedUrl ?? undefined}
         onInitialUrlConsumed={onSharedUrlHandled}
       />
+      <SaveFileFlow visible={saveFileOpen} onClose={() => setSaveFileOpen(false)} />
     </SafeAreaView>
   );
 }
