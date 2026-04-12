@@ -1,0 +1,7 @@
+.env*
+!.env.example
+!.env.development.example
+!.env.production.example
+
+.next
+tsconfig.tsbuildinfo
