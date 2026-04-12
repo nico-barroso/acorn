@@ -3,19 +3,19 @@ import { fonts } from '../../../../theme/fonts'
 
 export const oauthCallbackStyles = {
   page: {
-    minHeight: '100vh',
+    minHeight: '100dvh',
     display: 'grid',
     placeItems: 'center',
-    padding: '24px'
+    padding: 'clamp(14px, 4vw, 24px)'
   },
   card: {
     width: '100%',
     maxWidth: '420px',
-    borderRadius: '20px',
+    borderRadius: 'clamp(14px, 4vw, 20px)',
     backgroundColor: colors.white,
     border: `1px solid ${colors.brown}1f`,
     boxShadow: '0 14px 40px rgba(67, 40, 28, 0.12)',
-    padding: '28px'
+    padding: 'clamp(16px, 5vw, 28px)'
   },
   title: {
     margin: 0,
