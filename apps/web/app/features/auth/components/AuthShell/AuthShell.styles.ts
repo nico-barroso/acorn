@@ -3,16 +3,16 @@ import { fonts } from '../../../../theme/fonts'
 
 export const authShellStyles = {
   page: {
-    minHeight: '100vh',
-    padding: '24px',
+    minHeight: '100dvh',
+    padding: 'clamp(14px, 4vw, 24px)',
     display: 'grid',
     placeItems: 'center'
   },
   card: {
     width: '100%',
     maxWidth: '460px',
-    borderRadius: '24px',
-    padding: '36px 28px',
+    borderRadius: 'clamp(16px, 4vw, 24px)',
+    padding: 'clamp(18px, 5vw, 36px) clamp(14px, 4vw, 28px)',
     backgroundColor: colors.white,
     border: `1px solid ${colors.brown}22`,
     boxShadow: '0 18px 55px rgba(67, 40, 28, 0.12)'
@@ -34,12 +34,12 @@ export const authShellStyles = {
     margin: 0,
     color: colors.brown,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xl,
+    fontSize: 'clamp(24px, 6vw, 32px)',
     fontWeight: fonts.weight.bold,
     lineHeight: fonts.lineHeight.tight
   },
   subtitle: {
-    margin: '10px 0 24px',
+    margin: '8px 0 clamp(16px, 4vw, 24px)',
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.md,
@@ -50,11 +50,12 @@ export const authShellStyles = {
     gap: '14px'
   },
   footer: {
-    marginTop: '20px',
+    marginTop: 'clamp(14px, 4vw, 20px)',
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
+    lineHeight: fonts.lineHeight.normal,
+    wordBreak: 'break-word' as const
   },
   footerLink: {
     color: colors.salmon,

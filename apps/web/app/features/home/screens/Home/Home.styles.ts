@@ -3,8 +3,8 @@ import { fonts } from '../../../../theme/fonts'
 
 export const homeStyles = {
   page: {
-    minHeight: '100vh',
-    padding: '24px',
+    minHeight: '100dvh',
+    padding: 'clamp(14px, 4vw, 24px)',
     display: 'grid',
     placeItems: 'center'
   },
@@ -12,10 +12,10 @@ export const homeStyles = {
     width: '100%',
     maxWidth: '560px',
     backgroundColor: colors.white,
-    borderRadius: '24px',
+    borderRadius: 'clamp(16px, 4vw, 24px)',
     border: `1px solid ${colors.brown}24`,
     boxShadow: '0 20px 50px rgba(67, 40, 28, 0.12)',
-    padding: '30px'
+    padding: 'clamp(18px, 5vw, 30px)'
   },
   title: {
     margin: 0,
@@ -29,10 +29,12 @@ export const homeStyles = {
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.md,
-    lineHeight: fonts.lineHeight.normal
+    lineHeight: fonts.lineHeight.normal,
+    wordBreak: 'break-word' as const
   },
   button: {
     marginTop: '22px',
+    width: '100%',
     minHeight: '46px',
     padding: '0 18px',
     border: 'none',
