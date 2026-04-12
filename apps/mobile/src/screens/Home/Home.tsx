@@ -22,6 +22,7 @@ import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { SearchScreen } from '../Search/Search';
 import { SmartFolders } from '../SmartFolders/SmartFolders';
+import { Profile } from '../Profile/Profile';
 import { TagManagement } from '../TagManagement/TagManagement';
 import { colors } from '../../theme/colors';
 import { styles } from './Home.styles';
@@ -150,6 +151,7 @@ export default function HomeScreen({
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [tagsOpen, setTagsOpen] = React.useState(false);
   const [smartFoldersOpen, setSmartFoldersOpen] = React.useState(false);
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
 
   const [resources, setResources] = React.useState<ContentCardData[]>([]);
@@ -311,7 +313,7 @@ export default function HomeScreen({
             <View style={styles.headerLogo}>
               <Image source={require('../../../assets/icon.png')} style={styles.logoImage} resizeMode='contain' />
             </View>
-            <TouchableOpacity style={styles.headerAvatar} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.headerAvatar} activeOpacity={0.8} onPress={() => setProfileOpen(true)}>
               <View style={styles.avatarCircle} />
             </TouchableOpacity>
           </View>
@@ -440,6 +442,8 @@ export default function HomeScreen({
           setSelectedItemId(itemId);
         }}
       />
+
+      <Profile visible={profileOpen} onClose={() => setProfileOpen(false)} />
     </SafeAreaView>
   );
 }
