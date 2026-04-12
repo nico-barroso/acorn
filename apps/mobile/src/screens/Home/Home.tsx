@@ -19,6 +19,7 @@ import { Button } from '../../components/Button/Button';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
 import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
+import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { colors } from '../../theme/colors';
 import { styles } from './Home.styles';
 
@@ -127,6 +128,7 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
+  const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
 
   const [resources, setResources] = React.useState<ContentCardData[]>([]);
   const [nextCursor, setNextCursor] = React.useState<string | null>(null);
@@ -264,7 +266,7 @@ export default function HomeScreen({
 
           {featured ? (
             <View style={styles.featuredCard}>
-              <ContentCard {...featured} />
+              <ContentCard {...featured} onOpenDetail={setSelectedItemId} />
             </View>
           ) : null}
         </View>
@@ -313,7 +315,7 @@ export default function HomeScreen({
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmpty}
-        renderItem={({ item }) => <ContentCard {...item} />}
+        renderItem={({ item }) => <ContentCard {...item} onOpenDetail={setSelectedItemId} />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => void fetchResources('refresh')} />
         }
@@ -342,6 +344,13 @@ export default function HomeScreen({
           setSaveFileOpen(false);
           void fetchResources('refresh');
         }}
+      />
+
+      <ItemDetail
+        visible={Boolean(selectedItemId)}
+        itemId={selectedItemId}
+        onClose={() => setSelectedItemId(null)}
+        onUpdated={() => void fetchResources('refresh')}
       />
     </SafeAreaView>
   );
