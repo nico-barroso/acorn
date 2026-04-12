@@ -396,6 +396,10 @@ export default function HomeScreen({
       <SmartFolders
         visible={smartFoldersOpen}
         onClose={() => setSmartFoldersOpen(false)}
+        onOpenDetail={(itemId) => {
+          setSmartFoldersOpen(false);
+          setSelectedItemId(itemId);
+        }}
       />
     </SafeAreaView>
   );

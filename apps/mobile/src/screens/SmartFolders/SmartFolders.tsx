@@ -13,15 +13,8 @@ import {
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../components/Button/Button';
 import { SmartFolderBuilder } from '../SmartFolderBuilder/SmartFolderBuilder';
+import { SmartFolderSummary, SmartFolderView, SmartFolderRule } from '../SmartFolderView/SmartFolderView';
 import { styles } from './SmartFolders.styles';
-
-type SmartFolderRule = {
-  id: string;
-  field: string;
-  operator: string;
-  value: unknown;
-  position: number;
-};
 
 type SmartFolderRow = {
   id: string;
@@ -32,7 +25,7 @@ type SmartFolderRow = {
   smart_folder_rules: SmartFolderRule[] | null;
 };
 
-type SmartFolderView = {
+type SmartFolderListItem = {
   id: string;
   name: string;
   description: string;
@@ -40,11 +33,13 @@ type SmartFolderView = {
   createdAtLabel: string;
   ruleCount: number;
   firstRuleLabel: string;
+  rules: SmartFolderRule[];
 };
 
 type SmartFoldersProps = {
   visible: boolean;
   onClose: () => void;
+  onOpenDetail: (itemId: string) => void;
 };
 
 function formatRule(rule: SmartFolderRule) {
@@ -58,7 +53,7 @@ function formatRule(rule: SmartFolderRule) {
   return `${rule.field} ${rule.operator} ${valueText}`;
 }
 
-function mapFolder(row: SmartFolderRow): SmartFolderView {
+function mapFolder(row: SmartFolderRow): SmartFolderListItem {
   const sortedRules = [...(row.smart_folder_rules ?? [])].sort((a, b) => a.position - b.position);
   const firstRule = sortedRules[0];
 
@@ -70,15 +65,17 @@ function mapFolder(row: SmartFolderRow): SmartFolderView {
     createdAtLabel: new Date(row.created_at).toLocaleDateString(),
     ruleCount: sortedRules.length,
     firstRuleLabel: firstRule ? formatRule(firstRule) : 'Sin reglas',
+    rules: sortedRules,
   };
 }
 
-export function SmartFolders({ visible, onClose }: SmartFoldersProps) {
+export function SmartFolders({ visible, onClose, onOpenDetail }: SmartFoldersProps) {
   const [loading, setLoading] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState('');
-  const [folders, setFolders] = React.useState<SmartFolderView[]>([]);
+  const [folders, setFolders] = React.useState<SmartFolderListItem[]>([]);
   const [builderOpen, setBuilderOpen] = React.useState(false);
+  const [selectedFolder, setSelectedFolder] = React.useState<SmartFolderSummary | null>(null);
 
   const fetchFolders = React.useCallback(
     async (mode: 'initial' | 'refresh') => {
@@ -135,6 +132,7 @@ export function SmartFolders({ visible, onClose }: SmartFoldersProps) {
       setRefreshing(false);
       setError('');
       setFolders([]);
+      setSelectedFolder(null);
     }
   }, [visible]);
 
@@ -181,7 +179,7 @@ export function SmartFolders({ visible, onClose }: SmartFoldersProps) {
                 data={folders}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <View style={styles.folderCard}>
+                  <TouchableOpacity style={styles.folderCard} activeOpacity={0.85} onPress={() => setSelectedFolder(item)}>
                     <View style={styles.cardTopRow}>
                       <Text style={styles.folderName}>{item.name}</Text>
                       <View style={[styles.statusChip, !item.isActive ? styles.statusChipInactive : null]}>
@@ -194,7 +192,7 @@ export function SmartFolders({ visible, onClose }: SmartFoldersProps) {
                     <Text style={styles.folderMeta}>Creada: {item.createdAtLabel}</Text>
                     <Text style={styles.folderMeta}>Reglas: {item.ruleCount}</Text>
                     <Text style={styles.ruleText}>Primera regla: {item.firstRuleLabel}</Text>
-                  </View>
+                  </TouchableOpacity>
                 )}
                 ListEmptyComponent={renderEmpty}
                 contentContainerStyle={folders.length === 0 ? styles.listEmptyContent : styles.listContent}
@@ -209,6 +207,13 @@ export function SmartFolders({ visible, onClose }: SmartFoldersProps) {
             visible={builderOpen}
             onClose={() => setBuilderOpen(false)}
             onCreated={() => void fetchFolders('refresh')}
+          />
+
+          <SmartFolderView
+            visible={Boolean(selectedFolder)}
+            folder={selectedFolder}
+            onClose={() => setSelectedFolder(null)}
+            onOpenDetail={onOpenDetail}
           />
         </View>
       </TouchableWithoutFeedback>
