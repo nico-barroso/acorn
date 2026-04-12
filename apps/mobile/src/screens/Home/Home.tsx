@@ -21,6 +21,7 @@ import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { SearchScreen } from '../Search/Search';
+import { TagManagement } from '../TagManagement/TagManagement';
 import { colors } from '../../theme/colors';
 import { styles } from './Home.styles';
 
@@ -57,7 +58,9 @@ type HomeScreenProps = {
 type NavBarProps = {
   onAddPress: () => void;
   onSearchPress: () => void;
+  onTagsPress: () => void;
   searchActive: boolean;
+  tagsActive: boolean;
 };
 
 const PAGE_SIZE = 12;
@@ -93,7 +96,7 @@ function mapResource(row: ResourceRow): ContentCardData {
   };
 }
 
-function NavBar({ onAddPress, onSearchPress, searchActive }: NavBarProps) {
+function NavBar({ onAddPress, onSearchPress, onTagsPress, searchActive, tagsActive }: NavBarProps) {
   return (
     <View style={styles.navbar}>
       <TouchableOpacity style={styles.navItem} activeOpacity={0.7}>
@@ -110,9 +113,9 @@ function NavBar({ onAddPress, onSearchPress, searchActive }: NavBarProps) {
         <Text style={styles.navFabIcon}>＋</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.navItem} activeOpacity={0.7}>
+      <TouchableOpacity style={styles.navItem} activeOpacity={0.7} onPress={onTagsPress}>
         <Text style={styles.navIconPlaceholder}>⊟</Text>
-        <Text style={styles.navLabel}>Carpetas</Text>
+        <Text style={[styles.navLabel, tagsActive ? styles.navLabelActive : null]}>Etiquetas</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.navItem} activeOpacity={0.7}>
@@ -132,6 +135,7 @@ export default function HomeScreen({
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const [tagsOpen, setTagsOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
 
   const [resources, setResources] = React.useState<ContentCardData[]>([]);
@@ -328,7 +332,13 @@ export default function HomeScreen({
         ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.salmon} /> : null}
       />
 
-      <NavBar onAddPress={handleFabPress} onSearchPress={() => setSearchOpen(true)} searchActive={searchOpen} />
+      <NavBar
+        onAddPress={handleFabPress}
+        onSearchPress={() => setSearchOpen(true)}
+        onTagsPress={() => setTagsOpen(true)}
+        searchActive={searchOpen}
+        tagsActive={tagsOpen}
+      />
 
       <SaveLinkFlow
         visible={saveLinkOpen}
@@ -361,6 +371,12 @@ export default function HomeScreen({
         visible={searchOpen}
         onClose={() => setSearchOpen(false)}
         onOpenDetail={(itemId) => setSelectedItemId(itemId)}
+      />
+
+      <TagManagement
+        visible={tagsOpen}
+        onClose={() => setTagsOpen(false)}
+        onUpdated={() => void fetchResources('refresh')}
       />
     </SafeAreaView>
   );
