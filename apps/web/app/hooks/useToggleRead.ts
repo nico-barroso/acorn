@@ -16,12 +16,12 @@ export function useToggleRead({ onSuccess, onError }: ToggleReadOptions = {}) {
     const supabase = getSupabaseBrowserClient();
     const newIsRead = !currentIsRead;
 
-    const { error: dbError } = await supabase
+    const { error: dbError } = await (supabase as any)
       .from("items")
       .update({
         is_read: newIsRead,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq("id", itemId);
 
     setLoading(false);
