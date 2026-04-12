@@ -12,9 +12,11 @@ export interface ContentCardProps {
   status?: 'No visto' | 'Visto';
   url?: string;
   thumbnailUri?: string;
+  onOpenDetail?: (id: string) => void;
 }
 
 export function ContentCard({
+  id,
   title,
   source,
   tag,
@@ -22,6 +24,7 @@ export function ContentCard({
   status = 'No visto',
   url,
   thumbnailUri,
+  onOpenDetail,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -39,6 +42,7 @@ export function ContentCard({
       style={styles.card}
       activeOpacity={0.9}
       onPress={() => setExpanded(!expanded)}
+      onLongPress={() => onOpenDetail?.(id)}
     >
       {/* Fila principal — siempre visible */}
       <View style={styles.row}>
@@ -93,6 +97,7 @@ export function ContentCard({
             label="Abrir enlace original"
             onPress={() => url && Linking.openURL(url)}
           />
+          {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
         </View>
       )}
     </TouchableOpacity>
