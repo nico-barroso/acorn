@@ -3,11 +3,11 @@ import { colors } from '../../theme/colors';
 
 export const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
     borderRadius: 15,
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,  // ← esto faltaba
+    shadowOpacity: 0.25, // ← esto faltaba
     shadowRadius: 4,
     elevation: 3,
   },
@@ -17,14 +17,14 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    paddingLeft: 16,
-    minHeight: 90,
+    paddingHorizontal: 30,
+    minHeight: 120,
   },
 
   // Thumbnail
   thumbnail: {
-    width: 64,
-    height: 64,
+    width: 74,
+    height: 74,
     borderRadius: 13,
     overflow: 'hidden',
     marginRight: 12,
@@ -63,15 +63,18 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     minHeight: 60,
+    gap: 2,
   },
   title: {
     fontFamily: 'CabinetGrotesk-Medium',
+    fontWeight: 500,
     fontSize: 16,
     color: colors.black,
     lineHeight: 20,
   },
   source: {
     fontFamily: 'Satoshi-Regular',
+    fontWeight: 400,
     fontSize: 12,
     color: colors.black,
     marginTop: 4,
@@ -93,10 +96,10 @@ export const styles = StyleSheet.create({
 
   // Sección expandida
   expandedSection: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 26,
     paddingBottom: 16,
+    gap: 8,
   },
-
 
   // Meta info
   metaRow: {
@@ -118,7 +121,6 @@ export const styles = StyleSheet.create({
     letterSpacing: -0.12,
   },
 
-
   // Copiar URL
   copyUrlButton: {
     flexDirection: 'row',
@@ -135,5 +137,14 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.brown,
     textDecorationLine: 'underline',
-  }
+  },
+  readToggleButton: {
+    marginLeft: 'auto',
+  },
+  readToggleText: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 12,
+    color: colors.salmon,
+    textDecorationLine: 'underline',
+  },
 });

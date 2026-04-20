@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { getSupabaseBrowserClient } from '../lib/supabase'
 
 type DeleteFileOptions = {
   onSuccess?: () => void
@@ -13,6 +13,7 @@ export function useDeleteFile({ onSuccess, onError }: DeleteFileOptions = {}) {
   async function deleteFile(fileId: string, storagePath: string) {
     setLoading(true)
     setError(null)
+    const supabase = getSupabaseBrowserClient()
 
     //Eliminar el archivo del Storage
     const { error: storageError } = await supabase.storage
@@ -28,8 +29,8 @@ export function useDeleteFile({ onSuccess, onError }: DeleteFileOptions = {}) {
     }
 
     //Eliminar el registro de la base de datos
-    const { error: dbError } = await supabase
-      .from('files')
+    const { error: dbError } = await (supabase
+      .from('files') as any)
       .delete()
       .eq('id', fileId)
 

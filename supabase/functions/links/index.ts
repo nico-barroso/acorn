@@ -14,6 +14,15 @@ type AuthContext = {
   userId: string;
 };
 
+type ListFilters = {
+  domain: string | null;
+  tagId: string | null;
+  tagSlug: string | null;
+  createdFrom: string | null;
+  createdTo: string | null;
+  isRead: boolean | null;
+};
+
 function jsonResponse(status: number, body: JsonRecord) {
   return new Response(JSON.stringify(body), {
     status,
@@ -98,6 +107,136 @@ function parsePagination(url: URL) {
   const to = from + limit - 1;
 
   return { page, limit, from, to };
+}
+
+function parseBooleanParam(value: string | null): boolean | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (["true", "1", "yes", "visto", "read"].includes(normalized)) {
+    return true;
+  }
+
+  if (["false", "0", "no", "no-visto", "unread"].includes(normalized)) {
+    return false;
+  }
+
+  return null;
+}
+
+function parseDateParam(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const asDate = new Date(normalized);
+  if (Number.isNaN(asDate.getTime())) {
+    return null;
+  }
+
+  return asDate.toISOString();
+}
+
+function parseListFilters(url: URL): ListFilters {
+  const domainRaw = url.searchParams.get("domain")?.trim().toLowerCase() || null;
+  const tagId = url.searchParams.get("tag_id")?.trim() || null;
+  const tagSlug = url.searchParams.get("tag_slug")?.trim() || null;
+
+  const createdFrom = parseDateParam(url.searchParams.get("created_from"));
+  const createdTo = parseDateParam(url.searchParams.get("created_to"));
+  const isRead = parseBooleanParam(url.searchParams.get("is_read"));
+
+  return {
+    domain: domainRaw,
+    tagId,
+    tagSlug,
+    createdFrom,
+    createdTo,
+    isRead,
+  };
+}
+
+function intersectIdSets(base: Set<string> | null, values: string[]): Set<string> {
+  const incoming = new Set(values);
+
+  if (base === null) {
+    return incoming;
+  }
+
+  const result = new Set<string>();
+  for (const id of base) {
+    if (incoming.has(id)) {
+      result.add(id);
+    }
+  }
+
+  return result;
+}
+
+async function resolveFilteredItemIds(context: AuthContext, filters: ListFilters): Promise<Set<string> | null> {
+  let idSet: Set<string> | null = null;
+
+  if (filters.domain) {
+    const { data: links, error } = await context.supabase
+      .from("links")
+      .select("id")
+      .eq("domain", filters.domain);
+
+    if (error) {
+      throw error;
+    }
+
+    idSet = intersectIdSets(
+      idSet,
+      (links ?? []).map((row) => String(row.id)),
+    );
+  }
+
+  if (filters.tagId || filters.tagSlug) {
+    let tagIdToUse = filters.tagId;
+
+    if (!tagIdToUse && filters.tagSlug) {
+      const { data: tagRows, error: tagError } = await context.supabase
+        .from("tags")
+        .select("id")
+        .eq("user_id", context.userId)
+        .eq("slug", filters.tagSlug)
+        .limit(1);
+
+      if (tagError) {
+        throw tagError;
+      }
+
+      tagIdToUse = tagRows?.[0]?.id ? String(tagRows[0].id) : null;
+    }
+
+    if (tagIdToUse) {
+      const { data: itemTags, error: itemTagsError } = await context.supabase
+        .from("item_tags")
+        .select("item_id")
+        .eq("tag_id", tagIdToUse);
+
+      if (itemTagsError) {
+        throw itemTagsError;
+      }
+
+      idSet = intersectIdSets(
+        idSet,
+        (itemTags ?? []).map((row) => String(row.item_id)),
+      );
+    } else {
+      idSet = intersectIdSets(idSet, []);
+    }
+  }
+
+  return idSet;
 }
 
 async function getAuthContext(req: Request): Promise<AuthContext> {
@@ -365,15 +504,58 @@ async function handleRead(req: Request, context: AuthContext) {
   }
 
   const { page, limit, from, to } = parsePagination(requestUrl);
+  const filters = parseListFilters(requestUrl);
 
-  const { data: items, error, count } = await context.supabase
+  let filteredItemIds: Set<string> | null = null;
+
+  try {
+    filteredItemIds = await resolveFilteredItemIds(context, filters);
+  } catch (error) {
+    return jsonResponse(400, { error: toErrorMessage(error) });
+  }
+
+  if (
+    filteredItemIds !== null
+    && filteredItemIds.size === 0
+  ) {
+    return jsonResponse(200, {
+      data: [],
+      pagination: {
+        page,
+        limit,
+        total: 0,
+        has_next: false,
+      },
+      filters,
+    });
+  }
+
+  let query = context.supabase
     .from("items")
     .select(
       "id,title,description,is_read,is_favorite,visibility,created_at,updated_at,links(url,domain,favicon_url,preview_image_url),metadata(og_title,og_description,og_image_url,site_name,language,read_time_minutes,status,fetched_at)",
       { count: "exact" },
     )
     .eq("user_id", context.userId)
-    .eq("type", "link")
+    .eq("type", "link");
+
+  if (filters.isRead !== null) {
+    query = query.eq("is_read", filters.isRead);
+  }
+
+  if (filters.createdFrom) {
+    query = query.gte("created_at", filters.createdFrom);
+  }
+
+  if (filters.createdTo) {
+    query = query.lte("created_at", filters.createdTo);
+  }
+
+  if (filteredItemIds !== null) {
+    query = query.in("id", Array.from(filteredItemIds));
+  }
+
+  const { data: items, error, count } = await query
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -396,6 +578,7 @@ async function handleRead(req: Request, context: AuthContext) {
       total: count ?? 0,
       has_next: (count ?? 0) > page * limit,
     },
+    filters,
   });
 }
 

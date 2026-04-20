@@ -1,5 +1,11 @@
 import React from 'react';
-import { TouchableOpacity, Text, Image, ImageSourcePropType } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  Image,
+  ImageSourcePropType,
+  ActivityIndicator,
+} from 'react-native';
 import { styles } from './Button.styles';
 
 export interface ButtonProps {
@@ -8,6 +14,8 @@ export interface ButtonProps {
   icon?: ImageSourcePropType;
   variant?: 'primary' | 'secondary';
   disabled?: boolean;
+  loading?: boolean;
+  loadingLabel?: string;
 }
 
 export function Button({
@@ -16,23 +24,30 @@ export function Button({
   icon,
   variant = 'primary',
   disabled = false,
+  loading = false,
+  loadingLabel,
 }: ButtonProps) {
   const isSecondary = variant === 'secondary';
+  const displayLabel = loading && loadingLabel ? loadingLabel : label;
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
         isSecondary && styles.buttonSecondary,
-        disabled && styles.buttonDisabled,
+        (disabled || loading) && styles.buttonDisabled,
       ]}
       onPress={onPress}
       activeOpacity={0.85}
-      disabled={disabled}
+      disabled={disabled || loading}
     >
-      {icon && <Image source={icon} style={styles.buttonIcon} />}
+      {loading ? (
+        <ActivityIndicator size="small" color={isSecondary ? '#1F1F1F' : '#ffffff'} />
+      ) : (
+        icon && <Image source={icon} style={styles.buttonIcon} />
+      )}
       <Text style={[styles.buttonLabel, isSecondary && styles.buttonSecondaryLabel]}>
-        {label}
+        {displayLabel}
       </Text>
     </TouchableOpacity>
   );
