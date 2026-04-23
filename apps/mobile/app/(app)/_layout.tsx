@@ -1,13 +1,16 @@
 import { Stack } from 'expo-router';
-import { View, Alert } from 'react-native';
+import { useState } from 'react';
+import { View } from 'react-native';
 import { NavBar } from '@components/NavBar/NavBar';
 import { useRouter, useSegments } from 'expo-router';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { SaveLinkModal } from '@screens/SaveLink/SaveLinkModal';
 
 export default function AppLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { setHeight } = useNavBarHeight();
+  const [saveLinkVisible, setSaveLinkVisible] = useState(false);
 
   const currentRoute = segments[segments.length - 1];
   const searchActive = currentRoute === 'search';
@@ -39,13 +42,7 @@ export default function AppLayout() {
                 }
               }
             }}
-            onAddPress={() =>
-              Alert.alert('Guardar recurso', 'Elige el tipo de contenido', [
-                { text: 'Enlace', onPress: () => {} },
-                { text: 'Archivo', onPress: () => {} },
-                { text: 'Cancelar', style: 'cancel' },
-              ])
-            }
+            onAddPress={() => setSaveLinkVisible(true)}
             onSearchPress={() => { if (!searchActive) router.push('/(app)/search'); }}
             onTagsPress={() => { if (!tagsActive) router.push('/(app)/folders'); }}
             onProfilePress={() => { if (!profileActive) router.push('/(app)/(profile)/'); }}
@@ -56,6 +53,11 @@ export default function AppLayout() {
           />
         </View>
       )}
+      <SaveLinkModal
+        visible={saveLinkVisible}
+        onClose={() => setSaveLinkVisible(false)}
+        onSaved={() => setSaveLinkVisible(false)}
+      />
     </View>
   );
 }
