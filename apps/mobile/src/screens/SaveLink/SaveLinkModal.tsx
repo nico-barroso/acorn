@@ -14,9 +14,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
 import { supabase } from '@lib/supabase';
+import { useSaveFileFlow } from '../../../hooks/useSaveFileFlow';
 import { styles } from './SaveLinkModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+type Mode = 'link' | 'file';
 
 function isValidUrl(value: string): boolean {
   try {
@@ -46,6 +49,18 @@ function getOrigin(url: string): string {
 function parseMetaContent(html: string, pattern: RegExp): string | undefined {
   const match = html.match(pattern);
   return match ? match[1].trim() : undefined;
+}
+
+function formatBytes(size: number) {
+  if (!size) return 'Tamaño no disponible';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = size;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
 type PreviewMeta = {
@@ -104,15 +119,22 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
   const fetchAbortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [mode, setMode] = useState<Mode>('link');
+
+  // Link state
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [linkError, setLinkError] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
   const [editExpanded, setEditExpanded] = useState(false);
   const [previewMeta, setPreviewMeta] = useState<PreviewMeta | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+
+  // File state
+  const { pickedFile, loading: fileLoading, progress, error: fileError, pickFile, confirmUpload, resetFlow } = useSaveFileFlow();
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -132,7 +154,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
         const meta = await fetchPreviewMeta(targetUrl, controller.signal);
         setPreviewMeta(meta);
       } catch {
-        // Silently ignore — preview is best-effort
+        // best-effort
       } finally {
         setPreviewLoading(false);
       }
@@ -151,64 +173,49 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
   }, [url, urlValid]);
 
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardWillShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    });
-    const hide = Keyboard.addListener('keyboardWillHide', () => {
-      setKeyboardHeight(0);
-    });
-    return () => {
-      show.remove();
-      hide.remove();
-    };
+    const show = Keyboard.addListener('keyboardWillShow', (e) => setKeyboardHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener('keyboardWillHide', () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
   }, []);
+
+  const resetAll = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (fetchAbortRef.current) fetchAbortRef.current.abort();
+    setMode('link');
+    setUrl('');
+    setTitle('');
+    setNotes('');
+    setLinkError('');
+    setLinkLoading(false);
+    setEditExpanded(false);
+    setPreviewMeta(null);
+    setPreviewLoading(false);
+    resetFlow();
+  };
 
   useEffect(() => {
     if (visible) {
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }).start();
     } else {
       translateY.setValue(SCREEN_HEIGHT);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (fetchAbortRef.current) fetchAbortRef.current.abort();
-      setUrl('');
-      setTitle('');
-      setNotes('');
-      setError('');
-      setLoading(false);
-      setEditExpanded(false);
-      setPreviewMeta(null);
-      setPreviewLoading(false);
+      resetAll();
     }
   }, [visible]);
 
   const handleClose = () => {
     Keyboard.dismiss();
-    Animated.timing(translateY, {
-      toValue: SCREEN_HEIGHT,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => onClose());
+    Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 200, useNativeDriver: true }).start(() => onClose());
   };
 
-  const handleSave = async () => {
+  const handleSaveLink = async () => {
     const trimmedUrl = url.trim();
-
-    if (!trimmedUrl) {
-      setError('La URL es obligatoria.');
+    if (!trimmedUrl || !isValidUrl(trimmedUrl)) {
+      setLinkError('Introduce una URL válida (https://...).');
       return;
     }
 
-    if (!isValidUrl(trimmedUrl)) {
-      setError('Introduce una URL válida (https://...).');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
+    setLinkLoading(true);
+    setLinkError('');
 
     const { data: linkData, error: fnError } = await supabase.functions.invoke('link-test', {
       body: {
@@ -218,10 +225,10 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
       },
     });
 
-    setLoading(false);
+    setLinkLoading(false);
 
     if (fnError) {
-      setError('No se pudo guardar el enlace. Inténtalo de nuevo.');
+      setLinkError('No se pudo guardar el enlace. Inténtalo de nuevo.');
       return;
     }
 
@@ -236,10 +243,15 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
     handleClose();
   };
 
+  const handleSaveFile = async () => {
+    await confirmUpload();
+    onSaved();
+    handleClose();
+  };
+
   if (!visible) return null;
 
   const previewTitle = title.trim() || previewMeta?.ogTitle || domain;
-  const previewTag = '';
   const ogImage = previewMeta?.ogImage;
   const faviconUrl = previewMeta?.faviconUrl;
 
@@ -251,9 +263,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
           styles.sheet,
           {
             transform: [{ translateY }],
-            paddingBottom: keyboardHeight > 0
-              ? keyboardHeight + 16
-              : insets.bottom + navBarHeight + 16,
+            paddingBottom: keyboardHeight > 0 ? keyboardHeight + 16 : insets.bottom + navBarHeight + 16,
           },
         ]}
       >
@@ -261,157 +271,184 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
           <View style={styles.handle} />
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={styles.title}>Guardar enlace</Text>
-          <Text style={styles.subtitle}>Pega la URL del recurso que quieres guardar.</Text>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Guardar recurso</Text>
 
-          <TextInput
-            style={[styles.input, error ? styles.inputError : null]}
-            placeholder="https://..."
-            placeholderTextColor="#8B8179"
-            value={url}
-            onChangeText={(text) => {
-              setUrl(text);
-              if (error) setError('');
-              if (!isValidUrl(text)) setEditExpanded(false);
-            }}
-            autoFocus
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            editable={!loading}
-          />
+          {/* Toggle modo */}
+          <View style={styles.modeToggle}>
+            <TouchableOpacity
+              style={[styles.modeTab, mode === 'link' && styles.modeTabActive]}
+              onPress={() => setMode('link')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.modeTabText, mode === 'link' && styles.modeTabTextActive]}>Enlace</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modeTab, mode === 'file' && styles.modeTabActive]}
+              onPress={() => setMode('file')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.modeTabText, mode === 'file' && styles.modeTabTextActive]}>Archivo</Text>
+            </TouchableOpacity>
+          </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          {urlValid && (
+          {/* ── MODO ENLACE ── */}
+          {mode === 'link' && (
             <>
-              {/* Preview card */}
-              <TouchableOpacity
-                style={styles.previewCard}
-                activeOpacity={0.9}
-                disabled
-              >
-                {ogImage ? (
-                  <ImageBackground
-                    source={{ uri: ogImage }}
-                    style={styles.previewImageBg}
-                    imageStyle={styles.previewImageBgImage}
-                  >
-                    <View style={styles.previewImageOverlay} />
-                    <View style={styles.previewRow}>
-                      <View style={styles.previewTextLayout}>
-                        <Text style={[styles.previewTitle, styles.previewTitleOnImage]} numberOfLines={2}>
-                          {previewLoading && !previewTitle ? domain : previewTitle}
-                        </Text>
-                        <View style={styles.previewSourceRow}>
-                          {faviconUrl ? (
-                            <Image
-                              source={{ uri: faviconUrl }}
-                              style={styles.previewFavicon}
-                              onError={() => {}}
-                            />
-                          ) : null}
-                          <Text style={[styles.previewSource, styles.previewSourceOnImage]}>{domain}</Text>
-                        </View>
-                        {previewTag ? (
-                          <View style={styles.previewTag}>
-                            <Text style={styles.previewTagText}>#{previewTag}</Text>
+              <Text style={styles.subtitle}>Pega la URL del recurso que quieres guardar.</Text>
+
+              <TextInput
+                style={[styles.input, linkError ? styles.inputError : null]}
+                placeholder="https://..."
+                placeholderTextColor="#8B8179"
+                value={url}
+                onChangeText={(text) => {
+                  setUrl(text);
+                  if (linkError) setLinkError('');
+                  if (!isValidUrl(text)) setEditExpanded(false);
+                }}
+                autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                editable={!linkLoading}
+              />
+
+              {linkError ? <Text style={styles.error}>{linkError}</Text> : null}
+
+              {urlValid && (
+                <>
+                  <TouchableOpacity style={styles.previewCard} activeOpacity={0.9} disabled>
+                    {ogImage ? (
+                      <ImageBackground
+                        source={{ uri: ogImage }}
+                        style={styles.previewImageBg}
+                        imageStyle={styles.previewImageBgImage}
+                      >
+                        <View style={styles.previewImageOverlay} />
+                        <View style={styles.previewRow}>
+                          <View style={styles.previewTextLayout}>
+                            <Text style={[styles.previewTitle, styles.previewTitleOnImage]} numberOfLines={2}>
+                              {previewLoading && !previewTitle ? domain : previewTitle}
+                            </Text>
+                            <View style={styles.previewSourceRow}>
+                              {faviconUrl ? <Image source={{ uri: faviconUrl }} style={styles.previewFavicon} onError={() => {}} /> : null}
+                              <Text style={[styles.previewSource, styles.previewSourceOnImage]}>{domain}</Text>
+                            </View>
                           </View>
-                        ) : null}
-                      </View>
-                    </View>
-                  </ImageBackground>
-                ) : (
-                  <View style={styles.previewRow}>
-                    <View style={styles.previewThumbnail}>
-                      {faviconUrl && !previewLoading ? (
-                        <Image
-                          source={{ uri: faviconUrl }}
-                          style={styles.previewThumbnailIcon}
-                          onError={() => {}}
-                        />
-                      ) : null}
-                    </View>
-                    <View style={styles.previewTextLayout}>
-                      <Text style={styles.previewTitle} numberOfLines={2}>
-                        {previewLoading && !previewMeta ? domain : previewTitle}
-                      </Text>
-                      <View style={styles.previewSourceRow}>
-                        {faviconUrl && !previewLoading ? (
-                          <Image
-                            source={{ uri: faviconUrl }}
-                            style={styles.previewFavicon}
-                            onError={() => {}}
-                          />
-                        ) : null}
-                        <Text style={styles.previewSource}>{domain}</Text>
-                      </View>
-                      {previewTag ? (
-                        <View style={styles.previewTag}>
-                          <Text style={styles.previewTagText}>#{previewTag}</Text>
                         </View>
-                      ) : null}
+                      </ImageBackground>
+                    ) : (
+                      <View style={styles.previewRow}>
+                        <View style={styles.previewThumbnail}>
+                          {faviconUrl && !previewLoading ? (
+                            <Image source={{ uri: faviconUrl }} style={styles.previewThumbnailIcon} onError={() => {}} />
+                          ) : null}
+                        </View>
+                        <View style={styles.previewTextLayout}>
+                          <Text style={styles.previewTitle} numberOfLines={2}>
+                            {previewLoading && !previewMeta ? domain : previewTitle}
+                          </Text>
+                          <View style={styles.previewSourceRow}>
+                            {faviconUrl && !previewLoading ? <Image source={{ uri: faviconUrl }} style={styles.previewFavicon} onError={() => {}} /> : null}
+                            <Text style={styles.previewSource}>{domain}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.editToggle}
+                    onPress={() => setEditExpanded((v) => !v)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.editToggleText}>{editExpanded ? 'Ocultar' : 'Editar'}</Text>
+                  </TouchableOpacity>
+
+                  {editExpanded && (
+                    <View style={styles.editFields}>
+                      <Text style={styles.label}>Título</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Título del recurso (opcional)"
+                        placeholderTextColor="#8B8179"
+                        value={title}
+                        onChangeText={setTitle}
+                        editable={!linkLoading}
+                      />
+                      <Text style={styles.label}>Notas</Text>
+                      <TextInput
+                        style={[styles.input, styles.textarea]}
+                        placeholder="Añade notas o descripción (opcional)"
+                        placeholderTextColor="#8B8179"
+                        value={notes}
+                        onChangeText={setNotes}
+                        multiline
+                        editable={!linkLoading}
+                      />
                     </View>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* Editar toggle */}
-              <TouchableOpacity
-                style={styles.editToggle}
-                onPress={() => setEditExpanded((v) => !v)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.editToggleText}>
-                  {editExpanded ? 'Ocultar' : 'Editar'}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Campos de edición expandibles */}
-              {editExpanded && (
-                <View style={styles.editFields}>
-                  <Text style={styles.label}>Título</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Título del recurso (opcional)"
-                    placeholderTextColor="#8B8179"
-                    value={title}
-                    onChangeText={setTitle}
-                    editable={!loading}
-                  />
-
-                  <Text style={styles.label}>Notas</Text>
-                  <TextInput
-                    style={[styles.input, styles.textarea]}
-                    placeholder="Añade notas o descripción (opcional)"
-                    placeholderTextColor="#8B8179"
-                    value={notes}
-                    onChangeText={setNotes}
-                    multiline
-                    editable={!loading}
-                  />
-                </View>
+                  )}
+                </>
               )}
+
+              <View style={styles.buttons}>
+                <TouchableOpacity style={styles.cancelButton} onPress={handleClose} activeOpacity={0.7}>
+                  <Text style={styles.cancelLabel}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.confirmButton, !urlValid && styles.confirmButtonDisabled]}
+                  onPress={handleSaveLink}
+                  activeOpacity={0.7}
+                  disabled={linkLoading || !urlValid}
+                >
+                  <Text style={styles.confirmLabel}>{linkLoading ? 'Guardando...' : 'Guardar'}</Text>
+                </TouchableOpacity>
+              </View>
             </>
           )}
 
-          <View style={styles.buttons}>
-            <TouchableOpacity style={styles.cancelButton} onPress={handleClose} activeOpacity={0.7}>
-              <Text style={styles.cancelLabel}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.confirmButton, !urlValid && styles.confirmButtonDisabled]}
-              onPress={handleSave}
-              activeOpacity={0.7}
-              disabled={loading || !urlValid}
-            >
-              <Text style={styles.confirmLabel}>{loading ? 'Guardando...' : 'Guardar'}</Text>
-            </TouchableOpacity>
-          </View>
+          {/* ── MODO ARCHIVO ── */}
+          {mode === 'file' && (
+            <>
+              <Text style={styles.subtitle}>Selecciona un archivo de tu dispositivo para guardarlo.</Text>
+
+              <TouchableOpacity
+                style={styles.filePickButton}
+                onPress={pickFile}
+                activeOpacity={0.7}
+                disabled={fileLoading}
+              >
+                <Text style={styles.filePickButtonText}>
+                  {pickedFile ? 'Cambiar archivo' : 'Seleccionar archivo'}
+                </Text>
+              </TouchableOpacity>
+
+              {pickedFile && (
+                <View style={styles.filePreviewCard}>
+                  <Text style={styles.fileName} numberOfLines={2}>{pickedFile.name}</Text>
+                  <Text style={styles.fileMeta}>{pickedFile.type} · {formatBytes(pickedFile.size)}</Text>
+                </View>
+              )}
+
+              {fileError ? <Text style={styles.error}>{fileError}</Text> : null}
+              {fileLoading ? <Text style={styles.fileProgress}>Subiendo... {progress}%</Text> : null}
+
+              <View style={styles.buttons}>
+                <TouchableOpacity style={styles.cancelButton} onPress={handleClose} activeOpacity={0.7}>
+                  <Text style={styles.cancelLabel}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.confirmButton, (!pickedFile || fileLoading) && styles.confirmButtonDisabled]}
+                  onPress={handleSaveFile}
+                  activeOpacity={0.7}
+                  disabled={!pickedFile || fileLoading}
+                >
+                  <Text style={styles.confirmLabel}>{fileLoading ? 'Subiendo...' : 'Guardar'}</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </ScrollView>
       </Animated.View>
     </View>

@@ -43,6 +43,83 @@ export const styles = StyleSheet.create({
     color: colors.brownMid,
     marginBottom: 16,
   },
+  // Mode toggle
+  modeToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#F0E6E0',
+    borderRadius: 14,
+    padding: 4,
+    marginBottom: 16,
+  },
+  modeTab: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 11,
+    alignItems: 'center',
+  },
+  modeTabActive: {
+    backgroundColor: colors.white,
+    shadowColor: colors.salmon,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  modeTabText: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontSize: 14,
+    color: colors.brownMid,
+    fontWeight: '700',
+  },
+  modeTabTextActive: {
+    color: colors.brown,
+  },
+
+  // File section
+  filePickButton: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.brownMid,
+    borderStyle: 'dashed',
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  filePickButtonText: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontSize: 15,
+    color: colors.brownMid,
+    fontWeight: '700',
+  },
+  filePreviewCard: {
+    backgroundColor: '#FFF8F5',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E8D8CF',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 4,
+    gap: 4,
+  },
+  fileName: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontSize: 15,
+    color: colors.brown,
+    fontWeight: '700',
+  },
+  fileMeta: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 12,
+    color: colors.brownMid,
+  },
+  fileProgress: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 13,
+    color: colors.brownMid,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+
   label: {
     fontFamily: 'Satoshi-Regular',
     fontSize: 13,
