@@ -12,13 +12,78 @@ export const styles = StyleSheet.create({
     elevation: 3,
   },
 
+  // Thumbnail derecho con degradado diagonal
+  thumbnailRight: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 190,
+    borderTopRightRadius: 15,
+    borderBottomRightRadius: 15,
+    overflow: 'hidden',
+  },
+  thumbnailRightImage: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailRightGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  // Hero expandido
+  heroImageBg: {
+    minHeight: 160,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  heroImageBgImage: {
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+  },
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroContent: {
+    padding: 18,
+    paddingHorizontal: 20,
+    gap: 5,
+  },
+  heroTitle: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontWeight: '700',
+    fontSize: 18,
+    color: colors.white,
+    lineHeight: 23,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(10,5,2,0.55)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    overflow: 'hidden',
+  },
+  heroSource: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.9)',
+    letterSpacing: -0.1,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(10,5,2,0.45)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    overflow: 'hidden',
+  },
+
   // Fila principal
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    paddingHorizontal: 30,
-    minHeight: 120,
+    paddingHorizontal: 20,
+    minHeight: 110,
   },
 
   // Thumbnail
@@ -72,12 +137,22 @@ export const styles = StyleSheet.create({
     color: colors.black,
     lineHeight: 20,
   },
+  sourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  favicon: {
+    width: 14,
+    height: 14,
+    borderRadius: 3,
+  },
   source: {
     fontFamily: 'Satoshi-Regular',
     fontWeight: 400,
     fontSize: 12,
     color: colors.black,
-    marginTop: 4,
     letterSpacing: -0.12,
   },
 
