@@ -35,6 +35,7 @@ type ResourceRow = {
   created_at: string;
   url: string | null;
   domain: string | null;
+  favicon_url: string | null;
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
@@ -79,6 +80,7 @@ function mapResource(row: ResourceRow): ContentCardData {
     isRead: Boolean(row.is_read),
     url: row.url ?? undefined,
     thumbnailUri: row.og_image_url ?? row.preview_image_url ?? undefined,
+    faviconUri: row.favicon_url ?? undefined,
   };
 }
 
@@ -179,7 +181,7 @@ export default function HomeScreen({
 
     let query = supabase
       .from('items_with_links')
-      .select('id,title,is_read,created_at,url,domain,preview_image_url,og_image_url,tags')
+      .select('id,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);

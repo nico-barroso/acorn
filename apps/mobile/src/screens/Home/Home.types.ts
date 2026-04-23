@@ -10,5 +10,6 @@ export type ContentCardData = {
   isRead: boolean;
   url?: string;
   thumbnailUri?: string;
+  faviconUri?: string;
   iconSource?: ImageSourcePropType;
 };
