@@ -19,7 +19,6 @@ import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { useRouter } from 'expo-router';
-import { SmartFolders } from '../SmartFolders/SmartFolders';
 import { TagManagement } from '../TagManagement/TagManagement';
 import { colors } from '../../theme/colors';
 import { styles } from './Home.styles';
@@ -96,7 +95,6 @@ export default function HomeScreen({
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
   const [tagsOpen, setTagsOpen] = React.useState(false);
-  const [smartFoldersOpen, setSmartFoldersOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
 
   const [resources, setResources] = React.useState<ContentCardData[]>([]);
@@ -371,15 +369,6 @@ export default function HomeScreen({
         visible={tagsOpen}
         onClose={() => setTagsOpen(false)}
         onUpdated={() => void fetchResources('refresh')}
-      />
-
-      <SmartFolders
-        visible={smartFoldersOpen}
-        onClose={() => setSmartFoldersOpen(false)}
-        onOpenDetail={(itemId) => {
-          setSmartFoldersOpen(false);
-          setSelectedItemId(itemId);
-        }}
       />
     </SafeAreaView>
   );
