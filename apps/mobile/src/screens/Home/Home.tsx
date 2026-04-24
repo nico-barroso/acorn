@@ -29,6 +29,7 @@ import { useNavBarHeight } from '@context/NavBarHeightContext';
 
 type ResourceRow = {
   id: string;
+  type: string | null;
   title: string | null;
   is_read: boolean;
   created_at: string;
@@ -69,10 +70,11 @@ function formatSavedDate(isoDate: string) {
 }
 
 function mapResource(row: ResourceRow): ContentCardData {
+  const isFile = row.type === 'file';
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-    source: row.domain ? `Enlace / ${row.domain}` : 'Enlace',
+    source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     tag: row.tags && row.tags.length > 0 ? `#${row.tags[0]}` : '#recurso',
     savedDate: formatSavedDate(row.created_at),
     status: row.is_read ? 'Visto' : 'No visto',
@@ -179,7 +181,7 @@ export default function HomeScreen({
 
     let query = supabase
       .from('items_with_links')
-      .select('id,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
+      .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);

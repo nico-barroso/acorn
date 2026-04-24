@@ -20,6 +20,7 @@ import { styles } from './ItemDetail.styles';
 type DetailRecord = {
   id: string;
   user_id: string;
+  type: string | null;
   title: string | null;
   description: string | null;
   is_read: boolean;
@@ -62,6 +63,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
   const [newTag, setNewTag] = React.useState('');
 
   const [url, setUrl] = React.useState('');
+  const [itemType, setItemType] = React.useState('');
   const [domain, setDomain] = React.useState('');
   const [createdAt, setCreatedAt] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
@@ -78,7 +80,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     const { data, error: detailError } = await supabase
       .from('items_with_links')
       .select(
-        'id,user_id,title,description,is_read,created_at,url,domain,og_image_url,preview_image_url,tags',
+        'id,user_id,type,title,description,is_read,created_at,url,domain,og_image_url,preview_image_url,tags',
       )
       .eq('id', itemId)
       .single();
@@ -97,6 +99,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     setIsRead(Boolean(record.is_read));
     setTags((record.tags ?? []).filter(Boolean));
     setUrl(record.url ?? '');
+    setItemType(record.type ?? '');
     setDomain(record.domain ?? 'Dominio no disponible');
     setCreatedAt(new Date(record.created_at).toLocaleString());
     setImageUrl(record.og_image_url ?? record.preview_image_url ?? '');
@@ -248,10 +251,32 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     await loadDetail();
   };
 
-  const handleOpenUrl = () => {
-    if (!url) {
-      return;
+  const handleOpenUrl = async () => {
+    if (!url) return;
+    console.log('[handleOpenUrl] url:', url);
+
+    const storageMarker = '/object/public/user-files/';
+    const markerIndex = url.indexOf(storageMarker);
+    console.log('[handleOpenUrl] markerIndex:', markerIndex);
+
+    if (markerIndex !== -1) {
+      const storagePath = decodeURIComponent(url.slice(markerIndex + storageMarker.length));
+      console.log('[handleOpenUrl] storagePath:', storagePath);
+
+      const { data: signed, error: signedError } = await supabase.storage
+        .from('user-files')
+        .createSignedUrl(storagePath, 3600);
+
+      console.log('[handleOpenUrl] signedUrl:', signed?.signedUrl);
+      console.log('[handleOpenUrl] signedError:', signedError);
+
+      if (signed?.signedUrl) {
+        void Linking.openURL(signed.signedUrl);
+        return;
+      }
     }
+
+    console.log('[handleOpenUrl] fallback to public url');
     void Linking.openURL(url);
   };
 

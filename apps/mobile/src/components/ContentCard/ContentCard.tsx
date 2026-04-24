@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '../../../lib/supabase';
 import { styles } from './ContentCard.styles';
 import { Button } from '../Button/Button';
 import { Tag } from '../Tag/Tag';
@@ -82,6 +83,27 @@ export function ContentCard({
 
   const handleCopyUrl = () => {
     console.log('Copiar URL:', url);
+  };
+
+  const handleOpenUrl = async () => {
+    if (!url) return;
+
+    const storageMarker = '/object/public/user-files/';
+    const markerIndex = url.indexOf(storageMarker);
+
+    if (markerIndex !== -1) {
+      const storagePath = decodeURIComponent(url.slice(markerIndex + storageMarker.length));
+      const { data: signed } = await supabase.storage
+        .from('user-files')
+        .createSignedUrl(storagePath, 3600);
+
+      if (signed?.signedUrl) {
+        void Linking.openURL(signed.signedUrl);
+        return;
+      }
+    }
+
+    void Linking.openURL(url);
   };
 
   if (thumbnailUri) {
@@ -168,7 +190,7 @@ export function ContentCard({
                   <Text style={styles.copyUrlText}>Copiar URL</Text>
                 </TouchableOpacity>
               </View>
-              <Button label="Abrir enlace original" onPress={() => url && Linking.openURL(url)} />
+              <Button label="Abrir enlace original" onPress={handleOpenUrl} />
               {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
             </View>
           </Animated.View>
@@ -232,7 +254,7 @@ export function ContentCard({
               <Text style={styles.copyUrlText}>Copiar URL</Text>
             </TouchableOpacity>
           </View>
-          <Button label="Abrir enlace original" onPress={() => url && Linking.openURL(url)} />
+          <Button label="Abrir enlace original" onPress={handleOpenUrl} />
           {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
         </View>
       )}
