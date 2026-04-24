@@ -61,6 +61,9 @@ export function FolderDetailScreen({
       savedDate={item.savedDate}
       status={item.status}
       url={item.url}
+      thumbnailUri={item.thumbnailUri}
+      faviconUri={item.faviconUri}
+      isFile={item.isFile}
       onOpenDetail={onOpenDetail}
     />
   );

@@ -69,8 +69,17 @@ function formatSavedDate(isoDate: string) {
   return new Date(isoDate).toLocaleDateString();
 }
 
+const FILE_ICON = require('../../../assets/favicon.png');
+
+function isImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
+}
+
 function mapResource(row: ResourceRow): ContentCardData {
   const isFile = row.type === 'file';
+  const fileUrl = row.url ?? undefined;
+  const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
+
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
@@ -79,9 +88,11 @@ function mapResource(row: ResourceRow): ContentCardData {
     savedDate: formatSavedDate(row.created_at),
     status: row.is_read ? 'Visto' : 'No visto',
     isRead: Boolean(row.is_read),
-    url: row.url ?? undefined,
-    thumbnailUri: row.og_image_url ?? row.preview_image_url ?? undefined,
+    url: fileUrl,
+    thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
     faviconUri: row.favicon_url ?? undefined,
+    iconSource: isFile ? FILE_ICON : undefined,
+    isFile,
   };
 }
 

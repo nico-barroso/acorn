@@ -92,6 +92,9 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
       savedDate={new Date(item.createdAt).toLocaleDateString()}
       status={item.isRead ? 'Visto' : 'No visto'}
       url={item.url}
+      thumbnailUri={item.thumbnailUri}
+      faviconUri={item.faviconUri}
+      isFile={item.isFile}
       onOpenDetail={onOpenDetail}
     />
   );

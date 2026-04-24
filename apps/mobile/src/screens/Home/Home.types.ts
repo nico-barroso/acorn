@@ -12,4 +12,5 @@ export type ContentCardData = {
   thumbnailUri?: string;
   faviconUri?: string;
   iconSource?: ImageSourcePropType;
+  isFile?: boolean;
 };

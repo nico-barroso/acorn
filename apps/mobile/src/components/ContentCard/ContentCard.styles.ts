@@ -105,6 +105,15 @@ export const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: colors.black,
   },
+  filePlaceholderGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filePlaceholderEmoji: {
+    fontSize: 40,
+  },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',

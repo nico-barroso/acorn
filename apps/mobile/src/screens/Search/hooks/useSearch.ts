@@ -4,16 +4,28 @@ import type { DateFilterValue, ReadFilterValue, SearchResult, SearchRow } from '
 
 const PAGE_SIZE = 15;
 
+const FILE_ICON = require('../../../../assets/favicon.png');
+
+function isImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
+}
+
 function mapSearchResult(row: SearchRow): SearchResult {
+  const isFile = row.type === 'file';
+  const fileUrl = row.url || '';
+  const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-    domain: row.domain || 'Dominio no disponible',
+    domain: isFile ? 'Archivo' : row.domain || 'Dominio no disponible',
     snippet: row.description?.trim() || row.url || 'Sin descripcion',
-    url: row.url || '',
+    url: fileUrl,
     createdAt: row.created_at,
     isRead: Boolean(row.is_read),
     tags: (row.tags ?? []).filter(Boolean),
+    thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+    faviconUri: row.favicon_url ?? undefined,
+    isFile,
   };
 }
 
@@ -57,7 +69,7 @@ export function useSearch() {
 
     let queryBuilder = supabase
       .from('items_with_links')
-      .select('id,title,description,domain,url,created_at,is_read,tags')
+      .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);

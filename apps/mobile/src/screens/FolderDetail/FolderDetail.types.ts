@@ -7,6 +7,8 @@ export type FolderResource = {
   status: 'Visto' | 'No visto';
   url?: string;
   thumbnailUri?: string;
+  faviconUri?: string;
+  isFile: boolean;
   isRead: boolean;
 };
 

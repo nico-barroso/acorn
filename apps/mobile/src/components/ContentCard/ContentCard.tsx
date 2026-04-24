@@ -34,6 +34,7 @@ export interface ContentCardProps {
   thumbnailUri?: string;
   faviconUri?: string;
   iconSource?: ImageSourcePropType;
+  isFile?: boolean;
   onOpenDetail?: (id: string) => void;
   onToggleRead?: (id: string, nextRead: boolean) => void;
 }
@@ -49,6 +50,7 @@ export function ContentCard({
   thumbnailUri,
   faviconUri,
   iconSource,
+  isFile = false,
   onOpenDetail,
   onToggleRead,
 }: ContentCardProps) {
@@ -106,7 +108,18 @@ export function ContentCard({
     void Linking.openURL(url);
   };
 
-  if (thumbnailUri) {
+  if (isFile) console.log('[ContentCard] isFile=true thumbnailUri=', thumbnailUri, 'id=', id);
+
+  const sourceIcon = faviconUri
+    ? <Image source={{ uri: faviconUri }} style={styles.favicon} />
+    : iconSource
+      ? <Image source={iconSource} style={styles.favicon} />
+      : null;
+
+  // Archivos y links con imagen usan el layout de thumbnail
+  if (thumbnailUri || isFile) {
+    const filePlaceholder = !thumbnailUri && isFile;
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -118,7 +131,18 @@ export function ContentCard({
         {!expanded && (
           <Animated.View style={{ opacity: collapsedOpacity }}>
             <View style={styles.thumbnailRight}>
-              <Image source={{ uri: thumbnailUri }} style={styles.thumbnailRightImage} />
+              {filePlaceholder ? (
+                <LinearGradient
+                  colors={[colors.brownMid, colors.salmon]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.filePlaceholderGradient}
+                >
+                  <Text style={styles.filePlaceholderEmoji}>📄</Text>
+                </LinearGradient>
+              ) : (
+                <Image source={{ uri: thumbnailUri }} style={styles.thumbnailRightImage} />
+              )}
               <LinearGradient
                 colors={[colors.white, colors.white, 'transparent']}
                 locations={[0, 0.35, 1]}
@@ -131,7 +155,7 @@ export function ContentCard({
               <View style={styles.textLayout}>
                 <Text style={styles.title} numberOfLines={2}>{title}</Text>
                 <View style={styles.sourceRow}>
-                  {faviconUri ? <Image source={{ uri: faviconUri }} style={styles.favicon} /> : null}
+                  {sourceIcon}
                   <Text style={styles.source}>{source}</Text>
                 </View>
                 <Tag label={tag} />
@@ -144,24 +168,46 @@ export function ContentCard({
         {/* ── EXPANDED HERO ── */}
         {expanded && (
           <Animated.View style={{ opacity: expandedOpacity }}>
-            <ImageBackground
-              source={{ uri: thumbnailUri }}
-              style={styles.heroImageBg}
-              imageStyle={styles.heroImageBgImage}
-            >
+            {filePlaceholder ? (
               <LinearGradient
-                colors={['transparent', 'rgba(15,8,4,0.72)']}
-                style={styles.heroGradient}
-              />
-              <View style={styles.heroContent}>
-                <Text style={styles.heroTitle} numberOfLines={3}>{title}</Text>
-                <View style={styles.sourceRow}>
-                  {faviconUri ? <Image source={{ uri: faviconUri }} style={styles.favicon} /> : null}
-                  <Text style={styles.heroSource}>{source}</Text>
+                colors={[colors.brownMid, colors.salmon]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroImageBg}
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(15,8,4,0.72)']}
+                  style={styles.heroGradient}
+                />
+                <View style={styles.heroContent}>
+                  <Text style={styles.heroTitle} numberOfLines={3}>{title}</Text>
+                  <View style={styles.sourceRow}>
+                    {sourceIcon}
+                    <Text style={styles.heroSource}>{source}</Text>
+                  </View>
+                  <Tag label={tag} />
                 </View>
-                <Tag label={tag} />
-              </View>
-            </ImageBackground>
+              </LinearGradient>
+            ) : (
+              <ImageBackground
+                source={{ uri: thumbnailUri }}
+                style={styles.heroImageBg}
+                imageStyle={styles.heroImageBgImage}
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(15,8,4,0.72)']}
+                  style={styles.heroGradient}
+                />
+                <View style={styles.heroContent}>
+                  <Text style={styles.heroTitle} numberOfLines={3}>{title}</Text>
+                  <View style={styles.sourceRow}>
+                    {sourceIcon}
+                    <Text style={styles.heroSource}>{source}</Text>
+                  </View>
+                  <Tag label={tag} />
+                </View>
+              </ImageBackground>
+            )}
 
             <View style={styles.expandedSection}>
               <View style={styles.metaRow}>
@@ -199,7 +245,7 @@ export function ContentCard({
     );
   }
 
-  // ── SIN THUMBNAIL ──
+  // ── SIN THUMBNAIL (solo links sin imagen) ──
   return (
     <TouchableOpacity
       style={styles.card}

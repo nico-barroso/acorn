@@ -7,10 +7,14 @@ export type SearchResult = {
   createdAt: string;
   isRead: boolean;
   tags: string[];
+  thumbnailUri?: string;
+  faviconUri?: string;
+  isFile: boolean;
 };
 
 export type SearchRow = {
   id: string;
+  type: string | null;
   title: string | null;
   description: string | null;
   domain: string | null;
@@ -18,6 +22,9 @@ export type SearchRow = {
   created_at: string;
   is_read: boolean;
   tags: string[] | null;
+  og_image_url: string | null;
+  preview_image_url: string | null;
+  favicon_url: string | null;
 };
 
 export type SearchScreenProps = {

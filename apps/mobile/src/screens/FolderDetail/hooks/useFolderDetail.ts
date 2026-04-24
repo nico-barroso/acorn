@@ -2,14 +2,24 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@lib/supabase';
 import type { FolderResource } from '../FolderDetail.types';
 
+const FILE_ICON = require('../../../../assets/favicon.png');
+
+function isImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
+}
+
 type ItemRow = {
   id: string;
+  type: string | null;
   title: string | null;
   is_read: boolean;
   created_at: string;
   url: string | null;
   domain: string | null;
   tags: string[] | null;
+  og_image_url: string | null;
+  preview_image_url: string | null;
+  favicon_url: string | null;
 };
 
 export function useFolderDetail(folderId: string) {
@@ -51,7 +61,7 @@ export function useFolderDetail(folderId: string) {
 
       const { data: itemData, error: itemError } = await supabase
         .from('items_with_links')
-        .select('id,title,is_read,created_at,url,domain,tags')
+        .select('id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(200);
@@ -63,16 +73,24 @@ export function useFolderDetail(folderId: string) {
       }
 
       const rows = (itemData ?? []) as ItemRow[];
-      const mapped: FolderResource[] = rows.map((row): FolderResource => ({
-        id: row.id,
-        title: row.title?.trim() || row.domain || row.url || 'Recurso sin título',
-        source: row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-        tag: row.tags && row.tags.length > 0 ? `#${row.tags[0]}` : '#recurso',
-        savedDate: new Date(row.created_at).toLocaleDateString(),
-        status: row.is_read ? 'Visto' : 'No visto',
-        isRead: Boolean(row.is_read),
-        url: row.url ?? undefined,
-      }));
+      const mapped: FolderResource[] = rows.map((row): FolderResource => {
+        const isFile = row.type === 'file';
+        const fileUrl = row.url ?? undefined;
+        const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
+        return {
+          id: row.id,
+          title: row.title?.trim() || row.domain || row.url || 'Recurso sin título',
+          source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
+          tag: row.tags && row.tags.length > 0 ? `#${row.tags[0]}` : '#recurso',
+          savedDate: new Date(row.created_at).toLocaleDateString(),
+          status: row.is_read ? 'Visto' : 'No visto',
+          isRead: Boolean(row.is_read),
+          url: fileUrl,
+          thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+          faviconUri: row.favicon_url ?? undefined,
+          isFile,
+        };
+      });
 
       setResources(mapped);
     } catch {
