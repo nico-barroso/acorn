@@ -26,6 +26,13 @@ export default function HomeRoute() {
       const raw = profile?.display_name ?? data.user?.email ?? 'Usuario';
       setDisplayName(sanitizeDisplayName(raw));
     });
+
+    void bootstrap();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

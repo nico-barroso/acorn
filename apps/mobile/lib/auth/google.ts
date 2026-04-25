@@ -1,7 +1,7 @@
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 
-import { supabase } from '../supabase/client';
+import { supabase } from '../supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -27,10 +27,6 @@ function parseParamsFromUrl(url: string) {
 }
 
 export async function signInWithGoogle() {
-  if (!supabase) {
-    throw new Error('Supabase client is not initialized. Check environment variables.');
-  }
-
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {

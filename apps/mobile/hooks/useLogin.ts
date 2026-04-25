@@ -7,11 +7,7 @@ type FormErrors = {
   general?: string;
 };
 
-type UseLoginOptions = {
-  onSuccess: () => void; // Navegación a home
-};
-
-export function useLogin({ onSuccess }: UseLoginOptions) {
+export function useLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
@@ -40,7 +36,7 @@ export function useLogin({ onSuccess }: UseLoginOptions) {
     setLoading(true);
     setErrors({});
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -57,11 +53,6 @@ export function useLogin({ onSuccess }: UseLoginOptions) {
       return;
     }
 
-    // Si el login es correcto, Supabase guarda la sesión en AsyncStorage automáticamente
-    // Llamamos al callback para que el frontend navegue a Home
-    if (data.session) {
-      onSuccess();
-    }
   }
 
   return {
