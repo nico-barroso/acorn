@@ -291,6 +291,19 @@ export const homeStyles = {
     fontSize: fonts.size.sm,
     lineHeight: fonts.lineHeight.normal
   },
+  emptyCtaButton: {
+    marginTop: '14px',
+    minHeight: '40px',
+    padding: '0 18px',
+    borderRadius: '12px',
+    border: 'none',
+    backgroundColor: colors.salmon,
+    color: colors.white,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer'
+  },
   errorText: {
     margin: 0,
     color: '#8b2a1b',

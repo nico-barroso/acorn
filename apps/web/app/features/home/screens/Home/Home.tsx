@@ -326,8 +326,11 @@ export function Home() {
 
       {resources.length === 0 && !error ? (
         <section style={homeStyles.emptyState}>
-          <h2 style={homeStyles.emptyTitle}>Aún no tienes recursos</h2>
+          <h2 style={homeStyles.emptyTitle}>Aun no tienes recursos</h2>
           <p style={homeStyles.emptyText}>Guarda tu primer enlace para empezar a construir tu biblioteca.</p>
+          <button type='button' onClick={() => setShowSaveModal(true)} style={homeStyles.emptyCtaButton}>
+            + Guardar enlace
+          </button>
         </section>
       ) : null}
 
