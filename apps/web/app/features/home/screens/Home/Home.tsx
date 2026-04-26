@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
 import { useToggleRead } from '../../../../hooks/useToggleRead'
+import { ResourceCard } from '../../../shared/components/ResourceCard/ResourceCard'
 import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
 
@@ -17,15 +18,22 @@ type ResourceRow = {
   created_at: string
   is_read: boolean
   tags: string[] | null
+  preview_image_url?: string | null
+  og_image_url?: string | null
+  site_name?: string | null
 }
 
-type ResourceCard = {
+type ResourceCardData = {
   id: string
   title: string
   description: string
   domain: string
+  url: string | null
+  thumbnailUrl: string | null
   createdAtLabel: string
   isRead: boolean
+  tags: string[]
+  siteName: string | null
 }
 
 type Cursor = {
@@ -35,14 +43,18 @@ type Cursor = {
 
 const PAGE_SIZE = 12
 
-function mapResource(row: ResourceRow): ResourceCard {
+function mapResource(row: ResourceRow): ResourceCardData {
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
     description: row.description?.trim() || 'Sin descripcion disponible.',
     domain: row.domain || 'Sin dominio',
+    url: row.url,
+    thumbnailUrl: row.og_image_url || row.preview_image_url || null,
     createdAtLabel: new Date(row.created_at).toLocaleDateString(),
-    isRead: Boolean(row.is_read)
+    isRead: Boolean(row.is_read),
+    tags: row.tags?.filter(Boolean) ?? [],
+    siteName: row.site_name || null
   }
 }
 
@@ -67,7 +79,7 @@ export function Home() {
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
-  const [resources, setResources] = useState<ResourceCard[]>([])
+  const [resources, setResources] = useState<ResourceCardData[]>([])
   const [page, setPage] = useState(1)
   const [cursor, setCursor] = useState<Cursor | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -88,7 +100,7 @@ export function Home() {
 
     let query = supabase
       .from('items_with_links')
-      .select('id,title,description,domain,url,created_at,is_read,tags')
+      .select('id,title,description,domain,url,created_at,is_read,tags,preview_image_url,og_image_url,site_name')
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(PAGE_SIZE)
@@ -148,7 +160,7 @@ export function Home() {
 
       const targetPage = initialPageRef.current ?? 1
       let localCursor: Cursor | null = null
-      let localResources: ResourceCard[] = []
+      let localResources: ResourceCardData[] = []
       let localHasMore = true
 
       for (let i = 1; i <= targetPage; i += 1) {
@@ -339,24 +351,20 @@ export function Home() {
       <section style={homeStyles.list} className='home-resource-grid'>
         {resources.map((resource) => (
           <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <article style={homeStyles.resourceCard}>
-              <div style={homeStyles.cardTopRow}>
-                <h2 style={homeStyles.resourceTitle}>{resource.title}</h2>
-                <span style={homeStyles.domainPill}>{resource.domain}</span>
-              </div>
-              <p style={homeStyles.resourceMeta}>
-                Guardado {resource.createdAtLabel}
-              </p>
-              <p style={homeStyles.resourceSnippet}>{resource.description}</p>
-              <button
-                type='button'
-                onClick={(e) => { e.preventDefault(); void handleToggleRead(resource.id, resource.isRead) }}
-                style={resource.isRead ? homeStyles.statusBadgeRead : homeStyles.statusBadge}
-                aria-label={resource.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
-              >
-                {resource.isRead ? 'Visto' : 'No visto'}
-              </button>
-            </article>
+            <ResourceCard
+              id={resource.id}
+              title={resource.title}
+              description={resource.description}
+              domain={resource.domain}
+              url={resource.url}
+              thumbnailUrl={resource.thumbnailUrl}
+              createdAtLabel={resource.createdAtLabel}
+              isRead={resource.isRead}
+              tags={resource.tags}
+              siteName={resource.siteName}
+              onToggleRead={(id, current) => void handleToggleRead(id, current)}
+              onCopyUrl={(url) => { navigator.clipboard.writeText(url) }}
+            />
           </Link>
         ))}
       </section>

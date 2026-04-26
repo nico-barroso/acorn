@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
 import { useToggleRead } from '../../../../hooks/useToggleRead'
+import { ResourceCard } from '../../../shared/components/ResourceCard/ResourceCard'
 import { highlightText, useSearch } from './hooks/useSearch'
 import { searchStyles } from './Search.styles'
 
@@ -138,35 +139,19 @@ export function Search() {
         <section style={searchStyles.resultsGrid} className='search-grid'>
           {results.map((result) => (
             <Link key={result.id} href={`/item/${result.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <article style={searchStyles.resourceCard}>
-                <div style={searchStyles.cardTopRow}>
-                  <h2 style={searchStyles.resourceTitle}>
-                    {highlightText(result.title, query)}
-                  </h2>
-                  <span style={searchStyles.domainPill}>{result.domain}</span>
-                </div>
-                <p style={searchStyles.resourceMeta}>
-                  Guardado {result.createdAtLabel}
-                </p>
-                <p style={searchStyles.resourceSnippet}>
-                  {highlightText(result.description, query)}
-                </p>
-                {result.tags.length > 0 ? (
-                  <div style={searchStyles.tagsRow}>
-                    {result.tags.map((tag) => (
-                      <span key={tag} style={searchStyles.tagPill}>{tag}</span>
-                    ))}
-                  </div>
-                ) : null}
-                <button
-                  type='button'
-                  onClick={(e) => { e.preventDefault(); void handleToggleRead(result.id, result.isRead) }}
-                  style={result.isRead ? searchStyles.statusBadgeRead : searchStyles.statusBadge}
-                  aria-label={result.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
-                >
-                  {result.isRead ? 'Visto' : 'No visto'}
-                </button>
-              </article>
+              <ResourceCard
+                id={result.id}
+                title={result.title}
+                description={result.description}
+                domain={result.domain}
+                createdAtLabel={result.createdAtLabel}
+                isRead={result.isRead}
+                tags={result.tags}
+                highlightedParts={highlightText(result.title, query)}
+                descriptionHighlighted={highlightText(result.description, query)}
+                onToggleRead={(id, current) => void handleToggleRead(id, current)}
+                onCopyUrl={(url) => { navigator.clipboard.writeText(url) }}
+              />
             </Link>
           ))}
         </section>
