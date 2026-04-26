@@ -25,15 +25,19 @@ export function Register() {
     const supabase = getSupabaseBrowserClient()
 
     const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
+      const { data, error } = await supabase.auth.getUser()
 
       if (!active) {
         return
       }
 
-      if (!error && data.session) {
+      if (!error && data.user) {
         router.replace('/home')
         return
+      }
+
+      if (error) {
+        await supabase.auth.signOut()
       }
 
       setSessionLoading(false)
