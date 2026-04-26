@@ -121,5 +121,5 @@ export function useSearch(query: string, userId: string) {
     }
   }, [query, userId, search])
 
-  return { results, loading, error }
+  return { results, loading, error, setResults }
 }

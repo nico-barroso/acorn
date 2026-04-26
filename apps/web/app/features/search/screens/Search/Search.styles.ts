@@ -146,7 +146,9 @@ export const searchStyles = {
     color: colors.brown,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    border: 'none'
   },
   statusBadgeRead: {
     display: 'inline-flex',
@@ -157,7 +159,9 @@ export const searchStyles = {
     color: '#2e7d32',
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    border: 'none'
   },
   emptyState: {
     borderRadius: '14px',

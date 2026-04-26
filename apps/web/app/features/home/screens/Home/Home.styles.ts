@@ -187,7 +187,22 @@ export const homeStyles = {
     color: colors.brown,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    border: 'none'
+  },
+  statusBadgeRead: {
+    display: 'inline-flex',
+    marginTop: '10px',
+    padding: '4px 8px',
+    borderRadius: '999px',
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    border: 'none'
   },
   skeletonCard: {
     borderRadius: '14px',

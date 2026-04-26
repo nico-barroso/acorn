@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { useToggleRead } from '../../../../hooks/useToggleRead'
 import { highlightText, useSearch } from './hooks/useSearch'
 import { searchStyles } from './Search.styles'
 
@@ -11,7 +12,22 @@ export function Search() {
   const [userId, setUserId] = useState('')
   const [query, setQuery] = useState('')
   const [authLoading, setAuthLoading] = useState(true)
-  const { results, loading, error } = useSearch(query, userId)
+  const { results, loading, error, setResults } = useSearch(query, userId)
+  const { toggleRead } = useToggleRead()
+
+  const handleToggleRead = useCallback(async (itemId: string, currentIsRead: boolean) => {
+    setResults((current) =>
+      current.map((r) => (r.id === itemId ? { ...r, isRead: !currentIsRead } : r))
+    )
+
+    const success = await toggleRead(itemId, currentIsRead)
+
+    if (!success) {
+      setResults((current) =>
+        current.map((r) => (r.id === itemId ? { ...r, isRead: currentIsRead } : r))
+      )
+    }
+  }, [toggleRead, setResults])
 
   useEffect(() => {
     let active = true
@@ -140,9 +156,14 @@ export function Search() {
                   ))}
                 </div>
               ) : null}
-              <span style={result.isRead ? searchStyles.statusBadgeRead : searchStyles.statusBadge}>
-                {result.isRead ? 'Visto' : 'No visto'}
-              </span>
+<button
+                  type='button'
+                  onClick={() => void handleToggleRead(result.id, result.isRead)}
+                  style={result.isRead ? searchStyles.statusBadgeRead : searchStyles.statusBadge}
+                  aria-label={result.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
+                >
+                  {result.isRead ? 'Visto' : 'No visto'}
+                </button>
             </article>
           ))}
         </section>

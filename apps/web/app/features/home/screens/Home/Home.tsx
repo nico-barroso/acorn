@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { useToggleRead } from '../../../../hooks/useToggleRead'
 import { homeStyles } from './Home.styles'
 
 type ResourceRow = {
@@ -69,6 +70,7 @@ export function Home() {
   const [cursor, setCursor] = useState<Cursor | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const { toggleRead } = useToggleRead()
 
   const initialPageRef = useRef<number | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
@@ -237,6 +239,20 @@ export function Home() {
     router.replace('/login')
   }
 
+  const handleToggleRead = useCallback(async (itemId: string, currentIsRead: boolean) => {
+    setResources((current) =>
+      current.map((r) => (r.id === itemId ? { ...r, isRead: !currentIsRead } : r))
+    )
+
+    const success = await toggleRead(itemId, currentIsRead)
+
+    if (!success) {
+      setResources((current) =>
+        current.map((r) => (r.id === itemId ? { ...r, isRead: currentIsRead } : r))
+      )
+    }
+  }, [toggleRead])
+
   if (loading) {
     return (
       <main style={homeStyles.page}>
@@ -306,7 +322,14 @@ export function Home() {
               Guardado {resource.createdAtLabel}
             </p>
             <p style={homeStyles.resourceSnippet}>{resource.description}</p>
-            <span style={homeStyles.statusBadge}>{resource.isRead ? 'Visto' : 'No visto'}</span>
+            <button
+              type='button'
+              onClick={() => void handleToggleRead(resource.id, resource.isRead)}
+              style={resource.isRead ? homeStyles.statusBadgeRead : homeStyles.statusBadge}
+              aria-label={resource.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
+            >
+              {resource.isRead ? 'Visto' : 'No visto'}
+            </button>
           </article>
         ))}
       </section>
