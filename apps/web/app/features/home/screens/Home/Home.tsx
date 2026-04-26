@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
 import { useToggleRead } from '../../../../hooks/useToggleRead'
@@ -313,24 +314,26 @@ export function Home() {
 
       <section style={homeStyles.list} className='home-resource-grid'>
         {resources.map((resource) => (
-          <article key={resource.id} style={homeStyles.resourceCard}>
-            <div style={homeStyles.cardTopRow}>
-              <h2 style={homeStyles.resourceTitle}>{resource.title}</h2>
-              <span style={homeStyles.domainPill}>{resource.domain}</span>
-            </div>
-            <p style={homeStyles.resourceMeta}>
-              Guardado {resource.createdAtLabel}
-            </p>
-            <p style={homeStyles.resourceSnippet}>{resource.description}</p>
-            <button
-              type='button'
-              onClick={() => void handleToggleRead(resource.id, resource.isRead)}
-              style={resource.isRead ? homeStyles.statusBadgeRead : homeStyles.statusBadge}
-              aria-label={resource.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
-            >
-              {resource.isRead ? 'Visto' : 'No visto'}
-            </button>
-          </article>
+          <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <article style={homeStyles.resourceCard}>
+              <div style={homeStyles.cardTopRow}>
+                <h2 style={homeStyles.resourceTitle}>{resource.title}</h2>
+                <span style={homeStyles.domainPill}>{resource.domain}</span>
+              </div>
+              <p style={homeStyles.resourceMeta}>
+                Guardado {resource.createdAtLabel}
+              </p>
+              <p style={homeStyles.resourceSnippet}>{resource.description}</p>
+              <button
+                type='button'
+                onClick={(e) => { e.preventDefault(); void handleToggleRead(resource.id, resource.isRead) }}
+                style={resource.isRead ? homeStyles.statusBadgeRead : homeStyles.statusBadge}
+                aria-label={resource.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
+              >
+                {resource.isRead ? 'Visto' : 'No visto'}
+              </button>
+            </article>
+          </Link>
         ))}
       </section>
 

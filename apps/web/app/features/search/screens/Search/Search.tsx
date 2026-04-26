@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
 import { useToggleRead } from '../../../../hooks/useToggleRead'
@@ -133,38 +134,40 @@ export function Search() {
         </section>
       ) : null}
 
-      {showResults ? (
+{showResults ? (
         <section style={searchStyles.resultsGrid} className='search-grid'>
           {results.map((result) => (
-            <article key={result.id} style={searchStyles.resourceCard}>
-              <div style={searchStyles.cardTopRow}>
-                <h2 style={searchStyles.resourceTitle}>
-                  {highlightText(result.title, query)}
-                </h2>
-                <span style={searchStyles.domainPill}>{result.domain}</span>
-              </div>
-              <p style={searchStyles.resourceMeta}>
-                Guardado {result.createdAtLabel}
-              </p>
-              <p style={searchStyles.resourceSnippet}>
-                {highlightText(result.description, query)}
-              </p>
-              {result.tags.length > 0 ? (
-                <div style={searchStyles.tagsRow}>
-                  {result.tags.map((tag) => (
-                    <span key={tag} style={searchStyles.tagPill}>{tag}</span>
-                  ))}
+            <Link key={result.id} href={`/item/${result.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <article style={searchStyles.resourceCard}>
+                <div style={searchStyles.cardTopRow}>
+                  <h2 style={searchStyles.resourceTitle}>
+                    {highlightText(result.title, query)}
+                  </h2>
+                  <span style={searchStyles.domainPill}>{result.domain}</span>
                 </div>
-              ) : null}
-<button
+                <p style={searchStyles.resourceMeta}>
+                  Guardado {result.createdAtLabel}
+                </p>
+                <p style={searchStyles.resourceSnippet}>
+                  {highlightText(result.description, query)}
+                </p>
+                {result.tags.length > 0 ? (
+                  <div style={searchStyles.tagsRow}>
+                    {result.tags.map((tag) => (
+                      <span key={tag} style={searchStyles.tagPill}>{tag}</span>
+                    ))}
+                  </div>
+                ) : null}
+                <button
                   type='button'
-                  onClick={() => void handleToggleRead(result.id, result.isRead)}
+                  onClick={(e) => { e.preventDefault(); void handleToggleRead(result.id, result.isRead) }}
                   style={result.isRead ? searchStyles.statusBadgeRead : searchStyles.statusBadge}
                   aria-label={result.isRead ? 'Marcar como no visto' : 'Marcar como visto'}
                 >
                   {result.isRead ? 'Visto' : 'No visto'}
                 </button>
-            </article>
+              </article>
+            </Link>
           ))}
         </section>
       ) : null}
