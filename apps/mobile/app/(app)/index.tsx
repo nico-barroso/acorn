@@ -15,23 +15,29 @@ export default function HomeRoute() {
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase?.auth.getUser().then(async ({ data }) => {
+    let mounted = true;
+
+    const fetchProfile = async () => {
+      const { data } = await supabase?.auth.getUser() ?? { data: { user: null } };
+      if (!mounted) return;
       const userId = data.user?.id;
       if (!userId) return;
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('display_name')
         .eq('id', userId)
         .single();
+        
+      if (!mounted) return;
       const raw = profile?.display_name ?? data.user?.email ?? 'Usuario';
       setDisplayName(sanitizeDisplayName(raw));
-    });
+    };
 
-    void bootstrap();
+    void fetchProfile();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, []);
 

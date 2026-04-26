@@ -22,16 +22,33 @@ export function Login() {
     let active = true
     const supabase = getSupabaseBrowserClient()
 
+    // Log the error if we are redirected here with one
+    const params = new URLSearchParams(window.location.search)
+    const urlError = params.get('error')
+    if (urlError === 'oauth_exchange_failed') {
+      setErrorMessage('Error al verificar la conexión con Google. Por favor, inténtalo de nuevo.')
+      // Clear the url so we don't keep showing it on refresh
+      window.history.replaceState(null, '', '/login')
+    }
+
     const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
+      // Validate session against Supabase servers instead of trusting local token
+      const { data, error } = await supabase.auth.getUser()
 
       if (!active) {
         return
       }
 
-      if (!error && data.session) {
+      if (!error && data.user) {
+        // Stop the session loading indicator immediately
+        setSessionLoading(false)
         router.replace('/home')
         return
+      }
+
+      // If there's an invalid session stuck in cookies, clear it
+      if (error) {
+        await supabase.auth.signOut()
       }
 
       setSessionLoading(false)

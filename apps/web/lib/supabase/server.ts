@@ -24,10 +24,27 @@ export async function createSupabaseServerClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
+        get(name) {
+          return cookieStore.get(name)?.value
+        },
+        set(name, value, options) {
+          try {
             cookieStore.set(name, value, options)
-          })
+          } catch (error) {}
+        },
+        remove(name, options) {
+          try {
+            cookieStore.delete(name, options)
+          } catch (error) {}
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          } catch (error) {
+            // Expected in server components
+          }
         }
       }
     }

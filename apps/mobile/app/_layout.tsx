@@ -19,14 +19,19 @@ function AuthGate() {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     if (!supabase) {
       setInitialized(true);
       return;
     }
+
     supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
       setSession(data.session);
       setInitialized(true);
     });
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession: Session | null) => {
@@ -35,7 +40,11 @@ function AuthGate() {
       setSession(nextSession);
       setInitialized(true);
     });
-    return () => subscription.unsubscribe();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
