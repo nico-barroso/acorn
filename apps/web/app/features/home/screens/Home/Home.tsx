@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
 import { useToggleRead } from '../../../../hooks/useToggleRead'
+import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
 
 type ResourceRow = {
@@ -71,6 +72,8 @@ export function Home() {
   const [cursor, setCursor] = useState<Cursor | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [userId, setUserId] = useState('')
   const { toggleRead } = useToggleRead()
 
   const initialPageRef = useRef<number | null>(null)
@@ -135,6 +138,7 @@ export function Home() {
       }
 
       setEmail(data.user.email ?? 'usuario')
+      setUserId(data.user.id)
       setError('')
 
       if (initialPageRef.current === null) {
@@ -240,6 +244,15 @@ export function Home() {
     router.replace('/login')
   }
 
+  const handleSaved = useCallback(() => {
+    fetchResourcesPage(null).then((pagePayload) => {
+      setResources(pagePayload.resources)
+      setCursor(pagePayload.nextCursor)
+      setHasMore(pagePayload.hasMore)
+      setPage(1)
+    }).catch(() => {})
+  }, [fetchResourcesPage])
+
   const handleToggleRead = useCallback(async (itemId: string, currentIsRead: boolean) => {
     setResources((current) =>
       current.map((r) => (r.id === itemId ? { ...r, isRead: !currentIsRead } : r))
@@ -275,6 +288,14 @@ export function Home() {
             Cerrar sesion
           </button>
         </div>
+
+        <button
+          type='button'
+          onClick={() => setShowSaveModal(true)}
+          style={homeStyles.saveButton}
+        >
+          + Guardar enlace
+        </button>
 
         <h1 style={homeStyles.heroTitle}>Tu biblioteca de recursos</h1>
         <p style={homeStyles.heroSubtitle}>
@@ -360,6 +381,10 @@ export function Home() {
 
         {!hasMore && resources.length > 0 ? <p style={homeStyles.endText}>Has llegado al final del listado.</p> : null}
       </section>
+
+      {showSaveModal && userId ? (
+        <SaveUrlModal userId={userId} onClose={() => setShowSaveModal(false)} onSaved={handleSaved} />
+      ) : null}
 
       <style jsx>{`
         @media (max-width: 900px) {

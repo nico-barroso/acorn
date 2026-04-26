@@ -9,6 +9,21 @@ export const homeStyles = {
     margin: '0 auto',
     padding: 'clamp(10px, 2vw, 18px)'
   },
+  saveButton: {
+    marginTop: '14px',
+    width: '100%',
+    minHeight: '44px',
+    padding: '0 18px',
+    borderRadius: '12px',
+    border: 'none',
+    backgroundColor: colors.salmon,
+    color: colors.white,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    transition: 'opacity 0.15s ease'
+  },
   hero: {
     borderRadius: '20px',
     border: `1px solid ${colors.brown}20`,
