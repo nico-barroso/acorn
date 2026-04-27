@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { AuthShell } from '../../components/AuthShell/AuthShell'
 import { resetPasswordStyles } from './ResetPassword.styles'
 

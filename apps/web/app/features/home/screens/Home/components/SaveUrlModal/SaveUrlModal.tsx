@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getSupabaseBrowserClient } from '../../../../../../lib/supabase'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { saveUrlStyles } from './SaveUrlModal.styles'
 
 type ExtractedMetadata = {

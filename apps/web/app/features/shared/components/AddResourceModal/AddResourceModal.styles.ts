@@ -1,7 +1,7 @@
 import { colors } from '@/theme/colors'
 import { fonts } from '@/theme/fonts'
 
-export const saveUrlStyles = {
+export const addResourceStyles = {
   overlay: {
     position: 'fixed' as const,
     inset: 0,
@@ -13,6 +13,8 @@ export const saveUrlStyles = {
   modal: {
     width: '100%',
     maxWidth: '480px',
+    maxHeight: '90vh',
+    overflowY: 'auto' as const,
     backgroundColor: colors.white,
     borderRadius: '18px',
     border: `1px solid ${colors.brown}20`,
@@ -59,19 +61,39 @@ export const saveUrlStyles = {
     outline: 'none',
     transition: 'border-color 0.2s ease'
   },
-  textarea: {
-    width: '100%',
-    minHeight: '70px',
-    padding: '10px 12px',
-    borderRadius: '10px',
-    border: `1px solid ${colors.brown}35`,
-    backgroundColor: colors.white,
+  inputError: {
+    border: `1px solid #8b2a1b`
+  },
+  tagsRow: {
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '6px',
+    marginTop: '6px'
+  },
+  tagPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '3px 10px',
+    borderRadius: '999px',
+    backgroundColor: `${colors.salmon}14`,
+    border: `1px solid ${colors.salmon}40`,
     color: colors.brown,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
+    fontSize: fonts.size.xs,
     fontWeight: fonts.weight.medium,
-    outline: 'none',
-    resize: 'vertical' as const
+    lineHeight: '1.4'
+  },
+  tagRemove: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    color: colors.salmon,
+    cursor: 'pointer',
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.bold,
+    lineHeight: 1
   },
   actionsRow: {
     marginTop: '20px',
@@ -192,7 +214,7 @@ export const saveUrlStyles = {
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold,
     lineHeight: fonts.lineHeight.tight,
-    display: '-webkit-box',
+    display: '-webkit-box' as const,
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical' as const,
     overflow: 'hidden'
@@ -203,9 +225,32 @@ export const saveUrlStyles = {
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
     lineHeight: fonts.lineHeight.normal,
-    display: '-webkit-box',
+    display: '-webkit-box' as const,
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical' as const,
     overflow: 'hidden'
+  },
+  tagsInputWrapper: {
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '6px',
+    padding: '8px 10px',
+    borderRadius: '10px',
+    border: `1px solid ${colors.brown}35`,
+    backgroundColor: colors.white,
+    minHeight: '42px',
+    alignItems: 'center',
+    transition: 'border-color 0.2s ease'
+  },
+  tagInput: {
+    flex: 1,
+    minWidth: '80px',
+    border: 'none',
+    outline: 'none',
+    backgroundColor: 'transparent',
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium
   }
 }

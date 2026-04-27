@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ItemDetail } from '../../../features/item/screens/ItemDetail/ItemDetail'
+import { ItemDetail } from '@/features/item/screens/ItemDetail/ItemDetail'
 
 export default function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   const [itemId, setItemId] = useState<string | null>(null)

@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { getSupabaseBrowserClient } from '../../lib/supabase/client'
+import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 
 export function useToggleRead() {
   const toggleRead = useCallback(async (itemId: string, currentIsRead: boolean): Promise<boolean> => {

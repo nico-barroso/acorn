@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
-import { useToggleRead } from '../../../../hooks/useToggleRead'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
+import { useToggleRead } from '@/hooks/useToggleRead'
 import { detailStyles } from './ItemDetail.styles'
 
 type ItemData = {

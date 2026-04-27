@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getSupabaseBrowserClient } from '../lib/supabase'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 
 type DeleteFileOptions = {
   onSuccess?: () => void

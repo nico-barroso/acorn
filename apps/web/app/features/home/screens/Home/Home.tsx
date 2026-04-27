@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
-import { useToggleRead } from '../../../../hooks/useToggleRead'
-import { ResourceCard } from '../../../shared/components/ResourceCard/ResourceCard'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
+import { useToggleRead } from '@/hooks/useToggleRead'
+import { ResourceCard } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
 

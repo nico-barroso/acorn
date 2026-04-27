@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
-import { useToggleRead } from '../../../../hooks/useToggleRead'
-import { ResourceCard } from '../../../shared/components/ResourceCard/ResourceCard'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
+import { useToggleRead } from '@/hooks/useToggleRead'
+import { ResourceCard } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { highlightText, useSearch } from './hooks/useSearch'
 import { searchStyles } from './Search.styles'
 
