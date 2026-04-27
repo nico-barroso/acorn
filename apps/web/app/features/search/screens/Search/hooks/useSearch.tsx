@@ -58,6 +58,15 @@ export function highlightText(text: string, term: string): React.ReactNode[] {
   return nodes
 }
 
+function deduplicateById(items: SearchResult[]): SearchResult[] {
+  const seen = new Set<string>()
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false
+    seen.add(item.id)
+    return true
+  })
+}
+
 export function useSearch(query: string, userId: string) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -73,22 +82,38 @@ export function useSearch(query: string, userId: string) {
 
     try {
       const supabase = getSupabaseBrowserClient()
-      const { data, error: rpcError } = await supabase.rpc('search_items', {
-        p_user_id: uid,
-        p_query: searchQuery.trim(),
-        p_limit: 20
-      })
+      const trimmed = searchQuery.trim()
+
+      const [rpcResult, likeResult] = await Promise.all([
+        supabase.rpc('search_items', {
+          p_user_id: uid,
+          p_query: trimmed,
+          p_limit: 20
+        }),
+        supabase
+          .from('items_with_links')
+          .select('id,title,description,domain,is_read,created_at,tags')
+          .eq('user_id', uid)
+          .or(`title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,domain.ilike.%${trimmed}%`)
+          .order('created_at', { ascending: false })
+          .limit(20)
+      ])
 
       if (controller.signal.aborted) return
 
-      if (rpcError) {
+      if (rpcResult.error && likeResult.error) {
         setError('No se pudo realizar la busqueda. Intentalo de nuevo.')
         setResults([])
         return
       }
 
-      const rows = (data ?? []) as SearchResultRow[]
-      setResults(rows.map(mapResult))
+      const rpcRows = (rpcResult.data ?? []) as SearchResultRow[]
+      const likeRows = (likeResult.data ?? []) as SearchResultRow[]
+
+      const combined = deduplicateById([...rpcRows, ...likeRows].map(mapResult))
+      combined.sort((a, b) => b.createdAtLabel.localeCompare(a.createdAtLabel))
+
+      setResults(combined)
     } catch {
       if (!controller.signal.aborted) {
         setError('Error de conexion. Intentalo de nuevo.')
