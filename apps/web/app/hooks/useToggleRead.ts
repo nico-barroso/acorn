@@ -1,44 +1,22 @@
-import { useState } from "react";
-import { getSupabaseBrowserClient } from "../lib/supabase";
+import { useCallback } from 'react'
+import { getSupabaseBrowserClient } from '../../lib/supabase/client'
 
-type ToggleReadOptions = {
-  onSuccess?: (isRead: boolean) => void;
-  onError?: (message: string) => void;
-};
+export function useToggleRead() {
+  const toggleRead = useCallback(async (itemId: string, currentIsRead: boolean): Promise<boolean> => {
+    const newIsRead = !currentIsRead
 
-export function useToggleRead({ onSuccess, onError }: ToggleReadOptions = {}) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+    const supabase = getSupabaseBrowserClient()
+    const { error } = await supabase
+      .from('items')
+      .update({ is_read: newIsRead, updated_at: new Date().toISOString() })
+      .eq('id', itemId)
 
-  async function toggleRead(itemId: string, currentIsRead: boolean) {
-    setLoading(true);
-    setError(null);
-    const supabase = getSupabaseBrowserClient();
-    const newIsRead = !currentIsRead;
-
-    const { error: dbError } = await (supabase as any)
-      .from("items")
-      .update({
-        is_read: newIsRead,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", itemId);
-
-    setLoading(false);
-
-    if (dbError) {
-      const message = "No se pudo actualizar el estado de lectura";
-      setError(message);
-      onError?.(message);
-      return;
+    if (error) {
+      return false
     }
 
-    onSuccess?.(newIsRead);
-  }
+    return true
+  }, [])
 
-  return {
-    toggleRead,
-    loading,
-    error,
-  };
+  return { toggleRead }
 }

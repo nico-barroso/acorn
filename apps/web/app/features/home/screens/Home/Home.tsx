@@ -1,8 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { useToggleRead } from '../../../../hooks/useToggleRead'
+import { ResourceCard } from '../../../shared/components/ResourceCard/ResourceCard'
+import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
 
 type ResourceRow = {
@@ -14,15 +18,22 @@ type ResourceRow = {
   created_at: string
   is_read: boolean
   tags: string[] | null
+  preview_image_url?: string | null
+  og_image_url?: string | null
+  site_name?: string | null
 }
 
-type ResourceCard = {
+type ResourceCardData = {
   id: string
   title: string
   description: string
   domain: string
+  url: string | null
+  thumbnailUrl: string | null
   createdAtLabel: string
   isRead: boolean
+  tags: string[]
+  siteName: string | null
 }
 
 type Cursor = {
@@ -32,14 +43,18 @@ type Cursor = {
 
 const PAGE_SIZE = 12
 
-function mapResource(row: ResourceRow): ResourceCard {
+function mapResource(row: ResourceRow): ResourceCardData {
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
     description: row.description?.trim() || 'Sin descripcion disponible.',
     domain: row.domain || 'Sin dominio',
+    url: row.url,
+    thumbnailUrl: row.og_image_url || row.preview_image_url || null,
     createdAtLabel: new Date(row.created_at).toLocaleDateString(),
-    isRead: Boolean(row.is_read)
+    isRead: Boolean(row.is_read),
+    tags: row.tags?.filter(Boolean) ?? [],
+    siteName: row.site_name || null
   }
 }
 
@@ -64,11 +79,14 @@ export function Home() {
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
-  const [resources, setResources] = useState<ResourceCard[]>([])
+  const [resources, setResources] = useState<ResourceCardData[]>([])
   const [page, setPage] = useState(1)
   const [cursor, setCursor] = useState<Cursor | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [userId, setUserId] = useState('')
+  const { toggleRead } = useToggleRead()
 
   const initialPageRef = useRef<number | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
@@ -82,7 +100,7 @@ export function Home() {
 
     let query = supabase
       .from('items_with_links')
-      .select('id,title,description,domain,url,created_at,is_read,tags')
+      .select('id,title,description,domain,url,created_at,is_read,tags,preview_image_url,og_image_url,site_name')
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(PAGE_SIZE)
@@ -132,6 +150,7 @@ export function Home() {
       }
 
       setEmail(data.user.email ?? 'usuario')
+      setUserId(data.user.id)
       setError('')
 
       if (initialPageRef.current === null) {
@@ -141,7 +160,7 @@ export function Home() {
 
       const targetPage = initialPageRef.current ?? 1
       let localCursor: Cursor | null = null
-      let localResources: ResourceCard[] = []
+      let localResources: ResourceCardData[] = []
       let localHasMore = true
 
       for (let i = 1; i <= targetPage; i += 1) {
@@ -237,6 +256,29 @@ export function Home() {
     router.replace('/login')
   }
 
+  const handleSaved = useCallback(() => {
+    fetchResourcesPage(null).then((pagePayload) => {
+      setResources(pagePayload.resources)
+      setCursor(pagePayload.nextCursor)
+      setHasMore(pagePayload.hasMore)
+      setPage(1)
+    }).catch(() => {})
+  }, [fetchResourcesPage])
+
+  const handleToggleRead = useCallback(async (itemId: string, currentIsRead: boolean) => {
+    setResources((current) =>
+      current.map((r) => (r.id === itemId ? { ...r, isRead: !currentIsRead } : r))
+    )
+
+    const success = await toggleRead(itemId, currentIsRead)
+
+    if (!success) {
+      setResources((current) =>
+        current.map((r) => (r.id === itemId ? { ...r, isRead: currentIsRead } : r))
+      )
+    }
+  }, [toggleRead])
+
   if (loading) {
     return (
       <main style={homeStyles.page}>
@@ -258,6 +300,14 @@ export function Home() {
             Cerrar sesion
           </button>
         </div>
+
+        <button
+          type='button'
+          onClick={() => setShowSaveModal(true)}
+          style={homeStyles.saveButton}
+        >
+          + Guardar enlace
+        </button>
 
         <h1 style={homeStyles.heroTitle}>Tu biblioteca de recursos</h1>
         <p style={homeStyles.heroSubtitle}>
@@ -288,8 +338,11 @@ export function Home() {
 
       {resources.length === 0 && !error ? (
         <section style={homeStyles.emptyState}>
-          <h2 style={homeStyles.emptyTitle}>Aún no tienes recursos</h2>
+          <h2 style={homeStyles.emptyTitle}>Aun no tienes recursos</h2>
           <p style={homeStyles.emptyText}>Guarda tu primer enlace para empezar a construir tu biblioteca.</p>
+          <button type='button' onClick={() => setShowSaveModal(true)} style={homeStyles.emptyCtaButton}>
+            + Guardar enlace
+          </button>
         </section>
       ) : null}
 
@@ -297,17 +350,22 @@ export function Home() {
 
       <section style={homeStyles.list} className='home-resource-grid'>
         {resources.map((resource) => (
-          <article key={resource.id} style={homeStyles.resourceCard}>
-            <div style={homeStyles.cardTopRow}>
-              <h2 style={homeStyles.resourceTitle}>{resource.title}</h2>
-              <span style={homeStyles.domainPill}>{resource.domain}</span>
-            </div>
-            <p style={homeStyles.resourceMeta}>
-              Guardado {resource.createdAtLabel}
-            </p>
-            <p style={homeStyles.resourceSnippet}>{resource.description}</p>
-            <span style={homeStyles.statusBadge}>{resource.isRead ? 'Visto' : 'No visto'}</span>
-          </article>
+          <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <ResourceCard
+              id={resource.id}
+              title={resource.title}
+              description={resource.description}
+              domain={resource.domain}
+              url={resource.url}
+              thumbnailUrl={resource.thumbnailUrl}
+              createdAtLabel={resource.createdAtLabel}
+              isRead={resource.isRead}
+              tags={resource.tags}
+              siteName={resource.siteName}
+              onToggleRead={(id, current) => void handleToggleRead(id, current)}
+              onCopyUrl={(url) => { navigator.clipboard.writeText(url) }}
+            />
+          </Link>
         ))}
       </section>
 
@@ -334,6 +392,10 @@ export function Home() {
 
         {!hasMore && resources.length > 0 ? <p style={homeStyles.endText}>Has llegado al final del listado.</p> : null}
       </section>
+
+      {showSaveModal && userId ? (
+        <SaveUrlModal userId={userId} onClose={() => setShowSaveModal(false)} onSaved={handleSaved} />
+      ) : null}
 
       <style jsx>{`
         @media (max-width: 900px) {
