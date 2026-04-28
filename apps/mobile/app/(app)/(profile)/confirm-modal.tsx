@@ -1,29 +1,54 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { ConfirmModal } from '@screens/profile/components/ConfirmModal/ConfirmModal';
 import { supabase } from '@lib/supabase';
 import { ImageSourcePropType } from 'react-native';
+import { SvgProps } from 'react-native-svg';
+import { useState } from 'react';
+
+import SignOutImage from '@assets/session-logout-image.png';
+import DeleteAccountIcon from '@assets/icons/profile-exclamation-triangle.svg';
+import SuccessIcon from '@assets/icons/success-icon.svg';
 
 const ACTION_IMAGES: Record<string, ImageSourcePropType> = {
-  signOut: require('@assets/session-logout-image.png'),
-  deleteAccount: require('@assets/acorn-empty-state.png'),
+  signOut: SignOutImage,
+};
+
+const ACTION_SVGS: Record<string, React.FC<SvgProps>> = {
+  deleteAccount: DeleteAccountIcon,
+  success: SuccessIcon,
 };
 
 export default function ConfirmModalRoute() {
   const router = useRouter();
-  const { title, subtitle, confirmLabel, action, danger } = useLocalSearchParams<{
+  const navigation = useNavigation();
+  const [success, setSuccess] = useState(false);
+
+  const {
+    title,
+    subtitle,
+    confirmLabel,
+    action,
+    danger,
+    successTitle,
+    successSubtitle,
+    successLabel,
+  } = useLocalSearchParams<{
     title: string;
     subtitle?: string;
     confirmLabel: string;
     action: string;
     danger?: string;
+    successTitle?: string;
+    successSubtitle?: string;
+    successLabel?: string;
   }>();
 
   const handleConfirm = async () => {
-    router.back();
     if (action === 'signOut') {
       await supabase.auth.signOut();
+      router.back();
     } else if (action === 'deleteAccount') {
-      // TODO: implementar
+      await supabase.rpc('delete_user');
     }
   };
 
@@ -35,8 +60,20 @@ export default function ConfirmModalRoute() {
       confirmLabel={confirmLabel}
       danger={danger === 'true'}
       image={ACTION_IMAGES[action]}
+      svgImage={ACTION_SVGS[action]}
       onConfirm={handleConfirm}
-      onCancel={() => router.back()}
+      onCancel={() => {
+        if (!success) router.back();
+      }}
+      successTitle={successTitle}
+      successSubtitle={successSubtitle}
+      successLabel={successLabel}
+      successSvgImage={ACTION_SVGS['success']}
+      onSuccessReached={() => {
+        setSuccess(true);
+        navigation.setOptions({ gestureEnabled: false });
+      }}
+      onSuccessDismiss={() => supabase.auth.signOut()}
     />
   );
 }

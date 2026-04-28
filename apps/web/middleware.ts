@@ -10,27 +10,13 @@ function isPathInPrefixes(pathname: string, prefixes: string[]) {
 
 function getRequiredPublicEnv(name: 'NEXT_PUBLIC_SUPABASE_URL' | 'NEXT_PUBLIC_SUPABASE_ANON_KEY') {
   const value = process.env[name]?.trim()
-
-  if (!value) {
-    throw new Error(`Missing ${name} in middleware environment.`)
-  }
-
+  if (!value) throw new Error(`Missing ${name} in middleware environment.`)
   return value
 }
 
-function withSupabaseCookies(source: NextResponse, target: NextResponse) {
-  source.cookies.getAll().forEach(({ name, value }) => {
-    target.cookies.set(name, value)
-  })
-
-  return target
-}
-
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers
-    }
+  let supabaseResponse = NextResponse.next({
+    request,
   })
 
   const supabase = createServerClient(
@@ -41,36 +27,58 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
+        get(name) {
+          return request.cookies.get(name)?.value
+        },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value)
-            response.cookies.set(name, value, options)
           })
-        }
-      }
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options)
+          })
+        },
+      },
     }
   )
 
-  const {
-    data: { session }
-  } = await supabase.auth.getSession()
-
   const { pathname } = request.nextUrl
+
+  if (pathname === '/callback') {
+    return supabaseResponse
+  }
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
   const isProtectedPath = isPathInPrefixes(pathname, PROTECTED_PATH_PREFIXES)
   const isAuthPath = isPathInPrefixes(pathname, AUTH_PATH_PREFIXES)
 
-  if (!session && isProtectedPath) {
+  if (pathname === '/home') {
+     console.log(`[MIDDLEWARE] /home request. User found? ${!!user}.`)
+     if (error) {
+       console.error(`[MIDDLEWARE] getUser() error:`, error.message, error.status, error.name)
+     }
+  }
+
+  if (!user && isProtectedPath) {
+    console.log(`[MIDDLEWARE] Redirecting ${pathname} to /login. No valid user.`)
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('next', pathname)
-
-    return withSupabaseCookies(response, NextResponse.redirect(loginUrl))
+    return NextResponse.redirect(loginUrl)
   }
 
-  if (session && isAuthPath) {
-    return withSupabaseCookies(response, NextResponse.redirect(new URL('/home', request.url)))
+  if (user && isAuthPath) {
+    console.log(`[MIDDLEWARE] Redirecting ${pathname} to /home. User is valid.`)
+    return NextResponse.redirect(new URL('/home', request.url))
   }
 
-  return response
+  return supabaseResponse
 }
 
 export const config = {

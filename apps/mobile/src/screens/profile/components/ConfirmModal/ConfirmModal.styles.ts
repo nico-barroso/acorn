@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { colors } from '@theme/colors';
+import { fonts } from '@theme/fonts';
 
 export const styles = StyleSheet.create({
   container: {
@@ -8,7 +9,7 @@ export const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.white,
   },
   sheet: {
     backgroundColor: colors.background,
@@ -31,20 +32,20 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.brownMid,
   },
   image: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'CabinetGrotesk-Bold',
-    fontSize: 25,
+    fontFamily: fonts.family.title.bold,
+    fontSize: fonts.size.xl,
     color: colors.brown,
     textAlign: 'center',
     marginBottom: 15,
   },
   subtitle: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 16,
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.lg,
     color: colors.brown,
     textAlign: 'center',
     lineHeight: 24,
@@ -62,14 +63,14 @@ export const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: 'rgba(67,40,28,0.8)',
+    borderColor: colors.brownMid,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   cancelLabel: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 16,
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.lg,
     color: colors.brown,
     letterSpacing: 0.32,
   },
@@ -84,9 +85,9 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.salmon,
   },
   confirmLabel: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 16,
-    color: '#fff',
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.lg,
+    color: colors.white,
     letterSpacing: 0.32,
   },
 });

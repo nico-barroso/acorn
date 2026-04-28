@@ -1,31 +1,51 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import type { Session } from '@supabase/supabase-js';
 import HomeScreen from '@screens/Home/Home';
 import { supabase } from '@lib/supabase/client';
-import { View } from 'react-native';
 
+function sanitizeDisplayName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[1][0]}.`;
+}
 
 export default function HomeRoute() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const [displayName, setDisplayName] = useState<string>('Usuario');
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase?.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-    });
+    let mounted = true;
+
+    const fetchProfile = async () => {
+      const { data } = await supabase?.auth.getUser() ?? { data: { user: null } };
+      if (!mounted) return;
+      const userId = data.user?.id;
+      if (!userId) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', userId)
+        .single();
+        
+      if (!mounted) return;
+      const raw = profile?.display_name ?? data.user?.email ?? 'Usuario';
+      setDisplayName(sanitizeDisplayName(raw));
+    };
+
+    void fetchProfile();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-
-      <HomeScreen
-        userName={session?.user.email ?? 'Usuario'}
-        sharedUrl={sharedUrl}
-        onSharedUrlHandled={() => setSharedUrl(null)}
-        onSearchPress={() => router.push('/(app)/search')}
-      />
-    </View>
+    <HomeScreen
+      userName={displayName}
+      sharedUrl={sharedUrl}
+      onSharedUrlHandled={() => setSharedUrl(null)}
+    />
   );
 }

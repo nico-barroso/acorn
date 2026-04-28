@@ -1,4 +1,4 @@
-import { ImageBackground, Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ContentCard } from '@components/ContentCard/ContentCard';
 import { styles } from '../../Home.styles';
 import type { ContentCardData } from '../../Home.types';
@@ -10,6 +10,7 @@ type HomeHeaderProps = {
   showOnboarding: boolean;
   listError: string;
   resources: ContentCardData[];
+  avatarUrl?: string | null;
   onProfilePress: () => void;
   onOpenDetail: (id: string) => void;
   onToggleRead: (id: string, nextRead: boolean) => void;
@@ -22,17 +23,20 @@ export function HomeHeader({
   showOnboarding,
   listError,
   resources,
+  avatarUrl,
   onProfilePress,
   onOpenDetail,
   onToggleRead,
 }: HomeHeaderProps) {
+  const { height } = useWindowDimensions();
+
   return (
     <>
-      <ImageBackground
-        source={require('@assets/noise-home-bg.webp')}
-        style={styles.heroContainer}
-        imageStyle={styles.heroImage}
-      >
+      <View style={styles.heroContainer}>
+        <Image
+          source={require('@assets/noise-home-bg.webp')}
+          style={[styles.heroImage, { height: height * 0.8 }]}
+        />
         <View style={styles.header}>
           <View style={styles.headerLogo}>
             <Image
@@ -46,19 +50,25 @@ export function HomeHeader({
             activeOpacity={0.8}
             onPress={onProfilePress}
           >
-            <Image
-              source={require('@assets/default-avatar.png')}
-              style={styles.avatarImage}
-              resizeMode="cover"
-            />
+            {avatarUrl ? (
+              <Image
+                source={{ uri: avatarUrl }}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
+                source={require('@assets/default-avatar.png')}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            )}
           </TouchableOpacity>
         </View>
-
         <View style={styles.greetingSection}>
           <Text style={styles.greetingSubtitle}>Hola {userName}</Text>
           <Text style={styles.greetingTitle}>{greeting}</Text>
         </View>
-
         {showOnboarding ? (
           <View style={styles.featuredCard}>
             <ContentCard
@@ -74,14 +84,12 @@ export function HomeHeader({
             />
           </View>
         ) : null}
-
         {featured ? (
           <View style={styles.featuredCard}>
             <ContentCard {...featured} onOpenDetail={onOpenDetail} onToggleRead={onToggleRead} />
           </View>
         ) : null}
-      </ImageBackground>
-
+      </View>
       <View style={styles.sectionHeader}>
         {resources.length > 0 && (
           <>
@@ -90,7 +98,6 @@ export function HomeHeader({
           </>
         )}
       </View>
-
       {listError ? <Text style={styles.listError}>{listError}</Text> : null}
     </>
   );

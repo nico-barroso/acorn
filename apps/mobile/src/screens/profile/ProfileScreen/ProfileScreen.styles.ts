@@ -52,11 +52,15 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
   },
-  avatar: {
+avatar: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    padding: 5,
+    marginTop: 0,
+    marginBottom: 0,
+    marginHorizontal: 0,
+    marginVertical: 0,
+    padding: 0,
   },
   userName: {
     fontFamily: 'CabinetGrotesk-Bold',

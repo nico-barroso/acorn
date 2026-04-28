@@ -34,13 +34,17 @@ export const styles = StyleSheet.create({
     elevation: 8,
   },
   heroImage: {
+    position: 'absolute',
+    width: '100%',
+    top: -4,
+    left: 0,
     resizeMode: 'cover',
   },
 
   // ── Header ──
   header: {
-    paddingVertical: 30,
     flexDirection: 'row',
+    marginTop: 60,
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 35,
@@ -73,7 +77,7 @@ export const styles = StyleSheet.create({
   greetingSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 16,
     paddingHorizontal: 20,
   },

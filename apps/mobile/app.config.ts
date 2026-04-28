@@ -34,6 +34,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     'expo-web-browser',
     [
+      'expo-image-picker',
+      { photosPermission: 'Acorn necesita acceso a tus fotos para cambiar tu avatar.' },
+    ],
+
+    [
       'expo-navigation-bar',
       {
         position: 'absolute',

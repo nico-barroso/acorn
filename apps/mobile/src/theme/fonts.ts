@@ -3,6 +3,7 @@ export const fonts = {
     primary: {
       regular: 'Satoshi-Regular',
       medium: 'Satoshi-Medium',
+      bold: 'Satoshi-Bold',
     },
     title: {
       bold: 'CabinetGrotesk-Bold',

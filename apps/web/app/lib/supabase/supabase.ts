@@ -1,1 +1,1 @@
-export { getSupabaseBrowserClient } from '../../../lib/supabase/client'
+export { getSupabaseBrowserClient } from '@/lib/supabase/client'

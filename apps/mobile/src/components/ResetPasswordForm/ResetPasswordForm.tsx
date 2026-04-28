@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
 import { Input } from '@components/Input/Input';
 import { styles } from './ResetPasswordForm.styles';
@@ -39,41 +40,40 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ProfileHeader title={title} />
-
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Input
-          label="Nueva contraseña"
-          value={newPassword}
-          onChangeText={setNewPassword}
-          placeholder="Mínimo 8 caracteres"
-          secureTextEntry
-        />
-
-        <Input
-          label="Confirmar contraseña"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          placeholder="Repetir nueva contraseña"
-          secureTextEntry
-          error={showMismatchError ? 'Las contraseñas deben coincidir' : undefined}
-        />
-
-        <TouchableOpacity
-          style={[styles.button, (!canSubmit || isLoading) && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={isLoading}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? 'Guardando...' : 'Cambiar mi contraseña'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.root}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ProfileHeader title={title} />
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <Input
+            label="Nueva contraseña"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            placeholder="Mínimo 8 caracteres"
+            secureTextEntry
+          />
+          <Input
+            label="Confirmar contraseña"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Repetir nueva contraseña"
+            secureTextEntry
+            error={showMismatchError ? 'Las contraseñas deben coincidir' : undefined}
+          />
+          <TouchableOpacity
+            style={[styles.button, (!canSubmit || isLoading) && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.buttonText}>
+              {isLoading ? 'Guardando...' : 'Cambiar mi contraseña'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };

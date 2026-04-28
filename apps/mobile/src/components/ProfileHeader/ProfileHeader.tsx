@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './ProfileHeader.styles';
 
 interface ProfileHeaderProps {
@@ -11,7 +10,6 @@ interface ProfileHeaderProps {
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ title, onBack }) => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     if (onBack) {
@@ -22,7 +20,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ title, onBack }) =
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+    <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
         onPress={handleBack}

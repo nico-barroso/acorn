@@ -6,7 +6,6 @@ export default function LoginRoute() {
 
   return (
     <LoginScreen
-      onLoginSuccess={() => undefined}
       onGoToRegister={() => router.push('/(auth)/register')}
       onGoToForgotPassword={() => router.push('/(auth)/forgot-password')}
     />

@@ -4,7 +4,7 @@ import { ResetPasswordForm } from '@components/ResetPasswordForm/ResetPasswordFo
 export const ResetPassword: React.FC = () => (
   <ResetPasswordForm
     onSubmit={async (newPassword) => {
-      // TODO: supabase.auth.updateUser({ password: newPassword })
+      // TODO: bussiness logic with suypabase updateUser
       console.log('Nueva contraseña lista para enviar');
     }}
   />

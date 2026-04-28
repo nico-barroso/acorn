@@ -1,13 +1,17 @@
 import { StyleSheet } from 'react-native';
+
 const BROWN = '#48392A';
 const PRIMARY = '#C06E52';
 const ERROR = '#F96F5D';
 const BG = '#FFFCFB';
 
 export const styles = StyleSheet.create({
-  root: {
+  safeArea: {
     flex: 1,
     backgroundColor: BG,
+  },
+  root: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,

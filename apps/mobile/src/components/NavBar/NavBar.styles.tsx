@@ -43,6 +43,12 @@ export const styles = StyleSheet.create({
   navLabelActive: {
     color: colors.salmon,
   },
+  activePill: {
+    width: 16,
+    height: 3,
+    borderRadius: 99,
+    backgroundColor: colors.salmon,
+  },
   navFab: {
     width: 62,
     height: 62,

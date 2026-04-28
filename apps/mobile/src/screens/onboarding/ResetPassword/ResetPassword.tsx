@@ -5,7 +5,7 @@ export const ResetPasswordAuth: React.FC = () => (
   <ResetPasswordForm
     title="Restablecer contraseña"
     onSubmit={async (newPassword) => {
-      // TODO: lógica con token de email (Supabase OTP / magic link)
+      // TODO: bussiness logic with suypabase
       console.log('Auth — nueva contraseña:', newPassword);
     }}
   />
