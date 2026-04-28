@@ -43,6 +43,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         position: 'absolute',
         visibility: 'visible',
+        backgroundColor: '#00000000',
       },
     ],
     [

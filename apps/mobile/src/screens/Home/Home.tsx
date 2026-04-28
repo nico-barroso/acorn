@@ -308,7 +308,7 @@ export default function HomeScreen({
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <FlatList
         style={styles.scroll}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: navBarHeight + 20 }]}
