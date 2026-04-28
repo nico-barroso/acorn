@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, ScrollView, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, ImageBackground, Switch } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { styles } from './ProfileScreen.styles';
 import SectionButton from '../components/SectionButton/SectionButton';
 import { supabase } from '@lib/supabase';
+import { areNotificationsEnabled, setNotificationsEnabled } from '@lib/notificationService';
 
 type ProfileScreenProps = {
   userName?: string;
@@ -24,6 +25,20 @@ export default function ProfileScreen({
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [userData, setUserData] = React.useState<{ name: string; email: string; avatarUrl: string | null } | null>(null);
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
+
+  useEffect(() => {
+    const loadNotificationsPreference = async () => {
+      const enabled = await areNotificationsEnabled();
+      setNotificationsEnabledState(enabled);
+    };
+    loadNotificationsPreference();
+  }, []);
+
+  const toggleNotifications = async (value: boolean) => {
+    setNotificationsEnabledState(value);
+    await setNotificationsEnabled(value);
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -108,6 +123,13 @@ export default function ProfileScreen({
                 icon="lock"
                 onPress={() => router.push('/(app)/(profile)/reset-password')}
               />
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 }}>
+                <Text style={{ fontSize: 16 }}>Notificaciones</Text>
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={toggleNotifications}
+                />
+              </View>
             </View>
           </View>
 

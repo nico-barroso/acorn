@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { showLocalNotification, areNotificationsEnabled } from '@lib/notificationService';
 
 type NotificationPayload = {
   title?: string;
@@ -11,19 +12,20 @@ type NotificationPayload = {
 
 type UseNotificationChannelOptions = {
   userId: string | undefined;
-  onNotification: (payload: NotificationPayload) => void;
   enabled?: boolean;
 };
 
 export function useNotificationChannel({
   userId,
-  onNotification,
   enabled = true,
 }: UseNotificationChannelOptions) {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
-  const subscribe = useCallback(() => {
+  const subscribe = useCallback(async () => {
     if (!userId || !enabled) return;
+
+    const notificationsEnabled = await areNotificationsEnabled();
+    if (!notificationsEnabled) return;
 
     const channelName = `user:${userId}:notifications`;
 
@@ -32,8 +34,13 @@ export function useNotificationChannel({
     });
 
     channel
-      .on('broadcast', { event: 'notification' }, ({ payload }) => {
-        onNotification(payload as NotificationPayload);
+      .on('broadcast', { event: 'notification' }, async ({ payload }) => {
+        const notification = payload as NotificationPayload;
+        await showLocalNotification(
+          notification.title ?? 'Nueva notificación',
+          notification.body ?? '',
+          notification.data
+        );
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
@@ -45,7 +52,7 @@ export function useNotificationChannel({
       });
 
     channelRef.current = channel;
-  }, [userId, enabled, onNotification]);
+  }, [userId, enabled]);
 
   const unsubscribe = useCallback(() => {
     if (channelRef.current) {
