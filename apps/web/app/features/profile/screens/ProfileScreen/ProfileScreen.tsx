@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useProfile } from '../../hooks/useProfile'
-import { ConfirmModal } from '../../components/ConfirmModal/ConfirmModal'
+import { confirmModalStyles } from '../../components/ConfirmModal/ConfirmModal.styles'
 import { profileScreenStyles } from './ProfileScreen.styles'
 
-type ModalType = 'signOut' | 'deleteAccount' | null
+type ModalType = 'signOut' | 'deleteAccount' | 'changePassword' | null
 
 function getInitials(name: string, email: string): string {
   if (name && name !== 'Usuario') {
@@ -20,9 +20,53 @@ function getInitials(name: string, email: string): string {
 }
 
 export function ProfileScreen() {
-  const router = useRouter()
   const { profile, loading, error, signOut, deleteAccount } = useProfile()
   const [activeModal, setActiveModal] = useState<ModalType>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+
+  const inputStyle = {
+    width: '100%',
+    minHeight: '42px',
+    padding: '10px 12px',
+    borderRadius: '10px',
+    border: '1px solid #43281C35',
+    backgroundColor: '#fff',
+    color: '#43281C',
+    fontFamily: 'CabinetGrotesk, Inter, -apple-system, sans-serif',
+    fontSize: '14px',
+    fontWeight: 500 as const,
+    outline: 'none'
+  }
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError('La contrasena debe tener al menos 8 caracteres')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Las contrasenas no coinciden')
+      return
+    }
+    setPasswordSaving(true)
+    setPasswordError('')
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) {
+        setPasswordError('No se pudo cambiar la contrasena. Intentalo de nuevo.')
+      } else {
+        setPasswordSuccess(true)
+      }
+    } catch {
+      setPasswordError('Ocurrio un error inesperado')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -42,18 +86,11 @@ export function ProfileScreen() {
 
   const sections = [
     {
-      id: 'edit-profile',
-      icon: '👤',
-      iconStyle: profileScreenStyles.sectionIconUser,
-      label: 'Mi perfil',
-      onClick: () => {} // TODO: navigate to edit profile
-    },
-    {
       id: 'change-password',
       icon: '🔒',
       iconStyle: profileScreenStyles.sectionIconPassword,
       label: 'Cambiar contrasena',
-      onClick: () => router.push('/auth/reset-password')
+      onClick: () => { setNewPassword(''); setConfirmPassword(''); setPasswordError(''); setPasswordSuccess(false); setActiveModal('changePassword') }
     },
     {
       id: 'sign-out',
@@ -116,24 +153,79 @@ export function ProfileScreen() {
       </div>
 
       {activeModal === 'signOut' ? (
-        <ConfirmModal
-          title='Cerrar sesion'
-          message='¿Estas seguro de que quieres cerrar sesion? Tendras que iniciar sesion de nuevo para acceder a tus recursos.'
-          confirmLabel='Cerrar sesion'
-          onConfirm={signOut}
-          onDismiss={() => setActiveModal(null)}
-        />
+        <div style={confirmModalStyles.overlay} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}>
+          <div style={confirmModalStyles.modal}>
+            <h2 style={confirmModalStyles.title}>Cerrar sesion</h2>
+            <p style={confirmModalStyles.message}>¿Estas seguro de que quieres cerrar sesion? Tendras que iniciar sesion de nuevo para acceder a tus recursos.</p>
+            <div style={confirmModalStyles.actionsRow}>
+              <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cancelar</button>
+              <button type='button' onClick={signOut} style={confirmModalStyles.dangerButton}>Cerrar sesion</button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {activeModal === 'deleteAccount' ? (
-        <ConfirmModal
-          title='Eliminar cuenta'
-          message='Esta accion es irreversible. Se eliminaran todos tus recursos, carpetas y datos permanentemente. No podras recuperarlos.'
-          confirmLabel='Eliminar cuenta'
-          danger
-          onConfirm={deleteAccount}
-          onDismiss={() => setActiveModal(null)}
-        />
+        <div style={confirmModalStyles.overlay} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}>
+          <div style={confirmModalStyles.modal}>
+            <h2 style={confirmModalStyles.title}>Eliminar cuenta</h2>
+            <p style={confirmModalStyles.message}>Esta accion es irreversible. Se eliminaran todos tus recursos, carpetas y datos permanentemente. No podras recuperarlos.</p>
+            <div style={confirmModalStyles.actionsRow}>
+              <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cancelar</button>
+              <button type='button' onClick={deleteAccount} style={confirmModalStyles.dangerButton}>Eliminar cuenta</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {activeModal === 'changePassword' ? (
+        <div style={confirmModalStyles.overlay} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}>
+          <div style={confirmModalStyles.modal}>
+            <h2 style={confirmModalStyles.title}>Cambiar contrasena</h2>
+
+            {passwordSuccess ? (
+              <>
+                <p style={{ ...confirmModalStyles.message, color: '#2e7d32' }}>Contrasena actualizada correctamente.</p>
+                <div style={confirmModalStyles.actionsRow}>
+                  <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cerrar</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={confirmModalStyles.message}>Introduce tu nueva contrasena. Debe tener al menos 8 caracteres.</p>
+                <div style={{ marginTop: '18px', display: 'grid', gap: '10px' }}>
+                  <label style={profileScreenStyles.sectionLabel} htmlFor='new-password'>Nueva contrasena</label>
+                  <input
+                    id='new-password'
+                    type='password'
+                    value={newPassword}
+                    onChange={(e) => { setNewPassword(e.target.value); setPasswordError('') }}
+                    disabled={passwordSaving}
+                    style={inputStyle}
+                    placeholder='Minimo 8 caracteres'
+                  />
+                  <label style={profileScreenStyles.sectionLabel} htmlFor='confirm-password'>Confirmar contrasena</label>
+                  <input
+                    id='confirm-password'
+                    type='password'
+                    value={confirmPassword}
+                    onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError('') }}
+                    disabled={passwordSaving}
+                    style={inputStyle}
+                    placeholder='Repite la contrasena'
+                  />
+                </div>
+                {passwordError ? <p style={confirmModalStyles.message}>{passwordError}</p> : null}
+                <div style={confirmModalStyles.actionsRow}>
+                  <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton} disabled={passwordSaving}>Cancelar</button>
+                  <button type='button' onClick={handleChangePassword} disabled={passwordSaving || !newPassword} style={!newPassword || passwordSaving ? { ...confirmModalStyles.dangerButton, opacity: 0.6, cursor: 'not-allowed' } : confirmModalStyles.dangerButton}>
+                    {passwordSaving ? 'Guardando...' : 'Cambiar contrasena'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       ) : null}
     </main>
   )
