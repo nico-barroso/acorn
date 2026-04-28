@@ -12,8 +12,18 @@ import { NavBarHeightProvider } from '@context/NavBarHeightContext';
 import { useNotificationChannel } from '@hooks/useNotificationChannel';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '@lib/notificationService';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { queryClient } from '../src/lib/queryClient';
 
 SplashScreen.preventAutoHideAsync();
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: 'ACORN_QUERY_CACHE',
+  throttleTime: 1000,
+});
 
 function handleNotificationResponse(response: Notifications.NotificationResponse) {
   const data = response.notification.request.content.data;
@@ -47,8 +57,12 @@ function AuthGate() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession: Session | null) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession: Session | null) => {
       if (!mounted) return;
+
+      if (event === 'SIGNED_OUT') {
+        queryClient.clear();
+      }
 
       setSession(nextSession);
       setInitialized(true);
@@ -106,11 +120,22 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <SafeAreaProvider>
-      <NavBarHeightProvider>
-        <AuthGate />
-        <StatusBar style="dark" translucent backgroundColor="transparent" />
-      </NavBarHeightProvider>
-    </SafeAreaProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: asyncStoragePersister,
+        maxAge: 1000 * 60 * 60 * 24,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => query.queryKey[0] !== 'search',
+        },
+      }}
+    >
+      <SafeAreaProvider>
+        <NavBarHeightProvider>
+          <AuthGate />
+          <StatusBar style="dark" translucent backgroundColor="transparent" />
+        </NavBarHeightProvider>
+      </SafeAreaProvider>
+    </PersistQueryClientProvider>
   );
 }

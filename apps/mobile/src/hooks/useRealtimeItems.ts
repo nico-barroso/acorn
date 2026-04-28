@@ -1,17 +1,14 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRealtimeSubscription, notificationManager } from '../lib/RealtimeNotificationManager';
+import { queryKeys } from '../lib/queryKeys';
 import type { NotificationEvent } from '../lib/RealtimeNotificationManager';
 
 export function useItemsRealtime(userId: string | undefined) {
-  const handleItemChange = (event: NotificationEvent) => {
-    console.log('Item changed:', event.type, event.payload);
+  const queryClient = useQueryClient();
 
-    if (event.type === 'INSERT') {
-      // Handle new item
-    } else if (event.type === 'UPDATE') {
-      // Handle updated item
-    } else if (event.type === 'DELETE') {
-      // Handle deleted item
-    }
+  const handleItemChange = (_event: NotificationEvent) => {
+    if (!userId) return;
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId) });
   };
 
   useRealtimeSubscription(
@@ -27,8 +24,13 @@ export function useItemsRealtime(userId: string | undefined) {
 }
 
 export function useTagsRealtime(userId: string | undefined) {
-  const handleTagChange = (event: NotificationEvent) => {
-    console.log('Tag changed:', event.type, event.payload);
+  const queryClient = useQueryClient();
+
+  const handleTagChange = (_event: NotificationEvent) => {
+    if (!userId) return;
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(userId) });
+    // Tag changes can affect folder detail smart rules
+    void queryClient.invalidateQueries({ queryKey: ['folders', userId] });
   };
 
   useRealtimeSubscription(

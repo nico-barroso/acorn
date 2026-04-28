@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQuery, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
 import { supabase } from '../../../lib/supabase';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
@@ -26,6 +27,9 @@ import AcornEmpty from '../../../assets/svg/acorn-empty-state.svg';
 import { ContentCardData } from './Home.types';
 import { HomeHeader } from './components/HomeHeader/HomeHeader';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { queryClient } from '../../lib/queryClient';
+import { queryKeys } from '../../lib/queryKeys';
+import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 
 type ResourceRow = {
   id: string;
@@ -96,6 +100,35 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
   };
 }
 
+type ItemsPage = {
+  items: ContentCardData[];
+  nextCursor: string | null;
+  rawRows: ResourceRow[];
+};
+
+async function fetchItemsPage(
+  userId: string,
+  tagColorMap: Map<string, string | null>,
+  cursor: string | null,
+): Promise<ItemsPage> {
+  let q = supabase
+    .from('items_with_links')
+    .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(PAGE_SIZE);
+
+  if (cursor) q = q.lt('created_at', cursor);
+
+  const { data, error } = await q;
+  if (error) throw new Error('No se pudieron cargar los recursos.');
+
+  const rows = (data ?? []) as ResourceRow[];
+  const items = rows.map((row) => mapResource(row, tagColorMap));
+  const nextCursor = rows.length === PAGE_SIZE ? rows[rows.length - 1].created_at : null;
+  return { items, nextCursor, rawRows: rows };
+}
+
 export default function HomeScreen({
   userName = 'Usuario',
   greeting = 'Buenos dias',
@@ -105,169 +138,103 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const router = useRouter();
   const { height: navBarHeight } = useNavBarHeight();
+  const userId = useCurrentUserId();
+
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
   const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
 
-  const [resources, setResources] = React.useState<ContentCardData[]>([]);
-  const [nextCursor, setNextCursor] = React.useState<string | null>(null);
-  const [hasMore, setHasMore] = React.useState(true);
-  const [loadingInitial, setLoadingInitial] = React.useState(true);
-  const [loadingMore, setLoadingMore] = React.useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
-  const [listError, setListError] = React.useState('');
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+  // Tags query — shared cache with other screens
+  const { data: tagData } = useQuery({
+    queryKey: queryKeys.tags(userId ?? ''),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tags')
+        .select('name,color_hex')
+        .eq('user_id', userId!);
+      return (data ?? []) as { name: string; color_hex: string | null }[];
+    },
+    enabled: Boolean(userId),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const hasMoreRef = React.useRef(hasMore);
-  const nextCursorRef = React.useRef(nextCursor);
-  const loadingMoreRef = React.useRef(loadingMore);
-  const loadingInitialRef = React.useRef(loadingInitial);
-  const refreshingRef = React.useRef(refreshing);
+  const tagColorMap = React.useMemo(
+    () => new Map((tagData ?? []).map((t) => [t.name, t.color_hex])),
+    [tagData],
+  );
 
-  React.useEffect(() => {
-    hasMoreRef.current = hasMore;
-  }, [hasMore]);
-  React.useEffect(() => {
-    nextCursorRef.current = nextCursor;
-  }, [nextCursor]);
-  React.useEffect(() => {
-    loadingMoreRef.current = loadingMore;
-  }, [loadingMore]);
-  React.useEffect(() => {
-    loadingInitialRef.current = loadingInitial;
-  }, [loadingInitial]);
-  React.useEffect(() => {
-    refreshingRef.current = refreshing;
-  }, [refreshing]);
-
-  React.useEffect(() => {
-    const loadAvatar = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
-
+  // Avatar query — shared cache with profile screen
+  const { data: avatarUrl = null } = useQuery({
+    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryFn: async () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('avatar_url')
-        .eq('id', user.id)
+        .eq('id', userId!)
         .single();
 
-      if (profile?.avatar_url) {
-        const { data: signed } = await supabase.storage
-          .from('user-files')
-          .createSignedUrl(profile.avatar_url, 3600);
-        if (signed?.signedUrl) setAvatarUrl(signed.signedUrl);
-      }
-    };
-    loadAvatar();
-  }, []);
+      if (!profile?.avatar_url) return null;
 
-  const fetchResources = React.useCallback(async (mode: 'initial' | 'refresh' | 'loadMore') => {
-    if (
-      mode === 'loadMore' &&
-      (!hasMoreRef.current ||
-        loadingMoreRef.current ||
-        loadingInitialRef.current ||
-        refreshingRef.current)
-    )
-      return;
+      const { data: signed } = await supabase.storage
+        .from('user-files')
+        .createSignedUrl(profile.avatar_url, 3600);
 
-    if (mode === 'initial') setLoadingInitial(true);
-    if (mode === 'refresh') setRefreshing(true);
-    if (mode === 'loadMore') setLoadingMore(true);
+      return signed?.signedUrl ?? null;
+    },
+    enabled: Boolean(userId),
+    staleTime: 50 * 60 * 1000,
+  });
 
-    setListError('');
+  // Infinite items query
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage: loadingMore,
+    isLoading: loadingInitial,
+    isRefetching: refreshing,
+    refetch,
+    error: queryError,
+  } = useInfiniteQuery({
+    queryKey: queryKeys.items(userId ?? ''),
+    queryFn: ({ pageParam }) =>
+      fetchItemsPage(userId!, tagColorMap, (pageParam as string | null) ?? null),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: Boolean(userId),
+    staleTime: 1 * 60 * 1000,
+  });
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
+  const resources = React.useMemo(
+    () => data?.pages.flatMap((p) => p.items) ?? [],
+    [data],
+  );
 
-    if (!user) {
-      setListError('Debes iniciar sesion para ver tus recursos.');
-      setLoadingInitial(false);
-      setRefreshing(false);
-      setLoadingMore(false);
-      return;
-    }
-
-    let query = supabase
-      .from('items_with_links')
-      .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(PAGE_SIZE);
-
-    if (mode === 'loadMore' && nextCursorRef.current) {
-      query = query.lt('created_at', nextCursorRef.current);
-    }
-
-    const [{ data, error }, { data: tagRows }] = await Promise.all([
-      query,
-      supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
-    ]);
-
-    const tagColorMap = new Map(
-      ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
-    );
-
-    setLoadingInitial(false);
-    setRefreshing(false);
-    setLoadingMore(false);
-
-    if (error) {
-      setListError('No se pudieron cargar los recursos. Intenta refrescar.');
-      return;
-    }
-
-    const mapped = ((data ?? []) as ResourceRow[]).map((row) => mapResource(row, tagColorMap));
-
-    if (mode === 'loadMore') {
-      setResources((previous) => {
-        const merged = [...previous, ...mapped];
-        const seen = new Set<string>();
-        return merged.filter((item) => {
-          if (seen.has(item.id)) return false;
-          seen.add(item.id);
-          return true;
-        });
-      });
-    } else {
-      setResources(mapped);
-    }
-
-    setHasMore(mapped.length === PAGE_SIZE);
-    setNextCursor(
-      mapped.length > 0 ? ((data ?? []) as ResourceRow[])[mapped.length - 1].created_at : null,
-    );
-  }, []);
-
-  React.useEffect(() => {
-    void fetchResources('initial');
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';
 
   React.useEffect(() => {
     if (sharedUrl) setSaveLinkOpen(true);
   }, [sharedUrl]);
 
-  const handleFabPress = () => {
-    Alert.alert('Guardar recurso', 'Elige el tipo de contenido que quieres guardar', [
-      { text: 'Enlace', onPress: () => setSaveLinkOpen(true) },
-      { text: 'Archivo', onPress: () => setSaveFileOpen(true) },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
-  };
-
-  const featured = resources.length >= 2 ? resources[0] : null;
-  const listData = resources.length >= 2 ? resources.slice(1) : resources;
-  const showOnboarding = !loadingInitial && resources.length <= 1;
-
   const handleToggleRead = async (itemId: string, nextRead: boolean) => {
-    setResources((current) =>
-      current.map((item) =>
-        item.id === itemId
-          ? { ...item, isRead: nextRead, status: nextRead ? 'Visto' : 'No visto' }
-          : item,
-      ),
+    // Optimistic update across all infinite pages
+    queryClient.setQueryData(
+      queryKeys.items(userId!),
+      (old: InfiniteData<ItemsPage> | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: page.items.map((item) =>
+              item.id === itemId
+                ? { ...item, isRead: nextRead, status: nextRead ? 'Visto' : 'No visto' }
+                : item,
+            ),
+          })),
+        };
+      },
     );
 
     const { error } = await supabase
@@ -276,15 +243,37 @@ export default function HomeScreen({
       .eq('id', itemId);
 
     if (error) {
-      setResources((current) =>
-        current.map((item) =>
-          item.id === itemId
-            ? { ...item, isRead: !nextRead, status: !nextRead ? 'Visto' : 'No visto' }
-            : item,
-        ),
+      // Roll back
+      queryClient.setQueryData(
+        queryKeys.items(userId!),
+        (old: InfiniteData<ItemsPage> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              items: page.items.map((item) =>
+                item.id === itemId
+                  ? { ...item, isRead: !nextRead, status: !nextRead ? 'Visto' : 'No visto' }
+                  : item,
+              ),
+            })),
+          };
+        },
       );
-      setListError('No se pudo actualizar el estado de lectura.');
     }
+  };
+
+  const featured = resources.length >= 2 ? resources[0] : null;
+  const listData = resources.length >= 2 ? resources.slice(1) : resources;
+  const showOnboarding = !loadingInitial && resources.length <= 1;
+
+  const handleFabPress = () => {
+    Alert.alert('Guardar recurso', 'Elige el tipo de contenido que quieres guardar', [
+      { text: 'Enlace', onPress: () => setSaveLinkOpen(true) },
+      { text: 'Archivo', onPress: () => setSaveFileOpen(true) },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
   };
 
   const renderEmpty = () => {
@@ -310,6 +299,9 @@ export default function HomeScreen({
 
     return null;
   };
+
+  const invalidateItems = () =>
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId!) });
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -346,11 +338,13 @@ export default function HomeScreen({
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => void fetchResources('refresh')}
+            onRefresh={() => void refetch()}
           />
         }
         onEndReachedThreshold={0.4}
-        onEndReached={() => void fetchResources('loadMore')}
+        onEndReached={() => {
+          if (hasNextPage && !loadingMore) void fetchNextPage();
+        }}
         ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.salmon} /> : null}
       />
       <ImageBackground
@@ -371,7 +365,7 @@ export default function HomeScreen({
         onInitialUrlConsumed={onSharedUrlHandled}
         onSaved={() => {
           setSaveLinkOpen(false);
-          void fetchResources('refresh');
+          invalidateItems();
         }}
       />
 
@@ -380,7 +374,7 @@ export default function HomeScreen({
         onClose={() => setSaveFileOpen(false)}
         onSaved={() => {
           setSaveFileOpen(false);
-          void fetchResources('refresh');
+          invalidateItems();
         }}
       />
 
@@ -388,7 +382,7 @@ export default function HomeScreen({
         visible={Boolean(selectedItemId)}
         itemId={selectedItemId}
         onClose={() => setSelectedItemId(null)}
-        onUpdated={() => void fetchResources('refresh')}
+        onUpdated={invalidateItems}
       />
 
       <TagPickerModal
@@ -397,10 +391,9 @@ export default function HomeScreen({
         onClose={() => setTagPickerItemId(null)}
         onSaved={() => {
           setTagPickerItemId(null);
-          void fetchResources('refresh');
+          invalidateItems();
         }}
       />
-
     </SafeAreaView>
   );
 }
