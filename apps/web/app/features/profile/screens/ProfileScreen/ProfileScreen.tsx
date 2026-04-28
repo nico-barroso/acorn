@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useProfile } from '../../hooks/useProfile'
 import { confirmModalStyles } from '../../components/ConfirmModal/ConfirmModal.styles'
@@ -86,6 +87,14 @@ export function ProfileScreen() {
 
   const sections = [
     {
+      id: 'my-profile',
+      icon: '👤',
+      iconStyle: profileScreenStyles.sectionIconUser,
+      label: 'Mi perfil',
+      onClick: undefined as (() => void) | undefined,
+      href: '/profile/edit'
+    },
+    {
       id: 'change-password',
       icon: '🔒',
       iconStyle: profileScreenStyles.sectionIconPassword,
@@ -131,25 +140,38 @@ export function ProfileScreen() {
 
       <h2 style={profileScreenStyles.sectionTitle}>Cuenta</h2>
       <div style={profileScreenStyles.sectionCard}>
-        {sections.map((section, index) => (
-          <button
-            key={section.id}
-            type='button'
-            onClick={section.onClick}
-            style={{
-              ...profileScreenStyles.sectionItem,
-              ...(index < sections.length - 1 ? profileScreenStyles.sectionItemBorder : {})
-            }}
-          >
-            <div style={{ ...profileScreenStyles.sectionIcon, ...section.iconStyle }}>
-              {section.icon}
-            </div>
-            <span style={{ ...profileScreenStyles.sectionLabel, ...(section.labelStyle || {}) }}>
-              {section.label}
-            </span>
-            <span style={profileScreenStyles.sectionChevron}>›</span>
-          </button>
-        ))}
+        {sections.map((section, index) => {
+          const inner = (
+            <>
+              <div style={{ ...profileScreenStyles.sectionIcon, ...section.iconStyle }}>
+                {section.icon}
+              </div>
+              <span style={{ ...profileScreenStyles.sectionLabel, ...(section.labelStyle || {}) }}>
+                {section.label}
+              </span>
+              <span style={profileScreenStyles.sectionChevron}>›</span>
+            </>
+          )
+
+          const style = {
+            ...profileScreenStyles.sectionItem,
+            ...(index < sections.length - 1 ? profileScreenStyles.sectionItemBorder : {})
+          }
+
+          if (section.href) {
+            return (
+              <Link key={section.id} href={section.href} style={{ ...style, textDecoration: 'none' }}>
+                {inner}
+              </Link>
+            )
+          }
+
+          return (
+            <button key={section.id} type='button' onClick={section.onClick} style={style}>
+              {inner}
+            </button>
+          )
+        })}
       </div>
 
       {activeModal === 'signOut' ? (
