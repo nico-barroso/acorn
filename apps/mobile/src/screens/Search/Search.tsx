@@ -22,7 +22,7 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
     filteredResults,
     results,
     domainOptions,
-    tagOptions,
+    allUserTags,
     selectedDomain,
     setSelectedDomain,
     selectedTag,
@@ -32,13 +32,14 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
     selectedRead,
     setSelectedRead,
     hasActiveFilters,
+    tagFromQuery,
     clearFilters,
   } = useSearch();
 
   const insets = useSafeAreaInsets();
   const [showFilterPanel, setShowFilterPanel] = React.useState(false);
 
-  const activeData = query.trim() ? filteredResults : results;
+  const activeData = filteredResults;
 
   const handleQuickFilter = (id: string) => {
     if (id === 'all') {
@@ -152,17 +153,29 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
           {hasActiveFilters ? ` · Hay filtros activos` : ''}
         </Text>
       </View>
+      {tagFromQuery && (
+        <View style={styles.inner}>
+          <Text style={styles.tagQueryHint}>
+            Buscando por etiqueta: <Text style={styles.tagQueryBadge}>#{tagFromQuery}</Text>
+          </Text>
+        </View>
+      )}
       {showFilterPanel && (
         <View style={styles.filterPanel}>
           <FilterPanel
             domains={domainOptions}
-            tags={tagOptions}
+            tags={allUserTags}
             selectedDomain={selectedDomain}
             selectedTag={selectedTag}
             selectedDate={selectedDate}
             selectedRead={selectedRead}
             onSelectDomain={setSelectedDomain}
-            onSelectTag={setSelectedTag}
+            onSelectTag={(tag) => {
+              if (query.trim().startsWith('#')) {
+                setQuery('');
+              }
+              setSelectedTag(selectedTag === tag ? null : tag);
+            }}
             onSelectDate={setSelectedDate}
             onSelectRead={setSelectedRead}
             onClear={clearFilters}

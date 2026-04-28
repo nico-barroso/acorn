@@ -48,10 +48,22 @@ export function useSearch() {
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [page, setPage] = React.useState(0);
   const [hasMore, setHasMore] = React.useState(true);
+  const [allUserTags, setAllUserTags] = React.useState<string[]>([]);
   const [selectedDomain, setSelectedDomain] = React.useState<string | null>(null);
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
   const [selectedDate, setSelectedDate] = React.useState<DateFilterValue>('all');
   const [selectedRead, setSelectedRead] = React.useState<ReadFilterValue>('all');
+
+  const fetchUserTags = React.useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('tags').select('name').eq('user_id', user.id).order('name');
+    setAllUserTags(((data ?? []) as { name: string }[]).map((t) => t.name));
+  }, []);
+
+  React.useEffect(() => {
+    void fetchUserTags();
+  }, [fetchUserTags]);
 
   const fetchPage = React.useCallback(async (term: string, pageIndex: number, append: boolean) => {
     pageIndex === 0 ? setLoading(true) : setLoadingMore(true);
@@ -67,6 +79,9 @@ export function useSearch() {
       return;
     }
 
+    const isTagQuery = term.trim().startsWith('#');
+    const backendTerm = isTagQuery ? '' : term;
+
     let queryBuilder = supabase
       .from('items_with_links')
       .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
@@ -74,8 +89,8 @@ export function useSearch() {
       .order('created_at', { ascending: false })
       .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
 
-    if (term.trim()) {
-      const termPattern = `%${term.trim().replace(/[%_]/g, '')}%`;
+    if (backendTerm.trim()) {
+      const termPattern = `%${backendTerm.trim().replace(/[%_]/g, '')}%`;
       queryBuilder = queryBuilder.or(
         `title.ilike.${termPattern},description.ilike.${termPattern},domain.ilike.${termPattern},url.ilike.${termPattern}`,
       );
@@ -115,6 +130,7 @@ export function useSearch() {
     setSelectedTag(null);
     setSelectedDate('all');
     setSelectedRead('all');
+    setQuery((q) => (q.trim().startsWith('#') ? '' : q));
   }, []);
 
   // Reset y carga inicial cuando cambia la query
@@ -140,23 +156,27 @@ export function useSearch() {
     [results],
   );
 
+  const tagFromQuery = query.trim().startsWith('#') ? query.trim().slice(1).toLowerCase() : null;
+  const effectiveTag = tagFromQuery ?? (selectedTag ? selectedTag.toLowerCase() : null);
+
   const filteredResults = React.useMemo(
     () =>
       results.filter((result) => {
         if (selectedDomain && result.domain !== selectedDomain) return false;
-        if (selectedTag && !result.tags.some((t) => t.name.toLowerCase() === selectedTag.toLowerCase()))
+        if (effectiveTag && !result.tags.some((t) => t.name.toLowerCase() === effectiveTag))
           return false;
         if (!applyDateFilter(result.createdAt, selectedDate)) return false;
         if (selectedRead === 'read' && !result.isRead) return false;
         if (selectedRead === 'unread' && result.isRead) return false;
         return true;
       }),
-    [results, selectedDate, selectedDomain, selectedRead, selectedTag],
+    [results, selectedDate, selectedDomain, selectedRead, effectiveTag],
   );
 
   const hasActiveFilters =
     selectedDomain !== null ||
     selectedTag !== null ||
+    tagFromQuery !== null ||
     selectedDate !== 'all' ||
     selectedRead !== 'all';
 
@@ -172,6 +192,7 @@ export function useSearch() {
     results,
     domainOptions,
     tagOptions,
+    allUserTags,
     selectedDomain,
     setSelectedDomain,
     selectedTag,
@@ -181,6 +202,7 @@ export function useSearch() {
     selectedRead,
     setSelectedRead,
     hasActiveFilters,
+    tagFromQuery,
     clearFilters,
   };
 }

@@ -89,4 +89,14 @@ export const styles = StyleSheet.create({
     color: colors.brownMid,
     textAlign: 'center',
   },
+  tagQueryHint: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 13,
+    color: colors.brownMid,
+    marginTop: -10,
+  },
+  tagQueryBadge: {
+    fontFamily: 'Satoshi-Bold',
+    color: colors.salmon,
+  },
 });

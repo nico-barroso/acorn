@@ -300,7 +300,11 @@ export function ContentCard({
             {faviconUri ? <Image source={{ uri: faviconUri }} style={styles.favicon} /> : null}
             <Text style={styles.source}>{source}</Text>
           </View>
-          <Tag label={tag} />
+          {tags.length > 0 && (
+            <View style={styles.tagsRowCollapsed}>
+              {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
+            </View>
+          )}
         </View>
         <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
       </View>
