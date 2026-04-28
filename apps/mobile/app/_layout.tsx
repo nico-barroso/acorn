@@ -7,8 +7,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { supabase } from '@lib/supabase';
-import { Keyboard, TouchableWithoutFeedback, View } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback, View, Alert } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
+import { useNotificationChannel } from '@hooks/useNotificationChannel';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,6 +18,14 @@ function AuthGate() {
   const segments = useSegments();
   const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(false);
+
+  useNotificationChannel({
+    userId: session?.user?.id,
+    onNotification: (payload) => {
+      console.log('🔔 Notificación recibida:', payload);
+      Alert.alert(payload.title ?? 'Notificación', payload.body ?? '');
+    }
+  });
 
   useEffect(() => {
     let mounted = true;
