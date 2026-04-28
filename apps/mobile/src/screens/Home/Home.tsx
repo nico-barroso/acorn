@@ -267,7 +267,8 @@ export default function HomeScreen({
   };
 
   const featured = resources.length >= 2 ? resources[0] : null;
-  const listData = resources.length >= 2 ? resources.slice(1) : resources;
+  const listData = resources.length >= 2 ? resources.slice(1, 5) : resources.slice(0, 5);
+  const hasMoreThanFive = resources.length > 5;
   const showOnboarding = !loadingInitial && resources.length <= 1;
 
   const handleFabPress = () => {
@@ -348,7 +349,16 @@ export default function HomeScreen({
         onEndReached={() => {
           if (hasNextPage && !loadingMore) void fetchNextPage();
         }}
-        ListFooterComponent={loadingMore ? <ContentCardSkeleton /> : null}
+        ListFooterComponent={
+          loadingMore ? (
+            <ContentCardSkeleton />
+          ) : hasMoreThanFive ? (
+            <TouchableOpacity style={styles.seeMoreButton} onPress={onSearchPress ?? (() => router.push('/(app)/search'))}>
+              <Text style={styles.seeMoreText}>Ver más recursos</Text>
+              <Text style={styles.seeMoreSubtext}>Acceder a todos mis enlaces</Text>
+            </TouchableOpacity>
+          ) : null
+        }
       />
       <ImageBackground
         source={require('../../../assets/bottom-home-noise-gradient.webp')}

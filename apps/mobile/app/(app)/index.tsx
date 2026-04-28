@@ -46,6 +46,7 @@ export default function HomeRoute() {
       userName={displayName}
       sharedUrl={sharedUrl}
       onSharedUrlHandled={() => setSharedUrl(null)}
+      onSearchPress={() => router.push('/(app)/search')}
     />
   );
 }

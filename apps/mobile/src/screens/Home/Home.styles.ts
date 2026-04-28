@@ -250,4 +250,22 @@ export const styles = StyleSheet.create({
   statusIcon: {
     fontSize: 10,
   },
+  seeMoreButton: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  seeMoreText: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontSize: 18,
+    color: colors.brown,
+    marginBottom: 4,
+  },
+  seeMoreSubtext: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 14,
+    color: colors.brown,
+    opacity: 0.6,
+    textDecorationLine: 'underline',
+  },
 });
