@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useSession } from '@context/SessionContext';
 import { supabase } from '@lib/supabase';
 import { styles } from './EditFolderModal.styles';
 import type { FolderData } from '../../FoldersScreen.types';
@@ -80,11 +81,12 @@ export function EditFolderModal({ visible, folder, onClose, onSaved }: EditFolde
     };
   }, []);
 
+  const { session } = useSession();
+  const user = session?.user;
+
   const loadFolderData = useCallback(async () => {
     if (!folder) return;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
     if (!user) return;
 
     const [folderRes, rulesRes, tagsRes, domainsRes] = await Promise.all([

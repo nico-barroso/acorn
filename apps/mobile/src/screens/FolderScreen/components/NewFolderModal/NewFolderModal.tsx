@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useSession } from '@context/SessionContext';
 import { supabase } from '@lib/supabase';
 import { styles } from './NewFolderModal.styles';
 
@@ -78,9 +79,10 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
     };
   }, []);
 
+  const { session } = useSession();
+  const user = session?.user;
+
   const loadOptions = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
     if (!user) return;
 
     const [tagsRes, domainsRes] = await Promise.all([
@@ -176,9 +178,6 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
 
     setLoading(true);
     setError('');
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
 
     if (!user) {
       setError('Debes iniciar sesión para crear carpetas.');

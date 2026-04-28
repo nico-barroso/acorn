@@ -15,6 +15,7 @@ import {
 
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../components/Button/Button';
+import { useSession } from '@context/SessionContext';
 import { styles } from './TagManagement.styles';
 
 const PRESET_COLORS = [
@@ -73,6 +74,9 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
   const [editingTagName, setEditingTagName] = React.useState('');
   const [editingTagColor, setEditingTagColor] = React.useState<string>(PRESET_COLORS[0]);
 
+  const { session } = useSession();
+  const user = session?.user;
+
   const loadTags = React.useCallback(async () => {
     if (!visible) {
       return;
@@ -80,9 +84,6 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
 
     setLoading(true);
     setError('');
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
 
     if (!user) {
       setLoading(false);
@@ -173,9 +174,6 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     setSaving(true);
     setError('');
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-
     if (!user) {
       setSaving(false);
       setError('Debes iniciar sesion para crear etiquetas.');
@@ -219,9 +217,6 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     setSaving(true);
     setError('');
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-
     if (!user) {
       setSaving(false);
       setError('Debes iniciar sesion para editar etiquetas.');
@@ -260,9 +255,6 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
           void (async () => {
             setSaving(true);
             setError('');
-
-            const { data: { session } } = await supabase.auth.getSession();
-            const user = session?.user;
 
             if (!user) {
               setSaving(false);

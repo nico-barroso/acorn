@@ -1,6 +1,10 @@
 import { useRouter } from 'expo-router';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@lib/supabase';
+import { queryClient } from '../../../lib/queryClient';
+import { queryKeys } from '../../../lib/queryKeys';
+import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import type { FolderData } from '../FoldersScreen.types';
 
 type SmartFolderRow = {
@@ -13,100 +17,54 @@ function mapFolder(row: SmartFolderRow): FolderData {
   return {
     id: row.id,
     name: row.name?.trim() || 'Carpeta sin nombre',
-
     description: row.description?.trim() || undefined,
   };
 }
 
+async function fetchFolders(userId: string): Promise<FolderData[]> {
+  const { data, error } = await supabase
+    .from('smart_folders')
+    .select('id, name, description')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error('No se pudieron cargar tus carpetas.');
+  return ((data ?? []) as SmartFolderRow[]).map(mapFolder);
+}
+
 export function useFolders() {
   const router = useRouter();
-  const [folders, setFolders] = useState<FolderData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState('');
+  const userId = useCurrentUserId();
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<FolderData | null>(null);
-  const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
 
-  const fetchFolders = useCallback(async (mode: 'initial' | 'refresh' | 'silent') => {
-    if (mode === 'initial') setLoading(true);
-    if (mode === 'refresh') setRefreshing(true);
+  const {
+    data: folders = [],
+    isLoading: loading,
+    isRefetching: refreshing,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.folders(userId ?? ''),
+    queryFn: () => fetchFolders(userId!),
+    enabled: Boolean(userId),
+    staleTime: 2 * 60 * 1000,
+  });
 
-    setError('');
+  const error = queryError ? 'No se pudieron cargar tus carpetas.' : '';
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('smart_folders').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.folders(userId!) });
+    },
+  });
 
-    if (!user) {
-      setLoading(false);
-      setRefreshing(false);
-      setError('Debes iniciar sesion para ver tus carpetas.');
-      return;
-    }
-
-    const { data, error: queryError } = await supabase
-      .from('smart_folders')
-      .select('id, name, description')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    setLoading(false);
-    setRefreshing(false);
-
-    if (queryError) {
-      setError('No se pudieron cargar tus carpetas.');
-      return;
-    }
-
-    setFolders(((data ?? []) as SmartFolderRow[]).map(mapFolder));
-  }, []);
-
-  useEffect(() => {
-    void fetchFolders('initial');
-  }, [fetchFolders]);
-
-  const onNewFolder = () => setBuilderOpen(true);
-  const onBuilderClose = () => setBuilderOpen(false);
-  const onBuilderCreated = () => {
-    setBuilderOpen(false);
-    void fetchFolders('silent');
-  };
-
-  const onFolderPress = (id: string) => {
-    router.push(`/(app)/folders/${id}`);
-  };
-
-  const onRefresh = () => void fetchFolders('refresh');
-
-  const onEditFolder = (id: string) => {
-    const folder = folders.find((f) => f.id === id);
-    if (folder) setEditingFolder(folder);
-  };
-
-  const onEditClose = () => setEditingFolder(null);
-
-  const onEditSaved = () => {
-    setEditingFolder(null);
-    void fetchFolders('silent');
-  };
-
-  const onDeleteFolder = async (id: string) => {
-    setDeletingFolderId(id);
-
-    const { error: deleteError } = await supabase
-      .from('smart_folders')
-      .delete()
-      .eq('id', id);
-
-    setDeletingFolderId(null);
-
-    if (deleteError) {
-      setError('No se pudo eliminar la carpeta.');
-      return;
-    }
-
-    setFolders((prev) => prev.filter((f) => f.id !== id));
-  };
+  const invalidateFolders = () =>
+    void queryClient.invalidateQueries({ queryKey: queryKeys.folders(userId!) });
 
   return {
     folders,
@@ -115,15 +73,24 @@ export function useFolders() {
     error,
     builderOpen,
     editingFolder,
-    deletingFolderId,
-    onNewFolder,
-    onBuilderClose,
-    onBuilderCreated,
-    onFolderPress,
-    onRefresh,
-    onEditFolder,
-    onEditClose,
-    onEditSaved,
-    onDeleteFolder,
+    deletingFolderId: deleteMutation.isPending ? (deleteMutation.variables ?? null) : null,
+    onNewFolder: () => setBuilderOpen(true),
+    onBuilderClose: () => setBuilderOpen(false),
+    onBuilderCreated: () => {
+      setBuilderOpen(false);
+      invalidateFolders();
+    },
+    onFolderPress: (id: string) => router.push(`/(app)/folders/${id}`),
+    onRefresh: () => void refetch(),
+    onEditFolder: (id: string) => {
+      const folder = folders.find((f) => f.id === id);
+      if (folder) setEditingFolder(folder);
+    },
+    onEditClose: () => setEditingFolder(null),
+    onEditSaved: () => {
+      setEditingFolder(null);
+      invalidateFolders();
+    },
+    onDeleteFolder: (id: string) => deleteMutation.mutate(id),
   };
 }

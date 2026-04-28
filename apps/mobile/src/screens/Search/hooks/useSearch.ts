@@ -1,5 +1,9 @@
 import React from 'react';
+import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '../../../../lib/supabase';
+import { queryKeys } from '../../../lib/queryKeys';
+import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
+import { useDebounce } from '../../../hooks/useDebounce';
 import type { DateFilterValue, ReadFilterValue, SearchResult, SearchRow } from '../types';
 
 const PAGE_SIZE = 15;
@@ -40,90 +44,100 @@ function applyDateFilter(createdAt: string, filter: DateFilterValue) {
   return createdTime >= now - 365 * dayToMs;
 }
 
+async function fetchSearchPage(
+  userId: string,
+  term: string,
+  pageIndex: number,
+): Promise<SearchResult[]> {
+  const isTagQuery = term.trim().startsWith('#');
+  const backendTerm = isTagQuery ? '' : term;
+
+  let queryBuilder = supabase
+    .from('items_with_links')
+    .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
+
+  if (backendTerm.trim()) {
+    const termPattern = `%${backendTerm.trim().replace(/[%_]/g, '')}%`;
+    queryBuilder = queryBuilder.or(
+      `title.ilike.${termPattern},description.ilike.${termPattern},domain.ilike.${termPattern},url.ilike.${termPattern}`,
+    );
+  }
+
+  const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
+    queryBuilder,
+    supabase.from('tags').select('name,color_hex').eq('user_id', userId),
+  ]);
+
+  if (fetchError) throw new Error('No se pudieron cargar los recursos.');
+
+  const tagColorMap = new Map(
+    ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
+  );
+
+  return ((data ?? []) as SearchRow[]).map((row) => mapSearchResult(row, tagColorMap));
+}
+
 export function useSearch() {
+  const userId = useCurrentUserId();
   const [query, setQuery] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const [loadingMore, setLoadingMore] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [results, setResults] = React.useState<SearchResult[]>([]);
-  const [page, setPage] = React.useState(0);
-  const [hasMore, setHasMore] = React.useState(true);
-  const [allUserTags, setAllUserTags] = React.useState<string[]>([]);
+  const debouncedQuery = useDebounce(query, 260);
+
   const [selectedDomain, setSelectedDomain] = React.useState<string | null>(null);
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
   const [selectedDate, setSelectedDate] = React.useState<DateFilterValue>('all');
   const [selectedRead, setSelectedRead] = React.useState<ReadFilterValue>('all');
 
-  const fetchUserTags = React.useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-    if (!user) return;
-    const { data } = await supabase.from('tags').select('name').eq('user_id', user.id).order('name');
-    setAllUserTags(((data ?? []) as { name: string }[]).map((t) => t.name));
-  }, []);
+  // Tags query — reads from shared cache
+  const { data: allTagsData } = useQuery({
+    queryKey: queryKeys.tags(userId ?? ''),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tags')
+        .select('name')
+        .eq('user_id', userId!)
+        .order('name');
+      return (data ?? []) as { name: string }[];
+    },
+    enabled: Boolean(userId),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  React.useEffect(() => {
-    void fetchUserTags();
-  }, [fetchUserTags]);
+  const allUserTags = React.useMemo(
+    () => (allTagsData ?? []).map((t) => t.name),
+    [allTagsData],
+  );
 
-  const fetchPage = React.useCallback(async (term: string, pageIndex: number, append: boolean) => {
-    pageIndex === 0 ? setLoading(true) : setLoadingMore(true);
-    setError('');
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage: loadingMore,
+    isLoading: loading,
+    error: queryError,
+  } = useInfiniteQuery({
+    queryKey: queryKeys.search(userId ?? '', debouncedQuery),
+    queryFn: ({ pageParam }) => fetchSearchPage(userId!, debouncedQuery, (pageParam as number) ?? 0),
+    initialPageParam: 0 as number,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length === PAGE_SIZE ? (lastPageParam as number) + 1 : undefined,
+    enabled: Boolean(userId),
+    staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
+  });
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-    if (!user) {
-      setLoading(false);
-      setLoadingMore(false);
-      setError('Debes iniciar sesion para ver tus recursos.');
-      return;
-    }
+  const results = React.useMemo(
+    () => infiniteData?.pages.flatMap((p) => p) ?? [],
+    [infiniteData],
+  );
 
-    const isTagQuery = term.trim().startsWith('#');
-    const backendTerm = isTagQuery ? '' : term;
-
-    let queryBuilder = supabase
-      .from('items_with_links')
-      .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
-
-    if (backendTerm.trim()) {
-      const termPattern = `%${backendTerm.trim().replace(/[%_]/g, '')}%`;
-      queryBuilder = queryBuilder.or(
-        `title.ilike.${termPattern},description.ilike.${termPattern},domain.ilike.${termPattern},url.ilike.${termPattern}`,
-      );
-    }
-
-    const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
-      queryBuilder,
-      supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
-    ]);
-
-    const tagColorMap = new Map(
-      ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
-    );
-
-    setLoading(false);
-    setLoadingMore(false);
-
-    if (fetchError) {
-      setError('No se pudieron cargar los recursos.');
-      return;
-    }
-
-    const mapped = ((data ?? []) as SearchRow[]).map((row) => mapSearchResult(row, tagColorMap));
-    setHasMore(mapped.length === PAGE_SIZE);
-    setResults((prev) => (append ? [...prev, ...mapped] : mapped));
-  }, []);
+  const error = queryError ? 'No se pudieron cargar los recursos.' : '';
 
   const loadMore = React.useCallback(() => {
-    if (loadingMore || !hasMore) return;
-    const nextPage = page + 1;
-    setPage(nextPage);
-    void fetchPage(query, nextPage, true);
-  }, [loadingMore, hasMore, page, query, fetchPage]);
+    if (!loadingMore && hasNextPage) void fetchNextPage();
+  }, [loadingMore, hasNextPage, fetchNextPage]);
 
   const clearFilters = React.useCallback(() => {
     setSelectedDomain(null);
@@ -132,16 +146,6 @@ export function useSearch() {
     setSelectedRead('all');
     setQuery((q) => (q.trim().startsWith('#') ? '' : q));
   }, []);
-
-  // Reset y carga inicial cuando cambia la query
-  React.useEffect(() => {
-    setPage(0);
-    setHasMore(true);
-    const timer = setTimeout(() => {
-      void fetchPage(query, 0, false);
-    }, 260);
-    return () => clearTimeout(timer);
-  }, [query, fetchPage]);
 
   const domainOptions = React.useMemo(
     () => Array.from(new Set(results.map((r) => r.domain).filter(Boolean))).slice(0, 20),
@@ -185,7 +189,7 @@ export function useSearch() {
     setQuery,
     loading,
     loadingMore,
-    hasMore,
+    hasMore: Boolean(hasNextPage),
     loadMore,
     error,
     filteredResults,
