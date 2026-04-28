@@ -74,6 +74,33 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
+  colorRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    flexWrap: 'wrap',
+  },
+  colorSwatch: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorSwatchSelected: {
+    borderColor: colors.brown,
+    transform: [{ scale: 1.15 }],
+  },
+  tagNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tagColorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   tagCard: {
     backgroundColor: colors.white,
     borderRadius: 14,

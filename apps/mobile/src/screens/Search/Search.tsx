@@ -88,10 +88,13 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
       id={item.id}
       title={item.title}
       source={item.domain}
-      tag={item.tags && item.tags.length > 0 ? item.tags[0] : 'General'}
+      tags={item.tags}
       savedDate={new Date(item.createdAt).toLocaleDateString()}
       status={item.isRead ? 'Visto' : 'No visto'}
       url={item.url}
+      thumbnailUri={item.thumbnailUri}
+      faviconUri={item.faviconUri}
+      isFile={item.isFile}
       onOpenDetail={onOpenDetail}
     />
   );

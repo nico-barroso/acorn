@@ -4,16 +4,28 @@ import type { DateFilterValue, ReadFilterValue, SearchResult, SearchRow } from '
 
 const PAGE_SIZE = 15;
 
-function mapSearchResult(row: SearchRow): SearchResult {
+const FILE_ICON = require('../../../../assets/favicon.png');
+
+function isImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
+}
+
+function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>): SearchResult {
+  const isFile = row.type === 'file';
+  const fileUrl = row.url || '';
+  const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-    domain: row.domain || 'Dominio no disponible',
+    domain: isFile ? 'Archivo' : row.domain || 'Dominio no disponible',
     snippet: row.description?.trim() || row.url || 'Sin descripcion',
-    url: row.url || '',
+    url: fileUrl,
     createdAt: row.created_at,
     isRead: Boolean(row.is_read),
-    tags: (row.tags ?? []).filter(Boolean),
+    tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
+    thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+    faviconUri: row.favicon_url ?? undefined,
+    isFile,
   };
 }
 
@@ -57,7 +69,7 @@ export function useSearch() {
 
     let queryBuilder = supabase
       .from('items_with_links')
-      .select('id,title,description,domain,url,created_at,is_read,tags')
+      .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
@@ -69,7 +81,14 @@ export function useSearch() {
       );
     }
 
-    const { data, error: fetchError } = await queryBuilder;
+    const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
+      queryBuilder,
+      supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
+    ]);
+
+    const tagColorMap = new Map(
+      ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
+    );
 
     setLoading(false);
     setLoadingMore(false);
@@ -79,7 +98,7 @@ export function useSearch() {
       return;
     }
 
-    const mapped = ((data ?? []) as SearchRow[]).map(mapSearchResult);
+    const mapped = ((data ?? []) as SearchRow[]).map((row) => mapSearchResult(row, tagColorMap));
     setHasMore(mapped.length === PAGE_SIZE);
     setResults((prev) => (append ? [...prev, ...mapped] : mapped));
   }, []);
@@ -116,7 +135,7 @@ export function useSearch() {
   const tagOptions = React.useMemo(
     () =>
       Array.from(
-        new Set(results.flatMap((r) => r.tags.map((t) => t.trim()).filter(Boolean))),
+        new Set(results.flatMap((r) => r.tags.map((t) => t.name.trim()).filter(Boolean))),
       ).slice(0, 30),
     [results],
   );
@@ -125,7 +144,7 @@ export function useSearch() {
     () =>
       results.filter((result) => {
         if (selectedDomain && result.domain !== selectedDomain) return false;
-        if (selectedTag && !result.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase()))
+        if (selectedTag && !result.tags.some((t) => t.name.toLowerCase() === selectedTag.toLowerCase()))
           return false;
         if (!applyDateFilter(result.createdAt, selectedDate)) return false;
         if (selectedRead === 'read' && !result.isRead) return false;

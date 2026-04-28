@@ -3,7 +3,9 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,10 +17,22 @@ import { supabase } from '../../../lib/supabase';
 import { Button } from '../../components/Button/Button';
 import { styles } from './TagManagement.styles';
 
+const PRESET_COLORS = [
+  '#C06E52',
+  '#8B6914',
+  '#2D6A4F',
+  '#1D3557',
+  '#9B2226',
+  '#457B9D',
+  '#6A4C93',
+  '#43281C',
+];
+
 type TagRecord = {
   id: string;
   name: string;
   slug: string;
+  color_hex: string | null;
   created_at: string;
 };
 
@@ -54,8 +68,10 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
   const [tags, setTags] = React.useState<TagWithCount[]>([]);
 
   const [newTagName, setNewTagName] = React.useState('');
+  const [newTagColor, setNewTagColor] = React.useState<string>(PRESET_COLORS[0]);
   const [editingTagId, setEditingTagId] = React.useState<string | null>(null);
   const [editingTagName, setEditingTagName] = React.useState('');
+  const [editingTagColor, setEditingTagColor] = React.useState<string>(PRESET_COLORS[0]);
 
   const loadTags = React.useCallback(async () => {
     if (!visible) {
@@ -77,7 +93,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
 
     const { data: tagRows, error: tagsError } = await supabase
       .from('tags')
-      .select('id,name,slug,created_at')
+      .select('id,name,slug,color_hex,created_at')
       .eq('user_id', user.id)
       .order('name', { ascending: true });
 
@@ -133,8 +149,10 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     if (!visible) {
       setError('');
       setNewTagName('');
+      setNewTagColor(PRESET_COLORS[0]);
       setEditingTagId(null);
       setEditingTagName('');
+      setEditingTagColor(PRESET_COLORS[0]);
       setSaving(false);
     }
   }, [visible]);
@@ -170,6 +188,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
       user_id: user.id,
       name: normalized,
       slug,
+      color_hex: newTagColor,
     });
 
     if (insertError) {
@@ -179,6 +198,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     }
 
     setNewTagName('');
+    setNewTagColor(PRESET_COLORS[0]);
     setSaving(false);
     onUpdated?.();
     await loadTags();
@@ -213,7 +233,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
 
     const { error: updateError } = await supabase
       .from('tags')
-      .update({ name: normalized, slug })
+      .update({ name: normalized, slug, color_hex: editingTagColor })
       .eq('id', tagId)
       .eq('user_id', user.id);
 
@@ -308,6 +328,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     <Modal visible={visible} transparent animationType='slide' onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableWithoutFeedback>
             <View style={styles.panel}>
               <View style={styles.headerRow}>
@@ -332,6 +353,16 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
                   <Button label={saving ? 'Guardando...' : 'Crear'} onPress={() => void createTag()} disabled={saving} />
                 </View>
               </View>
+              <View style={styles.colorRow}>
+                {PRESET_COLORS.map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.colorSwatch, { backgroundColor: c }, newTagColor === c && styles.colorSwatchSelected]}
+                    onPress={() => setNewTagColor(c)}
+                    activeOpacity={0.8}
+                  />
+                ))}
+              </View>
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -344,19 +375,34 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
                   return (
                     <View style={styles.tagCard}>
                       {isEditing ? (
-                        <TextInput
-                          value={editingTagName}
-                          onChangeText={setEditingTagName}
-                          style={styles.input}
-                          placeholder='Nombre de etiqueta'
-                          placeholderTextColor='#8B8179'
-                          editable={!saving}
-                        />
+                        <>
+                          <TextInput
+                            value={editingTagName}
+                            onChangeText={setEditingTagName}
+                            style={styles.input}
+                            placeholder='Nombre de etiqueta'
+                            placeholderTextColor='#8B8179'
+                            editable={!saving}
+                          />
+                          <View style={styles.colorRow}>
+                            {PRESET_COLORS.map((c) => (
+                              <TouchableOpacity
+                                key={c}
+                                style={[styles.colorSwatch, { backgroundColor: c }, editingTagColor === c && styles.colorSwatchSelected]}
+                                onPress={() => setEditingTagColor(c)}
+                                activeOpacity={0.8}
+                              />
+                            ))}
+                          </View>
+                        </>
                       ) : (
                         <>
-                          <Text style={styles.tagName}>#{item.name}</Text>
+                          <View style={styles.tagNameRow}>
+                            <View style={[styles.tagColorDot, { backgroundColor: item.color_hex ?? '#43281C' }]} />
+                            <Text style={styles.tagName}>#{item.name}</Text>
+                          </View>
                           <Text style={styles.tagMeta}>
-                            slug: {item.slug} · {item.usageCount} recursos
+                            {item.usageCount} {item.usageCount === 1 ? 'recurso' : 'recursos'}
                           </Text>
                         </>
                       )}
@@ -393,6 +439,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
                                 onPress={() => {
                                   setEditingTagId(item.id);
                                   setEditingTagName(item.name);
+                                  setEditingTagColor(item.color_hex ?? PRESET_COLORS[0]);
                                   setError('');
                                 }}
                                 disabled={saving}
@@ -418,6 +465,7 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
               />
             </View>
           </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
         </View>
       </TouchableWithoutFeedback>
     </Modal>

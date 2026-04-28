@@ -15,12 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '../../../lib/supabase';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
 import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { useRouter } from 'expo-router';
-import { SmartFolders } from '../SmartFolders/SmartFolders';
-import { TagManagement } from '../TagManagement/TagManagement';
 import { colors } from '../../theme/colors';
 import { styles } from './Home.styles';
 import AcornEmpty from '../../../assets/svg/acorn-empty-state.svg';
@@ -30,11 +29,13 @@ import { useNavBarHeight } from '@context/NavBarHeightContext';
 
 type ResourceRow = {
   id: string;
+  type: string | null;
   title: string | null;
   is_read: boolean;
   created_at: string;
   url: string | null;
   domain: string | null;
+  favicon_url: string | null;
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
@@ -68,17 +69,30 @@ function formatSavedDate(isoDate: string) {
   return new Date(isoDate).toLocaleDateString();
 }
 
-function mapResource(row: ResourceRow): ContentCardData {
+const FILE_ICON = require('../../../assets/favicon.png');
+
+function isImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
+}
+
+function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>): ContentCardData {
+  const isFile = row.type === 'file';
+  const fileUrl = row.url ?? undefined;
+  const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
+
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-    source: row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-    tag: row.tags && row.tags.length > 0 ? `#${row.tags[0]}` : '#recurso',
+    source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
+    tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
     status: row.is_read ? 'Visto' : 'No visto',
     isRead: Boolean(row.is_read),
-    url: row.url ?? undefined,
-    thumbnailUri: row.og_image_url ?? row.preview_image_url ?? undefined,
+    url: fileUrl,
+    thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+    faviconUri: row.favicon_url ?? undefined,
+    iconSource: isFile ? FILE_ICON : undefined,
+    isFile,
   };
 }
 
@@ -93,9 +107,8 @@ export default function HomeScreen({
   const { height: navBarHeight } = useNavBarHeight();
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
-  const [tagsOpen, setTagsOpen] = React.useState(false);
-  const [smartFoldersOpen, setSmartFoldersOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
+  const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
 
   const [resources, setResources] = React.useState<ContentCardData[]>([]);
   const [nextCursor, setNextCursor] = React.useState<string | null>(null);
@@ -179,7 +192,7 @@ export default function HomeScreen({
 
     let query = supabase
       .from('items_with_links')
-      .select('id,title,is_read,created_at,url,domain,preview_image_url,og_image_url,tags')
+      .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
@@ -188,7 +201,14 @@ export default function HomeScreen({
       query = query.lt('created_at', nextCursorRef.current);
     }
 
-    const { data, error } = await query;
+    const [{ data, error }, { data: tagRows }] = await Promise.all([
+      query,
+      supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
+    ]);
+
+    const tagColorMap = new Map(
+      ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
+    );
 
     setLoadingInitial(false);
     setRefreshing(false);
@@ -199,7 +219,7 @@ export default function HomeScreen({
       return;
     }
 
-    const mapped = ((data ?? []) as ResourceRow[]).map(mapResource);
+    const mapped = ((data ?? []) as ResourceRow[]).map((row) => mapResource(row, tagColorMap));
 
     if (mode === 'loadMore') {
       setResources((previous) => {
@@ -311,11 +331,17 @@ export default function HomeScreen({
             onProfilePress={() => router.push('/(app)/(profile)/')}
             onOpenDetail={setSelectedItemId}
             onToggleRead={handleToggleRead}
+            onTagsPress={setTagPickerItemId}
           />
         }
         ListEmptyComponent={renderEmpty}
         renderItem={({ item }) => (
-          <ContentCard {...item} onOpenDetail={setSelectedItemId} onToggleRead={handleToggleRead} />
+          <ContentCard
+            {...item}
+            onOpenDetail={setSelectedItemId}
+            onToggleRead={handleToggleRead}
+            onTagsPress={setTagPickerItemId}
+          />
         )}
         refreshControl={
           <RefreshControl
@@ -365,20 +391,16 @@ export default function HomeScreen({
         onUpdated={() => void fetchResources('refresh')}
       />
 
-      <TagManagement
-        visible={tagsOpen}
-        onClose={() => setTagsOpen(false)}
-        onUpdated={() => void fetchResources('refresh')}
-      />
-
-      <SmartFolders
-        visible={smartFoldersOpen}
-        onClose={() => setSmartFoldersOpen(false)}
-        onOpenDetail={(itemId) => {
-          setSmartFoldersOpen(false);
-          setSelectedItemId(itemId);
+      <TagPickerModal
+        visible={Boolean(tagPickerItemId)}
+        itemId={tagPickerItemId}
+        onClose={() => setTagPickerItemId(null)}
+        onSaved={() => {
+          setTagPickerItemId(null);
+          void fetchResources('refresh');
         }}
       />
+
     </SafeAreaView>
   );
 }
