@@ -15,6 +15,7 @@ import {
 
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../components/Button/Button';
+import { useSession } from '@context/SessionContext';
 import { styles } from './ItemDetail.styles';
 
 type DetailRecord = {
@@ -144,6 +145,9 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     setNewTag('');
   };
 
+  const { session } = useSession();
+  const user = session?.user;
+
   const handleRemoveTag = (tagToRemove: string) => {
     setTags((current) => current.filter((tag) => tag !== tagToRemove));
   };
@@ -155,9 +159,6 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
 
     setSaving(true);
     setError('');
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
 
     if (!user) {
       setSaving(false);

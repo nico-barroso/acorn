@@ -27,6 +27,7 @@ import AcornEmpty from '../../../assets/svg/acorn-empty-state.svg';
 import { ContentCardData } from './Home.types';
 import { HomeHeader } from './components/HomeHeader/HomeHeader';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useSession } from '@context/SessionContext';
 import { queryClient } from '../../lib/queryClient';
 import { queryKeys } from '../../lib/queryKeys';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
@@ -138,7 +139,8 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const router = useRouter();
   const { height: navBarHeight } = useNavBarHeight();
-  const userId = useCurrentUserId();
+  const { session } = useSession();
+  const userId = session?.user?.id;
 
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);

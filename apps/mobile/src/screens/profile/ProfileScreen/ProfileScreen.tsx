@@ -6,6 +6,7 @@ import { styles } from './ProfileScreen.styles';
 import SectionButton from '../components/SectionButton/SectionButton';
 import { supabase } from '@lib/supabase';
 import { areNotificationsEnabled, setNotificationsEnabled } from '@lib/notificationService';
+import { useSession } from '@context/SessionContext';
 
 type ProfileScreenProps = {
   userName?: string;
@@ -24,16 +25,37 @@ export default function ProfileScreen({
 }: ProfileScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { session } = useSession();
   const [userData, setUserData] = React.useState<{ name: string; email: string; avatarUrl: string | null } | null>(null);
   const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
 
   useEffect(() => {
-    const loadNotificationsPreference = async () => {
-      const enabled = await areNotificationsEnabled();
-      setNotificationsEnabledState(enabled);
+    const loadUser = async () => {
+      const user = session?.user;
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      let avatarUrl: string | null = null;
+      if (profile?.avatar_url) {
+        const { data: signed } = await supabase.storage
+          .from('user-files')
+          .createSignedUrl(profile.avatar_url, 3600);
+        avatarUrl = signed?.signedUrl ?? null;
+      }
+      setUserData({
+        name: profile?.display_name?.trim() || (user.email ?? 'Usuario'),
+        email: user.email ?? '',
+        avatarUrl,
+      });
     };
-    loadNotificationsPreference();
-  }, []);
+
+    void loadUser();
+  }, [session]);
 
   const toggleNotifications = async (value: boolean) => {
     setNotificationsEnabledState(value);

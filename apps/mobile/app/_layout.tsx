@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { supabase } from '@lib/supabase';
 import { Keyboard, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
+import { SessionProvider } from '@context/SessionContext';
 import { useNotificationChannel } from '@hooks/useNotificationChannel';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '@lib/notificationService';
@@ -95,11 +96,13 @@ function AuthGate() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>
-        <Slot />
-      </View>
-    </TouchableWithoutFeedback>
+    <SessionProvider session={session}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
+          <Slot />
+        </View>
+      </TouchableWithoutFeedback>
+    </SessionProvider>
   );
 }
 

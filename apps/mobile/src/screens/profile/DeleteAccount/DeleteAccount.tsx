@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { supabase } from '@lib/supabase';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useSession } from '@context/SessionContext';
 
 interface Props {
   onBack?: () => void;
@@ -19,24 +20,21 @@ const CONSEQUENCES = [
 export default function DeleteAccountScreen({ onBack }: Props) {
   const router = useRouter();
   const { height: navBarHeight } = useNavBarHeight();
+  const { session } = useSession();
   const [userName, setUserName] = useState('');
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
-      const fullName = user.user_metadata?.full_name;
-      setUserName(
-        typeof fullName === 'string' && fullName.trim()
-          ? fullName.trim()
-          : (user.email ?? 'Usuario'),
-      );
-      setUserAvatar(user.user_metadata?.avatar_url ?? null);
-    };
-    void loadUser();
-  }, []);
+    const user = session?.user;
+    if (!user) return;
+    const fullName = user.user_metadata?.full_name;
+    setUserName(
+      typeof fullName === 'string' && fullName.trim()
+        ? fullName.trim()
+        : (user.email ?? 'Usuario'),
+    );
+    setUserAvatar(user.user_metadata?.avatar_url ?? null);
+  }, [session]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

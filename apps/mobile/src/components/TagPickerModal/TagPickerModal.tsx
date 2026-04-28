@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../../lib/supabase';
 import { TagManagement } from '../../screens/TagManagement/TagManagement';
+import { useSession } from '@context/SessionContext';
 import { styles } from './TagPickerModal.styles';
 
 type TagOption = {
@@ -29,6 +30,8 @@ type TagPickerModalProps = {
 const MAX_TAGS = 4;
 
 export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerModalProps) {
+  const { session } = useSession();
+  const user = session?.user;
   const [allTags, setAllTags] = React.useState<TagOption[]>([]);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -40,8 +43,6 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
 
     setLoading(true);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
     if (!user) { setLoading(false); return; }
 
     const [tagsResult, itemTagsResult] = await Promise.all([

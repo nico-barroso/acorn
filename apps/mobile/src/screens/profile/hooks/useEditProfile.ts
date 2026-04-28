@@ -4,6 +4,7 @@ import { supabase } from '../../../../lib/supabase';
 import { queryClient } from '../../../lib/queryClient';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
+import { useSession } from '../../../context/SessionContext';
 import { formatDisplayName, sanitizeDisplayName } from '../../../utils/formatDisplayName';
 
 type EditProfileErrors = {
@@ -22,6 +23,7 @@ async function getSignedAvatarUrl(path: string): Promise<string | null> {
 
 export function useEditProfile() {
   const userId = useCurrentUserId();
+  const { session, email: sessionEmail } = useSession();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -29,20 +31,21 @@ export function useEditProfile() {
   const [loading, setLoading] = useState(false);
   const [profileInitialized, setProfileInitialized] = useState(false);
 
+  // Sync email from session
+  if (sessionEmail && email === '') {
+    setEmail(sessionEmail);
+  }
+
   // Profile query
   const { data: profileData } = useQuery({
     queryKey: queryKeys.profile(userId ?? ''),
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return null;
-
-      setEmail(user.email ?? '');
+      if (!session?.user) return null;
 
       const { data } = await supabase
         .from('profiles')
         .select('display_name, avatar_url')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
       return data;
@@ -121,7 +124,6 @@ export function useEditProfile() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user) throw new Error('No user');
 
