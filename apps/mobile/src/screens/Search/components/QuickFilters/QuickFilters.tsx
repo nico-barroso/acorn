@@ -11,7 +11,7 @@ const QUICK_FILTERS = [
 ];
 
 type QuickFiltersProps = {
-  activeQuickFilter: string;
+  activeQuickFilter: string | null;
   hasActiveFilters: boolean;
   showFilterPanel: boolean;
   onQuickFilter: (id: string) => void;

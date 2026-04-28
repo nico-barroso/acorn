@@ -79,14 +79,17 @@ export function FilterPanel({
         <Text style={styles.sectionLabel}>Etiqueta</Text>
         <View style={styles.chipsWrap}>
           <Chip label="Todas" active={selectedTag === null} onPress={() => onSelectTag(null)} />
-          {tags.map((tag) => (
-            <Chip
-              key={tag}
-              label={`#${tag}`}
-              active={selectedTag === tag}
-              onPress={() => onSelectTag(selectedTag === tag ? null : tag)}
-            />
-          ))}
+          {tags.map((tag) => {
+            const isActive = selectedTag?.toLowerCase() === tag.toLowerCase();
+            return (
+              <Chip
+                key={tag}
+                label={`#${tag}`}
+                active={isActive}
+                onPress={() => onSelectTag(isActive ? null : tag)}
+              />
+            );
+          })}
         </View>
       </View>
 

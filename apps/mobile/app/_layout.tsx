@@ -7,16 +7,29 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { supabase } from '@lib/supabase';
-import { Keyboard, TouchableWithoutFeedback, View } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
+import { useNotificationChannel } from '@hooks/useNotificationChannel';
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync } from '@lib/notificationService';
 
 SplashScreen.preventAutoHideAsync();
+
+function handleNotificationResponse(response: Notifications.NotificationResponse) {
+  const data = response.notification.request.content.data;
+  console.log('Notification tapped:', data);
+  // Aquí puedes navegar según los datos de la notificación
+}
 
 function AuthGate() {
   const router = useRouter();
   const segments = useSegments();
   const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(false);
+
+  useNotificationChannel({
+    userId: session?.user?.id,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -41,9 +54,12 @@ function AuthGate() {
       setInitialized(true);
     });
 
+    const notificationSubscription = Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      notificationSubscription.remove();
     };
   }, []);
 
