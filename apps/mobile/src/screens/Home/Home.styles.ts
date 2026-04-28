@@ -27,11 +27,6 @@ export const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: 'hidden',
     backgroundColor: colors.background,
-    shadowColor: colors.salmon,
-    shadowOffset: { width: 0, height: 9 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
   },
   heroImage: {
     position: 'absolute',
@@ -49,7 +44,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 35,
     zIndex: 10,
-    elevation: 8,
   },
   headerLogo: {
     flexDirection: 'row',

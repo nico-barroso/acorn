@@ -1,5 +1,6 @@
 import { Image, Text, TouchableOpacity, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { ContentCard } from '@components/ContentCard/ContentCard';
+import { ContentCardSkeleton } from '@components/ContentCardSkeleton/ContentCardSkeleton';
 import { styles } from '../../Home.styles';
 import type { ContentCardData } from '../../Home.types';
 
@@ -10,6 +11,7 @@ type HomeHeaderProps = {
   showOnboarding: boolean;
   listError: string;
   resources: ContentCardData[];
+  isLoading?: boolean;
   avatarUrl?: string | null;
   onProfilePress: () => void;
   onOpenDetail: (id: string) => void;
@@ -24,6 +26,7 @@ export function HomeHeader({
   showOnboarding,
   listError,
   resources,
+  isLoading,
   avatarUrl,
   onProfilePress,
   onOpenDetail,
@@ -90,10 +93,14 @@ export function HomeHeader({
           <View style={styles.featuredCard}>
             <ContentCard {...featured} onOpenDetail={onOpenDetail} onToggleRead={onToggleRead} onTagsPress={onTagsPress} />
           </View>
+        ) : isLoading ? (
+          <View style={styles.featuredCard}>
+            <ContentCardSkeleton />
+          </View>
         ) : null}
       </View>
       <View style={styles.sectionHeader}>
-        {resources.length > 0 && (
+        {(resources.length > 0 || isLoading) && (
           <>
             <Text style={styles.sectionTitle}>Tus recursos</Text>
             <Text style={styles.sectionSubtitle}>Ordenados por fecha de guardado</Text>

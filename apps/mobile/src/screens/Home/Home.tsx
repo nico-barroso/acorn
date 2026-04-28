@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Alert,
-  ActivityIndicator,
   FlatList,
   Image,
   ImageBackground,
@@ -16,6 +15,7 @@ import { useQuery, useInfiniteQuery, type InfiniteData } from '@tanstack/react-q
 
 import { supabase } from '../../../lib/supabase';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { ContentCardSkeleton } from '../../components/ContentCardSkeleton/ContentCardSkeleton';
 import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
 import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
@@ -282,8 +282,8 @@ export default function HomeScreen({
     if (loadingInitial && resources.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <ActivityIndicator color={colors.salmon} />
-          <Text style={styles.emptyTitle}>Cargando recursos...</Text>
+          <ContentCardSkeleton />
+          <ContentCardSkeleton />
         </View>
       );
     }
@@ -302,7 +302,7 @@ export default function HomeScreen({
     return null;
   };
 
-  const invalidateItems = () =>
+   const invalidateItems = () =>
     void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId!) });
 
   return (
@@ -321,6 +321,7 @@ export default function HomeScreen({
             showOnboarding={showOnboarding}
             listError={listError}
             resources={resources}
+            isLoading={loadingInitial}
             avatarUrl={avatarUrl}
             onProfilePress={() => router.push('/(app)/(profile)/')}
             onOpenDetail={setSelectedItemId}
@@ -347,7 +348,7 @@ export default function HomeScreen({
         onEndReached={() => {
           if (hasNextPage && !loadingMore) void fetchNextPage();
         }}
-        ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.salmon} /> : null}
+        ListFooterComponent={loadingMore ? <ContentCardSkeleton /> : null}
       />
       <ImageBackground
         source={require('../../../assets/bottom-home-noise-gradient.webp')}
