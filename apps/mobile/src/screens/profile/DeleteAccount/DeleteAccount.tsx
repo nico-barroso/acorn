@@ -24,9 +24,8 @@ export default function DeleteAccountScreen({ onBack }: Props) {
 
   useEffect(() => {
     const loadUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
       const fullName = user.user_metadata?.full_name;
       setUserName(

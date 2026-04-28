@@ -40,7 +40,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
 
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) { setLoading(false); return; }
 
     const [tagsResult, itemTagsResult] = await Promise.all([

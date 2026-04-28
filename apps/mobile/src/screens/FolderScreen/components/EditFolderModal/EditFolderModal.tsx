@@ -83,9 +83,8 @@ export function EditFolderModal({ visible, folder, onClose, onSaved }: EditFolde
   const loadFolderData = useCallback(async () => {
     if (!folder) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
 
     const [folderRes, rulesRes, tagsRes, domainsRes] = await Promise.all([
