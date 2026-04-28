@@ -1,10 +1,12 @@
 import { ImageSourcePropType } from 'react-native';
 
+export type TagItem = { name: string; color_hex: string | null };
+
 export type ContentCardData = {
   id: string;
   title: string;
   source: string;
-  tags: string[];
+  tags: TagItem[];
   savedDate: string;
   status: 'No visto' | 'Visto';
   isRead: boolean;

@@ -77,7 +77,7 @@ export function HomeHeader({
               id="onboarding-how-to"
               title="Cómo usar Acorn"
               source="Guía"
-              tags={['ayuda']}
+              tags={[{ name: 'ayuda', color_hex: null }]}
               savedDate="Hoy"
               status="No visto"
               iconSource={require('@assets/acorn-empty-guide.webp')}

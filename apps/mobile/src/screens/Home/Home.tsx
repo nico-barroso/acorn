@@ -75,7 +75,7 @@ function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
 }
 
-function mapResource(row: ResourceRow): ContentCardData {
+function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>): ContentCardData {
   const isFile = row.type === 'file';
   const fileUrl = row.url ?? undefined;
   const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
@@ -84,7 +84,7 @@ function mapResource(row: ResourceRow): ContentCardData {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
     source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-    tags: row.tags ?? [],
+    tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
     status: row.is_read ? 'Visto' : 'No visto',
     isRead: Boolean(row.is_read),
@@ -201,7 +201,14 @@ export default function HomeScreen({
       query = query.lt('created_at', nextCursorRef.current);
     }
 
-    const { data, error } = await query;
+    const [{ data, error }, { data: tagRows }] = await Promise.all([
+      query,
+      supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
+    ]);
+
+    const tagColorMap = new Map(
+      ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
+    );
 
     setLoadingInitial(false);
     setRefreshing(false);
@@ -212,7 +219,7 @@ export default function HomeScreen({
       return;
     }
 
-    const mapped = ((data ?? []) as ResourceRow[]).map(mapResource);
+    const mapped = ((data ?? []) as ResourceRow[]).map((row) => mapResource(row, tagColorMap));
 
     if (mode === 'loadMore') {
       setResources((previous) => {

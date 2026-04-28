@@ -10,7 +10,7 @@ function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
 }
 
-function mapSearchResult(row: SearchRow): SearchResult {
+function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>): SearchResult {
   const isFile = row.type === 'file';
   const fileUrl = row.url || '';
   const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
@@ -22,7 +22,7 @@ function mapSearchResult(row: SearchRow): SearchResult {
     url: fileUrl,
     createdAt: row.created_at,
     isRead: Boolean(row.is_read),
-    tags: (row.tags ?? []).filter(Boolean),
+    tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
     faviconUri: row.favicon_url ?? undefined,
     isFile,
@@ -81,7 +81,14 @@ export function useSearch() {
       );
     }
 
-    const { data, error: fetchError } = await queryBuilder;
+    const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
+      queryBuilder,
+      supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
+    ]);
+
+    const tagColorMap = new Map(
+      ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
+    );
 
     setLoading(false);
     setLoadingMore(false);
@@ -91,7 +98,7 @@ export function useSearch() {
       return;
     }
 
-    const mapped = ((data ?? []) as SearchRow[]).map(mapSearchResult);
+    const mapped = ((data ?? []) as SearchRow[]).map((row) => mapSearchResult(row, tagColorMap));
     setHasMore(mapped.length === PAGE_SIZE);
     setResults((prev) => (append ? [...prev, ...mapped] : mapped));
   }, []);
@@ -128,7 +135,7 @@ export function useSearch() {
   const tagOptions = React.useMemo(
     () =>
       Array.from(
-        new Set(results.flatMap((r) => r.tags.map((t) => t.trim()).filter(Boolean))),
+        new Set(results.flatMap((r) => r.tags.map((t) => t.name.trim()).filter(Boolean))),
       ).slice(0, 30),
     [results],
   );
@@ -137,7 +144,7 @@ export function useSearch() {
     () =>
       results.filter((result) => {
         if (selectedDomain && result.domain !== selectedDomain) return false;
-        if (selectedTag && !result.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase()))
+        if (selectedTag && !result.tags.some((t) => t.name.toLowerCase() === selectedTag.toLowerCase()))
           return false;
         if (!applyDateFilter(result.createdAt, selectedDate)) return false;
         if (selectedRead === 'read' && !result.isRead) return false;

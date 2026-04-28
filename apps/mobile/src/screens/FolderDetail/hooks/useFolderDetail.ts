@@ -59,18 +59,25 @@ export function useFolderDetail(folderId: string) {
 
       setFolderName(folderData.name || 'Carpeta');
 
-      const { data: itemData, error: itemError } = await supabase
-        .from('items_with_links')
-        .select('id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(200);
+      const [{ data: itemData, error: itemError }, { data: tagRows }] = await Promise.all([
+        supabase
+          .from('items_with_links')
+          .select('id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(200),
+        supabase.from('tags').select('name,color_hex').eq('user_id', user.id),
+      ]);
 
       if (itemError) {
         setError('No se pudieron cargar los recursos.');
         setLoading(false);
         return;
       }
+
+      const tagColorMap = new Map(
+        ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
+      );
 
       const rows = (itemData ?? []) as ItemRow[];
       const mapped: FolderResource[] = rows.map((row): FolderResource => {
@@ -81,7 +88,7 @@ export function useFolderDetail(folderId: string) {
           id: row.id,
           title: row.title?.trim() || row.domain || row.url || 'Recurso sin título',
           source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-          tags: row.tags ?? [],
+          tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
           savedDate: new Date(row.created_at).toLocaleDateString(),
           status: row.is_read ? 'Visto' : 'No visto',
           isRead: Boolean(row.is_read),

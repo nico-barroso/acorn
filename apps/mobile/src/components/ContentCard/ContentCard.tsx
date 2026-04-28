@@ -23,11 +23,13 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
+type TagItem = { name: string; color_hex: string | null };
+
 export interface ContentCardProps {
   id: string;
   title: string;
   source: string;
-  tags?: string[];
+  tags?: TagItem[];
   savedDate?: string;
   status?: 'No visto' | 'Visto';
   url?: string;
@@ -162,7 +164,7 @@ export function ContentCard({
                 </View>
                 {tags.length > 0 && (
                   <View style={styles.tagsRowCollapsed}>
-                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
                   </View>
                 )}
               </View>
@@ -193,7 +195,7 @@ export function ContentCard({
                   </View>
                   {tags.length > 0 && (
                   <View style={styles.tagsRowCollapsed}>
-                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
                   </View>
                 )}
                 </View>
@@ -216,7 +218,7 @@ export function ContentCard({
                   </View>
                   {tags.length > 0 && (
                   <View style={styles.tagsRowCollapsed}>
-                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
                   </View>
                 )}
                 </View>
@@ -261,7 +263,7 @@ export function ContentCard({
                 </View>
                 {tags.length > 0 ? (
                   <View style={styles.tagsRow}>
-                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
                   </View>
                 ) : (
                   <Text style={styles.noTagsHint}>Toca + para añadir etiquetas</Text>

@@ -1,8 +1,11 @@
+import type { TagItem } from '../Home/Home.types';
+export type { TagItem };
+
 export type FolderResource = {
   id: string;
   title: string;
   source: string;
-  tags: string[];
+  tags: TagItem[];
   savedDate: string;
   status: 'Visto' | 'No visto';
   url?: string;
