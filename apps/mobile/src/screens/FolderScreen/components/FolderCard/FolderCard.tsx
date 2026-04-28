@@ -31,7 +31,7 @@ export function FolderCard({ name, description, iconSource, isDeleting, onPress,
   };
 
   return (
-    <TouchableOpacity style={[styles.card, isDeleting && { opacity: 0.4 }]} activeOpacity={0.85} onPress={onPress} disabled={isDeleting}>
+    <TouchableOpacity style={[styles.card, isDeleting && { opacity: 0.4 }]} activeOpacity={0.85} onPress={onPress} onLongPress={onRename} disabled={isDeleting}>
       {iconSource ? (
         <Image source={iconSource} style={styles.folderIcon} resizeMode="contain" />
       ) : (
