@@ -25,7 +25,7 @@ export function useFolders() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [builderOpen, setBuilderOpen] = useState(false);
-  const [renamingFolder, setRenamingFolder] = useState<FolderData | null>(null);
+  const [editingFolder, setEditingFolder] = useState<FolderData | null>(null);
   const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
 
   const fetchFolders = useCallback(async (mode: 'initial' | 'refresh' | 'silent') => {
@@ -79,36 +79,15 @@ export function useFolders() {
 
   const onRefresh = () => void fetchFolders('refresh');
 
-  const onRenameFolder = (id: string) => {
+  const onEditFolder = (id: string) => {
     const folder = folders.find((f) => f.id === id);
-    if (folder) setRenamingFolder(folder);
+    if (folder) setEditingFolder(folder);
   };
 
-  const onRenameClose = () => setRenamingFolder(null);
+  const onEditClose = () => setEditingFolder(null);
 
-  const onRenameConfirmed = async (newName: string) => {
-    if (!renamingFolder) return;
-
-    const slug = newName
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-
-    const { error: updateError } = await supabase
-      .from('smart_folders')
-      .update({ name: newName, slug })
-      .eq('id', renamingFolder.id);
-
-    if (updateError) {
-      setError('No se pudo renombrar la carpeta.');
-      return;
-    }
-
-    setRenamingFolder(null);
+  const onEditSaved = () => {
+    setEditingFolder(null);
     void fetchFolders('silent');
   };
 
@@ -136,16 +115,16 @@ export function useFolders() {
     refreshing,
     error,
     builderOpen,
-    renamingFolder,
+    editingFolder,
     deletingFolderId,
     onNewFolder,
     onBuilderClose,
     onBuilderCreated,
     onFolderPress,
     onRefresh,
-    onRenameFolder,
-    onRenameClose,
-    onRenameConfirmed,
+    onEditFolder,
+    onEditClose,
+    onEditSaved,
     onDeleteFolder,
   };
 }

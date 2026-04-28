@@ -12,7 +12,7 @@ import {
 import { styles } from './FoldersScreen.styles';
 import { FolderCard } from './components/FolderCard/FolderCard';
 import { NewFolderModal } from './components/NewFolderModal/NewFolderModal';
-import { RenameFolderModal } from './components/RenameFolderModal/RenameFolderModal';
+import { EditFolderModal } from './components/EditFolderModal/EditFolderModal';
 import { colors } from '../../theme/colors';
 import type { FolderData } from './FoldersScreen.types';
 import FolderDecoration from '@assets/svg/folder-decoration.svg';
@@ -23,16 +23,16 @@ type FoldersScreenProps = {
   refreshing: boolean;
   error: string;
   builderOpen: boolean;
-  renamingFolder: FolderData | null;
+  editingFolder: FolderData | null;
   deletingFolderId: string | null;
   onNewFolder: () => void;
   onBuilderClose: () => void;
   onBuilderCreated: () => void;
   onFolderPress: (id: string) => void;
   onRefresh: () => void;
-  onRenameFolder: (id: string) => void;
-  onRenameClose: () => void;
-  onRenameConfirmed: (newName: string) => void;
+  onEditFolder: (id: string) => void;
+  onEditClose: () => void;
+  onEditSaved: () => void;
   onDeleteFolder: (id: string) => void;
 };
 
@@ -42,16 +42,16 @@ export function FoldersScreen({
   refreshing,
   error,
   builderOpen,
-  renamingFolder,
+  editingFolder,
   deletingFolderId,
   onNewFolder,
   onBuilderClose,
   onBuilderCreated,
   onFolderPress,
   onRefresh,
-  onRenameFolder,
-  onRenameClose,
-  onRenameConfirmed,
+  onEditFolder,
+  onEditClose,
+  onEditSaved,
   onDeleteFolder,
 }: FoldersScreenProps) {
   const insets = useSafeAreaInsets();
@@ -91,7 +91,7 @@ export function FoldersScreen({
                 {...item}
                 isDeleting={deletingFolderId === item.id}
                 onPress={() => onFolderPress(item.id)}
-                onRename={() => onRenameFolder(item.id)}
+                onRename={() => onEditFolder(item.id)}
                 onDelete={() => onDeleteFolder(item.id)}
               />
               {index < folders.length - 1 && <View style={styles.separator} />}
@@ -124,11 +124,11 @@ export function FoldersScreen({
         {renderContent()}
       </ScrollView>
       <NewFolderModal visible={builderOpen} onClose={onBuilderClose} onCreated={onBuilderCreated} />
-      <RenameFolderModal
-        visible={renamingFolder !== null}
-        currentName={renamingFolder?.name ?? ''}
-        onClose={onRenameClose}
-        onRenamed={onRenameConfirmed}
+      <EditFolderModal
+        visible={editingFolder !== null}
+        folder={editingFolder}
+        onClose={onEditClose}
+        onSaved={onEditSaved}
       />
     </View>
   );
