@@ -57,6 +57,10 @@ export const styles = StyleSheet.create({
     borderColor: '#E8D8CF',
     marginBottom: 8,
   },
+  descriptionInput: {
+    minHeight: 80,
+    paddingTop: 12,
+  },
   error: {
     fontFamily: 'Satoshi-Regular',
     fontSize: 12,

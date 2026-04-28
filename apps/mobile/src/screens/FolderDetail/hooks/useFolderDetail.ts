@@ -60,6 +60,7 @@ function applySmartRules(
 
 export function useFolderDetail(folderId: string) {
   const [folderName, setFolderName] = useState<string>('');
+  const [folderDescription, setFolderDescription] = useState<string>('');
   const [resources, setResources] = useState<FolderResource[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -82,7 +83,7 @@ export function useFolderDetail(folderId: string) {
 
       const { data: folderData, error: folderError } = await supabase
         .from('smart_folders')
-        .select('name, logic')
+        .select('name, description, logic')
         .eq('id', folderId)
         .eq('user_id', user.id)
         .single();
@@ -94,6 +95,7 @@ export function useFolderDetail(folderId: string) {
       }
 
       setFolderName(folderData.name || 'Carpeta');
+      setFolderDescription(folderData.description?.trim() || '');
 
       const [
         { data: itemData, error: itemError },
@@ -196,6 +198,7 @@ export function useFolderDetail(folderId: string) {
 
   return {
     folderName,
+    folderDescription,
     loading,
     resources: filteredResources,
     error,

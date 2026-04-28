@@ -6,14 +6,15 @@ import type { FolderData } from '../FoldersScreen.types';
 type SmartFolderRow = {
   id: string;
   name: string | null;
-  created_at: string;
+  description: string | null;
 };
 
 function mapFolder(row: SmartFolderRow): FolderData {
   return {
     id: row.id,
     name: row.name?.trim() || 'Carpeta sin nombre',
-    subtitle: new Date(row.created_at).toLocaleDateString(),
+
+    description: row.description?.trim() || undefined,
   };
 }
 
@@ -46,7 +47,7 @@ export function useFolders() {
 
     const { data, error: queryError } = await supabase
       .from('smart_folders')
-      .select('id, name, created_at')
+      .select('id, name, description')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 

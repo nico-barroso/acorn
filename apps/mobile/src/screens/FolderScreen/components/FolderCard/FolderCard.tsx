@@ -6,7 +6,7 @@ import { FolderOptionsMenu } from '../FolderOptionsMenu/FolderOptionsMenu';
 
 type FolderCardProps = {
   name: string;
-  subtitle: string;
+  description?: string;
   iconSource?: number;
   isDeleting?: boolean;
   onPress: () => void;
@@ -14,7 +14,7 @@ type FolderCardProps = {
   onDelete: () => void;
 };
 
-export function FolderCard({ name, subtitle, iconSource, isDeleting, onPress, onRename, onDelete }: FolderCardProps) {
+export function FolderCard({ name, description, iconSource, isDeleting, onPress, onRename, onDelete }: FolderCardProps) {
   const menuButtonRef = useRef<View>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
@@ -43,9 +43,11 @@ export function FolderCard({ name, subtitle, iconSource, isDeleting, onPress, on
         <Text style={styles.name} numberOfLines={1}>
           {name}
         </Text>
-        <Text style={styles.subtitle} numberOfLines={1}>
-          {subtitle}
-        </Text>
+        {description ? (
+          <Text style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+            {description}
+          </Text>
+        ) : null}
       </View>
       <View ref={menuButtonRef}>
         <TouchableOpacity

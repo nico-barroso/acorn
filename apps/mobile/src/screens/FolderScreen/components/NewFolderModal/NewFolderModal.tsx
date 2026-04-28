@@ -55,6 +55,7 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -113,6 +114,7 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
     } else {
       translateY.setValue(SCREEN_HEIGHT);
       setName('');
+      setDescription('');
       setError('');
       setLoading(false);
       setRules([]);
@@ -186,9 +188,18 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
       return;
     }
 
+    const trimmedDescription = description.trim();
+
     const { data: folder, error: insertError } = await supabase
       .from('smart_folders')
-      .insert({ name: trimmed, slug, user_id: user.id, is_active: true, logic })
+      .insert({
+        name: trimmed,
+        slug,
+        user_id: user.id,
+        is_active: true,
+        logic,
+        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+      })
       .select('id')
       .single();
 
@@ -270,6 +281,18 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
             }}
             editable={!loading}
             autoFocus
+          />
+
+          <TextInput
+            style={[styles.input, styles.descriptionInput]}
+            placeholder="Descripción (opcional)"
+            placeholderTextColor="#8B8179"
+            value={description}
+            onChangeText={setDescription}
+            editable={!loading}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
           />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
