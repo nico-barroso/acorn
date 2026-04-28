@@ -27,7 +27,7 @@ export interface ContentCardProps {
   id: string;
   title: string;
   source: string;
-  tag: string;
+  tags?: string[];
   savedDate?: string;
   status?: 'No visto' | 'Visto';
   url?: string;
@@ -37,13 +37,14 @@ export interface ContentCardProps {
   isFile?: boolean;
   onOpenDetail?: (id: string) => void;
   onToggleRead?: (id: string, nextRead: boolean) => void;
+  onTagsPress?: (id: string) => void;
 }
 
 export function ContentCard({
   id,
   title,
   source,
-  tag,
+  tags = [],
   savedDate = 'Hace dos días',
   status = 'No visto',
   url,
@@ -53,6 +54,7 @@ export function ContentCard({
   isFile = false,
   onOpenDetail,
   onToggleRead,
+  onTagsPress,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const isRead = status === 'Visto';
@@ -158,7 +160,11 @@ export function ContentCard({
                   {sourceIcon}
                   <Text style={styles.source}>{source}</Text>
                 </View>
-                <Tag label={tag} />
+                {tags.length > 0 && (
+                  <View style={styles.tagsRowCollapsed}>
+                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                  </View>
+                )}
               </View>
               <Text style={styles.chevron}>›</Text>
             </View>
@@ -185,7 +191,11 @@ export function ContentCard({
                     {sourceIcon}
                     <Text style={styles.heroSource}>{source}</Text>
                   </View>
-                  <Tag label={tag} />
+                  {tags.length > 0 && (
+                  <View style={styles.tagsRowCollapsed}>
+                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                  </View>
+                )}
                 </View>
               </LinearGradient>
             ) : (
@@ -204,7 +214,11 @@ export function ContentCard({
                     {sourceIcon}
                     <Text style={styles.heroSource}>{source}</Text>
                   </View>
-                  <Tag label={tag} />
+                  {tags.length > 0 && (
+                  <View style={styles.tagsRowCollapsed}>
+                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                  </View>
+                )}
                 </View>
               </ImageBackground>
             )}
@@ -235,6 +249,23 @@ export function ContentCard({
                   <Text style={styles.copyUrlIcon}>⧉</Text>
                   <Text style={styles.copyUrlText}>Copiar URL</Text>
                 </TouchableOpacity>
+              </View>
+              <View style={styles.tagsSection}>
+                <View style={styles.tagsSectionHeader}>
+                  <Text style={styles.metaLabel}>Etiquetas</Text>
+                  {onTagsPress && (
+                    <TouchableOpacity onPress={() => onTagsPress(id)} activeOpacity={0.7} style={styles.addTagButton}>
+                      <Text style={styles.addTagIcon}>+</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {tags.length > 0 ? (
+                  <View style={styles.tagsRow}>
+                    {tags.map((t) => <Tag key={t} label={`#${t}`} />)}
+                  </View>
+                ) : (
+                  <Text style={styles.noTagsHint}>Toca + para añadir etiquetas</Text>
+                )}
               </View>
               <Button label="Abrir enlace original" onPress={handleOpenUrl} />
               {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}

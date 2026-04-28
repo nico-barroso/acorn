@@ -2,7 +2,7 @@ export type FolderResource = {
   id: string;
   title: string;
   source: string;
-  tag: string;
+  tags: string[];
   savedDate: string;
   status: 'Visto' | 'No visto';
   url?: string;

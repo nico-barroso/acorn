@@ -14,6 +14,7 @@ type HomeHeaderProps = {
   onProfilePress: () => void;
   onOpenDetail: (id: string) => void;
   onToggleRead: (id: string, nextRead: boolean) => void;
+  onTagsPress?: (id: string) => void;
 };
 
 export function HomeHeader({
@@ -27,6 +28,7 @@ export function HomeHeader({
   onProfilePress,
   onOpenDetail,
   onToggleRead,
+  onTagsPress,
 }: HomeHeaderProps) {
   const { height } = useWindowDimensions();
 
@@ -75,7 +77,7 @@ export function HomeHeader({
               id="onboarding-how-to"
               title="Cómo usar Acorn"
               source="Guía"
-              tag="#ayuda"
+              tags={['ayuda']}
               savedDate="Hoy"
               status="No visto"
               iconSource={require('@assets/acorn-empty-guide.webp')}
@@ -86,7 +88,7 @@ export function HomeHeader({
         ) : null}
         {featured ? (
           <View style={styles.featuredCard}>
-            <ContentCard {...featured} onOpenDetail={onOpenDetail} onToggleRead={onToggleRead} />
+            <ContentCard {...featured} onOpenDetail={onOpenDetail} onToggleRead={onToggleRead} onTagsPress={onTagsPress} />
           </View>
         ) : null}
       </View>

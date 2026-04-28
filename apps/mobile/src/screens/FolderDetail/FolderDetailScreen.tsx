@@ -57,7 +57,7 @@ export function FolderDetailScreen({
       id={item.id}
       title={item.title}
       source={item.source}
-      tag={item.tag}
+      tags={item.tags}
       savedDate={item.savedDate}
       status={item.status}
       url={item.url}

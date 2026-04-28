@@ -4,7 +4,7 @@ export type ContentCardData = {
   id: string;
   title: string;
   source: string;
-  tag: string;
+  tags: string[];
   savedDate: string;
   status: 'No visto' | 'Visto';
   isRead: boolean;

@@ -81,7 +81,7 @@ export function useFolderDetail(folderId: string) {
           id: row.id,
           title: row.title?.trim() || row.domain || row.url || 'Recurso sin título',
           source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-          tag: row.tags && row.tags.length > 0 ? `#${row.tags[0]}` : '#recurso',
+          tags: row.tags ?? [],
           savedDate: new Date(row.created_at).toLocaleDateString(),
           status: row.is_read ? 'Visto' : 'No visto',
           isRead: Boolean(row.is_read),

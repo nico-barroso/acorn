@@ -15,11 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '../../../lib/supabase';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
 import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { useRouter } from 'expo-router';
-import { TagManagement } from '../TagManagement/TagManagement';
 import { colors } from '../../theme/colors';
 import { styles } from './Home.styles';
 import AcornEmpty from '../../../assets/svg/acorn-empty-state.svg';
@@ -84,7 +84,7 @@ function mapResource(row: ResourceRow): ContentCardData {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
     source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-    tag: row.tags && row.tags.length > 0 ? `#${row.tags[0]}` : '#recurso',
+    tags: row.tags ?? [],
     savedDate: formatSavedDate(row.created_at),
     status: row.is_read ? 'Visto' : 'No visto',
     isRead: Boolean(row.is_read),
@@ -107,8 +107,8 @@ export default function HomeScreen({
   const { height: navBarHeight } = useNavBarHeight();
   const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
-  const [tagsOpen, setTagsOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
+  const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
 
   const [resources, setResources] = React.useState<ContentCardData[]>([]);
   const [nextCursor, setNextCursor] = React.useState<string | null>(null);
@@ -324,11 +324,17 @@ export default function HomeScreen({
             onProfilePress={() => router.push('/(app)/(profile)/')}
             onOpenDetail={setSelectedItemId}
             onToggleRead={handleToggleRead}
+            onTagsPress={setTagPickerItemId}
           />
         }
         ListEmptyComponent={renderEmpty}
         renderItem={({ item }) => (
-          <ContentCard {...item} onOpenDetail={setSelectedItemId} onToggleRead={handleToggleRead} />
+          <ContentCard
+            {...item}
+            onOpenDetail={setSelectedItemId}
+            onToggleRead={handleToggleRead}
+            onTagsPress={setTagPickerItemId}
+          />
         )}
         refreshControl={
           <RefreshControl
@@ -378,11 +384,16 @@ export default function HomeScreen({
         onUpdated={() => void fetchResources('refresh')}
       />
 
-      <TagManagement
-        visible={tagsOpen}
-        onClose={() => setTagsOpen(false)}
-        onUpdated={() => void fetchResources('refresh')}
+      <TagPickerModal
+        visible={Boolean(tagPickerItemId)}
+        itemId={tagPickerItemId}
+        onClose={() => setTagPickerItemId(null)}
+        onSaved={() => {
+          setTagPickerItemId(null);
+          void fetchResources('refresh');
+        }}
       />
+
     </SafeAreaView>
   );
 }

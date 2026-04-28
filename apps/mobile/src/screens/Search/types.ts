@@ -1,3 +1,6 @@
+import type { TagItem } from '../Home/Home.types';
+export type { TagItem };
+
 export type SearchResult = {
   id: string;
   title: string;
@@ -6,7 +9,7 @@ export type SearchResult = {
   url: string;
   createdAt: string;
   isRead: boolean;
-  tags: string[];
+  tags: TagItem[];
   thumbnailUri?: string;
   faviconUri?: string;
   isFile: boolean;

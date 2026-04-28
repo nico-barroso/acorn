@@ -231,4 +231,44 @@ export const styles = StyleSheet.create({
     color: colors.salmon,
     textDecorationLine: 'underline',
   },
+  tagsRowCollapsed: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 6,
+  },
+  tagsSection: {
+    marginBottom: 4,
+  },
+  tagsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  addTagButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.salmon,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addTagIcon: {
+    color: colors.white,
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: 'Satoshi-Bold',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 2,
+  },
+  noTagsHint: {
+    marginTop: 4,
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 12,
+    color: colors.brownMid,
+  },
 });
