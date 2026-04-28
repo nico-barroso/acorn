@@ -23,12 +23,10 @@ export function FolderOptionsMenu({
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onDismiss}>
         <View style={[styles.menu, { top, right }]}>
           <TouchableOpacity style={styles.option} activeOpacity={0.7} onPress={onRename}>
-            <Text style={styles.optionIcon}>✏️</Text>
-            <Text style={styles.optionLabel}>Cambiar nombre</Text>
+            <Text style={styles.optionLabel}>Editar carpeta</Text>
           </TouchableOpacity>
           <View style={styles.separator} />
           <TouchableOpacity style={styles.option} activeOpacity={0.7} onPress={onDelete}>
-            <Text style={styles.optionIcon}>🗑️</Text>
             <Text style={styles.optionLabelDestructive}>Eliminar carpeta</Text>
           </TouchableOpacity>
         </View>

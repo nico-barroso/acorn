@@ -22,6 +22,7 @@ export function FolderDetailScreen({
 }: FolderDetailScreenProps) {
   const {
     folderName,
+    folderDescription,
     loading,
     resources,
     activeQuickFilter,
@@ -84,7 +85,13 @@ export function FolderDetailScreen({
 
       <ProfileHeader title={folderName || 'Carpeta'} onBack={onBack} />
 
-      <View style={{ marginTop: 16 }}>
+      {folderDescription ? (
+        <Text style={styles.folderDescription} numberOfLines={2} ellipsizeMode="tail">
+          {folderDescription}
+        </Text>
+      ) : null}
+
+      <View style={{ marginTop: folderDescription ? 24 : 16 }}>
         <QuickFilters
           activeQuickFilter={activeQuickFilter}
           hasActiveFilters={hasActiveFilters}

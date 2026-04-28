@@ -12,7 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
 import { supabase } from '@lib/supabase';
-import { styles } from './NewFolderModal.styles';
+import { styles } from './EditFolderModal.styles';
+import type { FolderData } from '../../FoldersScreen.types';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -37,10 +38,11 @@ type Rule = {
   expanded: boolean;
 };
 
-type NewFolderModalProps = {
+type EditFolderModalProps = {
   visible: boolean;
+  folder: FolderData | null;
   onClose: () => void;
-  onCreated: () => void;
+  onSaved: () => void;
 };
 
 let ruleCounter = 0;
@@ -49,7 +51,7 @@ function newRuleId() {
   return `r${ruleCounter}`;
 }
 
-export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalProps) {
+export function EditFolderModal({ visible, folder, onClose, onSaved }: EditFolderModalProps) {
   const insets = useSafeAreaInsets();
   const { height: navBarHeight } = useNavBarHeight();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -78,15 +80,37 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
     };
   }, []);
 
-  const loadOptions = useCallback(async () => {
+  const loadFolderData = useCallback(async () => {
+    if (!folder) return;
+
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user) return;
 
-    const [tagsRes, domainsRes] = await Promise.all([
+    const [folderRes, rulesRes, tagsRes, domainsRes] = await Promise.all([
+      supabase.from('smart_folders').select('logic').eq('id', folder.id).single(),
+      supabase
+        .from('smart_folder_rules')
+        .select('field, value')
+        .eq('folder_id', folder.id)
+        .order('order_index'),
       supabase.from('tags').select('name').eq('user_id', user.id).order('name'),
       supabase.from('items_with_links').select('domain').eq('user_id', user.id),
     ]);
+
+    if (folderRes.data) {
+      setLogic((folderRes.data.logic as MatchLogic) ?? 'ALL');
+    }
+
+    const loadedRules: Rule[] = ((rulesRes.data ?? []) as { field: string; value: string }[]).map(
+      (r) => ({
+        id: newRuleId(),
+        field: r.field as RuleField,
+        value: r.value,
+        expanded: false,
+      }),
+    );
+    setRules(loadedRules);
 
     setAvailableTags(
       ((tagsRes.data ?? []) as { name: string }[]).map((t) => t.name),
@@ -100,16 +124,20 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
       ),
     ].sort();
     setAvailableDomains(uniqueDomains);
-  }, []);
+  }, [folder]);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && folder) {
+      setName(folder.name);
+      setDescription(folder.description ?? '');
+      setError('');
+      setLoading(false);
       Animated.timing(translateY, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start();
-      void loadOptions();
+      void loadFolderData();
     } else {
       translateY.setValue(SCREEN_HEIGHT);
       setName('');
@@ -119,7 +147,7 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
       setRules([]);
       setLogic('ALL');
     }
-  }, [visible, loadOptions]);
+  }, [visible, folder, loadFolderData]);
 
   const handleClose = () => {
     Animated.timing(translateY, {
@@ -165,7 +193,8 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
   const getOptions = (field: RuleField) =>
     field === 'tag' ? availableTags : availableDomains;
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
+    if (!folder) return;
     const trimmed = name.trim();
     const slug = slugifyName(trimmed);
 
@@ -177,39 +206,25 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
     setLoading(true);
     setError('');
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-
-    if (!user) {
-      setError('Debes iniciar sesión para crear carpetas.');
-      setLoading(false);
-      return;
-    }
-
     const trimmedDescription = description.trim();
 
-    const { data: folder, error: insertError } = await supabase
+    const { error: updateError } = await supabase
       .from('smart_folders')
-      .insert({
+      .update({
         name: trimmed,
         slug,
-        user_id: user.id,
-        is_active: true,
         logic,
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        description: trimmedDescription || null,
       })
-      .select('id')
-      .single();
+      .eq('id', folder.id);
 
-    if (insertError || !folder) {
-      console.error(
-        '[NewFolderModal] Error al crear carpeta:',
-        JSON.stringify(insertError, null, 2),
-      );
-      setError('No se pudo crear la carpeta. Inténtalo de nuevo.');
+    if (updateError) {
+      setError('No se pudo guardar la carpeta.');
       setLoading(false);
       return;
     }
+
+    await supabase.from('smart_folder_rules').delete().eq('folder_id', folder.id);
 
     const validRules = rules.filter((r) => r.value.trim());
     if (validRules.length > 0) {
@@ -222,19 +237,11 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
         position: i,
         order_index: i,
       }));
-      const { error: rulesError } = await supabase
-        .from('smart_folder_rules')
-        .insert(ruleRows);
-      if (rulesError) {
-        console.error(
-          '[NewFolderModal] Error al guardar reglas:',
-          JSON.stringify(rulesError, null, 2),
-        );
-      }
+      await supabase.from('smart_folder_rules').insert(ruleRows);
     }
 
     setLoading(false);
-    onCreated();
+    onSaved();
     handleClose();
   };
 
@@ -265,12 +272,12 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
         >
-          <Text style={styles.title}>Nueva carpeta</Text>
-          <Text style={styles.subtitle}>Dale un nombre para identificarla fácilmente.</Text>
+          <Text style={styles.title}>Editar carpeta</Text>
+          <Text style={styles.subtitle}>Modifica el nombre, descripción o las reglas.</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Ej. Tutoriales de diseño"
+            placeholder="Nombre de la carpeta"
             placeholderTextColor="#8B8179"
             value={name}
             onChangeText={(text) => {
@@ -278,7 +285,6 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
               if (error) setError('');
             }}
             editable={!loading}
-            autoFocus
           />
 
           <TextInput
@@ -295,7 +301,6 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {/* Rules section */}
           <View style={styles.rulesSection}>
             <Text style={styles.rulesSectionTitle}>
               Mostrar items que contengan los siguientes recursos
@@ -438,11 +443,11 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.confirmButton}
-            onPress={handleCreate}
+            onPress={handleSave}
             activeOpacity={0.7}
             disabled={loading}
           >
-            <Text style={styles.confirmLabel}>{loading ? 'Creando...' : 'Crear carpeta'}</Text>
+            <Text style={styles.confirmLabel}>{loading ? 'Guardando...' : 'Guardar'}</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>

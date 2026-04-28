@@ -24,6 +24,15 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.family.primary.regular,
     fontSize: fonts.size.sm,
   },
+  folderDescription: {
+    paddingHorizontal: 20,
+    marginTop: 2,
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.sm,
+    color: colors.brownMid,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
   resultsCounter: {
     marginTop: 20,
     marginBottom: 10,

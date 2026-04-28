@@ -5,6 +5,7 @@ export type FolderResource = {
   id: string;
   title: string;
   source: string;
+  domain?: string;
   tags: TagItem[];
   savedDate: string;
   status: 'Visto' | 'No visto';

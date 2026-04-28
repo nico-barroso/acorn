@@ -26,9 +26,8 @@ export function useUploadFile({ onSuccess, onError }: UploadFileOptions = {}) {
     setError(null);
     setProgress(0);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
 
     if (!user) {
       const message = 'Debes estar autenticado para subir archivos';

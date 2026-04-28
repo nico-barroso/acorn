@@ -143,7 +143,8 @@ export default function HomeScreen({
 
   React.useEffect(() => {
     const loadAvatar = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const { data: profile } = await supabase
@@ -178,9 +179,8 @@ export default function HomeScreen({
 
     setListError('');
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
 
     if (!user) {
       setListError('Debes iniciar sesion para ver tus recursos.');

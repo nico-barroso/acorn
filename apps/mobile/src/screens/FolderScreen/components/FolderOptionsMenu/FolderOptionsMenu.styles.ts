@@ -26,11 +26,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 13,
   },
-  optionIcon: {
-    fontSize: 16,
-    width: 20,
-    textAlign: 'center',
-  },
   optionLabel: {
     fontFamily: 'Satoshi-Regular',
     fontSize: 15,

@@ -55,7 +55,8 @@ export function useSearch() {
   const [selectedRead, setSelectedRead] = React.useState<ReadFilterValue>('all');
 
   const fetchUserTags = React.useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { data } = await supabase.from('tags').select('name').eq('user_id', user.id).order('name');
     setAllUserTags(((data ?? []) as { name: string }[]).map((t) => t.name));
@@ -69,9 +70,8 @@ export function useSearch() {
     pageIndex === 0 ? setLoading(true) : setLoadingMore(true);
     setError('');
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) {
       setLoading(false);
       setLoadingMore(false);
