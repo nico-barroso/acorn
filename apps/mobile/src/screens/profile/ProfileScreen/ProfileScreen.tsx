@@ -1,95 +1,68 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, ScrollView, ImageBackground, Switch } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { styles } from './ProfileScreen.styles';
 import SectionButton from '../components/SectionButton/SectionButton';
-import { supabase } from '@lib/supabase';
 import { areNotificationsEnabled, setNotificationsEnabled } from '@lib/notificationService';
 import { useSession } from '@context/SessionContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@lib/supabase';
+import { queryKeys } from '../../../lib/queryKeys';
+import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 
 type ProfileScreenProps = {
-  userName?: string;
-  userEmail?: string;
   avatarUrl?: string | null;
   onEditProfile?: () => void;
   onChangePassword?: () => void;
 };
 
 export default function ProfileScreen({
-  userName = '',
-  userEmail = '',
-  avatarUrl,
+  avatarUrl: externalAvatarUrl,
   onEditProfile = () => {},
   onChangePassword = () => {},
 }: ProfileScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session } = useSession();
-  const [userData, setUserData] = React.useState<{ name: string; email: string; avatarUrl: string | null } | null>(null);
+  const userId = useCurrentUserId();
   const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      const user = session?.user;
-      if (!user) return;
-
-      const { data: profile } = await supabase
+  const { data: profileData } = useQuery({
+    queryKey: queryKeys.profile(userId ?? ''),
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data } = await supabase
         .from('profiles')
         .select('display_name, avatar_url')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
+      return data;
+    },
+    enabled: Boolean(userId),
+    staleTime: 10 * 60 * 1000,
+  });
 
-      let avatarUrl: string | null = null;
-      if (profile?.avatar_url) {
-        const { data: signed } = await supabase.storage
-          .from('user-files')
-          .createSignedUrl(profile.avatar_url, 3600);
-        avatarUrl = signed?.signedUrl ?? null;
-      }
-      setUserData({
-        name: profile?.display_name?.trim() || (user.email ?? 'Usuario'),
-        email: user.email ?? '',
-        avatarUrl,
-      });
-    };
-
-    void loadUser();
-  }, [session]);
+  const { data: avatarUrl } = useQuery({
+    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryFn: async () => {
+      if (!profileData?.avatar_url) return null;
+      const { data: signed } = await supabase.storage
+        .from('user-files')
+        .createSignedUrl(profileData.avatar_url, 3600);
+      return signed?.signedUrl ?? null;
+    },
+    enabled: Boolean(profileData?.avatar_url),
+    staleTime: 50 * 60 * 1000,
+  });
 
   const toggleNotifications = async (value: boolean) => {
     setNotificationsEnabledState(value);
     await setNotificationsEnabled(value);
   };
 
-  useEffect(() => {
-    const loadUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('display_name, avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      let avatarUrl: string | null = null;
-      if (profile?.avatar_url) {
-        const { data: signed } = await supabase.storage
-          .from('user-files')
-          .createSignedUrl(profile.avatar_url, 3600);
-        avatarUrl = signed?.signedUrl ?? null;
-      }
-      setUserData({
-        name: profile?.display_name?.trim() || (user.email ?? 'Usuario'),
-        email: user.email ?? '',
-        avatarUrl,
-      });
-    };
-
-    void loadUser();
-  }, []);
+  const displayName = profileData?.display_name?.trim() || session?.user?.email || 'Usuario';
+  const email = session?.user?.email ?? '';
 
   return (
     <View style={styles.safeArea}>
@@ -107,9 +80,9 @@ export default function ProfileScreen({
           />
 
           <View style={styles.avatarContainer}>
-            {userData?.avatarUrl ?? avatarUrl ? (
+            {avatarUrl ? (
               <Image
-                source={{ uri: (userData?.avatarUrl ?? avatarUrl)! }}
+                source={{ uri: avatarUrl }}
                 style={styles.avatar}
                 resizeMode="cover"
                 onError={(e) => console.log('[ProfileScreen] image error:', e.nativeEvent.error)}
@@ -119,8 +92,8 @@ export default function ProfileScreen({
               <Image source={require('@assets/default-avatar.png')} style={styles.avatar} />
             )}
           </View>
-          <Text style={styles.userName}>{userData?.name ?? userName}</Text>
-          <Text style={styles.userEmail}>{userData?.email ?? userEmail}</Text>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
         </View>
         {/* Secciones */}
         <View style={styles.sections}>
