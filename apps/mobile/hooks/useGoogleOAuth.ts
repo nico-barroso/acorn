@@ -2,11 +2,7 @@ import { useState } from 'react';
 
 import { signInWithGoogle } from '../lib/auth/google';
 
-type UseGoogleOAuthOptions = {
-  onSuccess?: () => void;
-};
-
-export function useGoogleOAuth({ onSuccess }: UseGoogleOAuthOptions = {}) {
+export function useGoogleOAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,10 +11,7 @@ export function useGoogleOAuth({ onSuccess }: UseGoogleOAuthOptions = {}) {
     setError(null);
 
     try {
-      const result = await signInWithGoogle();
-      if (result.status === 'signed_in') {
-        onSuccess?.();
-      }
+      await signInWithGoogle();
     } catch (oauthError) {
       setError(oauthError instanceof Error ? oauthError.message : 'No se pudo autenticar con Google');
     } finally {

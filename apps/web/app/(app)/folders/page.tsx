@@ -1,4 +1,4 @@
-import { SectionPage } from '../../features/navigation/screens/SectionPage/SectionPage'
+import { SectionPage } from '@/features/navigation/screens/SectionPage/SectionPage'
 
 export default function FoldersPage() {
   return (

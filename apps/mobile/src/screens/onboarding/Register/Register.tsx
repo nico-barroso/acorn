@@ -32,7 +32,7 @@ export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: Regis
     loading: oauthLoading,
     error: oauthError,
     handleGoogleSignIn,
-  } = useGoogleOAuth({ onSuccess: onRegisterSuccess });
+  } = useGoogleOAuth();
 
   const isSubmitting = loading || oauthLoading;
 

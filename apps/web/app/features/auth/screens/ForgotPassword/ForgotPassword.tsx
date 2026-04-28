@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react'
 import { AuthShell } from '../../components/AuthShell/AuthShell'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { forgotPasswordStyles } from './ForgotPassword.styles'
 
 export function ForgotPassword() {

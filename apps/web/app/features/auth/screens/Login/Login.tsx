@@ -3,35 +3,56 @@
 import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { AuthShell } from '../../components/AuthShell/AuthShell'
 import { GoogleOAuthButton } from '../../components/GoogleOAuthButton/GoogleOAuthButton'
 import { loginStyles } from './Login.styles'
 
 export function Login() {
   const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const [sessionLoading, setSessionLoading] = useState(true)
-  const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+
+  const [sessionLoading, setSessionLoading] = useState(true)
+  const [emailLoginLoading, setEmailLoginLoading] = useState(false)
+  const [googleLoginLoading, setGoogleLoginLoading] = useState(false)
+
+  const isAnyLoading = sessionLoading || emailLoginLoading || googleLoginLoading
 
   useEffect(() => {
     let active = true
     const supabase = getSupabaseBrowserClient()
 
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
+    // Log the error if we are redirected here with one
+    const params = new URLSearchParams(window.location.search)
+    const urlError = params.get('error')
+    if (urlError === 'oauth_exchange_failed') {
+      setErrorMessage('Error al verificar la conexión con Google. Por favor, inténtalo de nuevo.')
+      // Clear the url so we don't keep showing it on refresh
+      window.history.replaceState(null, '', '/login')
+    }
 
-      if (!active) {
+    const checkSession = async () => {
+      // Validate session against Supabase servers instead of trusting local token
+      const { data, error } = await supabase.auth.getUser()
+
+      if (!active) return
+
+      if (!error && data.user) {
+        // Stop the session loading indicator immediately
+        setSessionLoading(false)
+        router.replace('/home')
         return
       }
 
-      if (!error && data.session) {
-        router.replace('/home')
-        return
+      // If there's an invalid session stuck in cookies, clear it
+      if (error) {
+        await supabase.auth.signOut()
       }
 
       setSessionLoading(false)
@@ -64,12 +85,12 @@ export function Login() {
       setEmailError('El email es obligatorio.')
       valid = false
     } else if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
-      setEmailError('Introduce un email valido.')
+      setEmailError('Introduce un email válido.')
       valid = false
     }
 
     if (!password) {
-      setPasswordError('La contrasena es obligatoria.')
+      setPasswordError('La contraseña es obligatoria.')
       valid = false
     }
 
@@ -77,27 +98,25 @@ export function Login() {
   }
 
   const handleEmailPasswordLogin = async () => {
-    if (!validateCredentials()) {
-      return
-    }
+    if (!validateCredentials()) return
 
-    setLoading(true)
+    setEmailLoginLoading(true)
     setErrorMessage('')
 
-    const supabase = getSupabaseBrowserClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password
-    })
+    try {
+      const supabase = getSupabaseBrowserClient()
 
-    setLoading(false)
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      })
 
-    if (error) {
-      setErrorMessage('Credenciales invalidas o cuenta no disponible. Intentalo de nuevo.')
-      return
+      if (error) {
+        setErrorMessage('Credenciales inválidas o cuenta no disponible. Inténtalo de nuevo.')
+      }
+    } finally {
+      setEmailLoginLoading(false)
     }
-
-    router.replace('/home')
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -106,20 +125,26 @@ export function Login() {
   }
 
   const handleGoogleOAuth = async () => {
-    setLoading(true)
+    setGoogleLoginLoading(true)
     setErrorMessage('')
-    const supabase = getSupabaseBrowserClient()
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/callback`
+    try {
+      const supabase = getSupabaseBrowserClient()
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/callback`
+        }
+      })
+
+      if (error) {
+        setErrorMessage('No se pudo iniciar sesión con Google. Inténtalo de nuevo.')
+        setGoogleLoginLoading(false)
       }
-    })
-
-    if (error) {
-      setLoading(false)
-      setErrorMessage('No se pudo iniciar con Google. Intentalo de nuevo.')
+    } catch {
+      setErrorMessage('No se pudo iniciar sesión con Google. Inténtalo de nuevo.')
+      setGoogleLoginLoading(false)
     }
   }
 
@@ -128,10 +153,10 @@ export function Login() {
       <AuthShell
         badge='Acceso'
         title='Bienvenida de nuevo'
-        subtitle='Comprobando tu sesion...'
-        footerLabel='No tienes cuenta?'
+        subtitle='Comprobando tu sesión...'
+        footerLabel='¿No tienes cuenta?'
         footerLinkHref='/register'
-        footerLinkLabel='Registrate'
+        footerLinkLabel='Regístrate'
       >
         <p style={loginStyles.helperText}>Un momento, estamos verificando tu acceso.</p>
       </AuthShell>
@@ -142,10 +167,10 @@ export function Login() {
     <AuthShell
       badge='Acceso'
       title='Bienvenida de nuevo'
-      subtitle='Inicia sesion con email y contrasena o continua con Google.'
-      footerLabel='No tienes cuenta?'
+      subtitle='Inicia sesión con email y contraseña o continúa con Google.'
+      footerLabel='¿No tienes cuenta?'
       footerLinkHref='/register'
-      footerLinkLabel='Registrate'
+      footerLinkLabel='Regístrate'
       errorMessage={errorMessage}
     >
       <form style={loginStyles.fieldGroup} onSubmit={handleSubmit}>
@@ -159,6 +184,7 @@ export function Login() {
             placeholder='tu@email.com'
             value={email}
             autoComplete='email'
+            disabled={isAnyLoading}
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={Boolean(emailError)}
             aria-describedby={emailError ? 'login-email-error' : undefined}
@@ -176,14 +202,15 @@ export function Login() {
 
         <div style={loginStyles.fieldGroup}>
           <label htmlFor='login-password' style={loginStyles.label}>
-            Contrasena
+            Contraseña
           </label>
           <input
             id='login-password'
             type='password'
-            placeholder='Tu contrasena'
+            placeholder='Tu contraseña'
             value={password}
             autoComplete='current-password'
+            disabled={isAnyLoading}
             onChange={(event) => setPassword(event.target.value)}
             aria-invalid={Boolean(passwordError)}
             aria-describedby={passwordError ? 'login-password-error' : undefined}
@@ -201,13 +228,13 @@ export function Login() {
 
         <button
           type='submit'
-          disabled={loading}
+          disabled={isAnyLoading}
           style={{
             ...loginStyles.submitButton,
-            ...(loading ? loginStyles.submitButtonDisabled : {})
+            ...(isAnyLoading ? loginStyles.submitButtonDisabled : {})
           }}
         >
-          {loading ? 'Iniciando sesion...' : 'Iniciar sesion'}
+          {emailLoginLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
         </button>
       </form>
 
@@ -217,12 +244,16 @@ export function Login() {
         <span style={loginStyles.dividerLine} />
       </div>
 
-      <GoogleOAuthButton loading={loading} onClick={handleGoogleOAuth} />
-      <Link href='/forgot-password' style={loginStyles.forgotLink}>
-        Has olvidado tu contrasena?
-      </Link>
+      <GoogleOAuthButton loading={googleLoginLoading} onClick={handleGoogleOAuth} />
+
+      {!isAnyLoading ? (
+        <Link href='/forgot-password' style={loginStyles.forgotLink}>
+          ¿Has olvidado tu contraseña?
+        </Link>
+      ) : null}
+
       <p style={loginStyles.helperText}>
-        Gestionamos la sesion con Supabase Auth y redirigimos automaticamente al Home tras iniciar.
+        Gestionamos la sesión con Supabase Auth y redirigimos automáticamente al Home tras iniciar sesión.
       </p>
     </AuthShell>
   )

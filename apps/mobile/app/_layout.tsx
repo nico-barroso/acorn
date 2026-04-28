@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { supabase } from '@lib/supabase';
 import { Keyboard, TouchableWithoutFeedback, View } from 'react-native';
@@ -19,20 +19,32 @@ function AuthGate() {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     if (!supabase) {
       setInitialized(true);
       return;
     }
+
     supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
       setSession(data.session);
       setInitialized(true);
     });
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, nextSession: Session | null) => {
+    } = supabase.auth.onAuthStateChange((_event, nextSession: Session | null) => {
+      if (!mounted) return;
+
       setSession(nextSession);
+      setInitialized(true);
     });
-    return () => subscription.unsubscribe();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -40,10 +52,17 @@ function AuthGate() {
     const inAuthGroup = segments[0] === '(auth)';
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
+      return;
+    }
+
+    if (session && inAuthGroup) {
       router.replace('/(app)/');
     }
-  }, [session, initialized, segments]);
+  }, [initialized, router, segments, session]);
+
+  if (!initialized) {
+    return null;
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>

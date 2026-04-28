@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, KeyboardAvoidingView, Platform, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import { useGoogleOAuth } from '@hooks/useGoogleOAuth';
 import { useLogin } from '@hooks/useLogin';
 import { Button } from '@components/Button/Button';
@@ -14,20 +13,13 @@ const EmailInput = Input;
 const PasswordInput = Input;
 
 type LoginScreenProps = {
-  onLoginSuccess: () => void;
   onGoToRegister: () => void;
   onGoToForgotPassword: () => void;
 };
 
-export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScreenProps) {
-  const { email, setEmail, password, setPassword, errors, loading, handleLogin } = useLogin({
-    onSuccess: onLoginSuccess,
-  });
-  const {
-    loading: oauthLoading,
-    error: oauthError,
-    handleGoogleSignIn,
-  } = useGoogleOAuth({ onSuccess: onLoginSuccess });
+export default function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScreenProps) {
+  const { email, setEmail, password, setPassword, errors, loading, handleLogin } = useLogin();
+  const { loading: oauthLoading, error: oauthError, handleGoogleSignIn } = useGoogleOAuth();
 
   const isSubmitting = loading || oauthLoading;
 
@@ -53,10 +45,7 @@ export default function LoginScreen({ onLoginSuccess, onGoToRegister }: LoginScr
           placeholder="********"
           secureTextEntry
         />
-        <TouchableOpacity
-          onPress={() => router.push('/(auth)/forgot-password')}
-          disabled={isSubmitting}
-        >
+        <TouchableOpacity onPress={onGoToForgotPassword} disabled={isSubmitting}>
           <Text style={styles.link}>He olvidado mi contraseña</Text>
         </TouchableOpacity>
         {errors.general ? <Text style={styles.errorText}>{errors.general}</Text> : null}
