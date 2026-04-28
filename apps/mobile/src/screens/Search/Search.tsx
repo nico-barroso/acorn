@@ -55,7 +55,7 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
   };
 
   const activeQuickFilter =
-    selectedRead === 'unread' ? 'unread' : selectedDate === '7d' ? 'new' : 'all';
+    hasActiveFilters ? null : selectedRead === 'unread' ? 'unread' : selectedDate === '7d' ? 'new' : 'all';
 
   const renderEmpty = () => {
     if (loading)
