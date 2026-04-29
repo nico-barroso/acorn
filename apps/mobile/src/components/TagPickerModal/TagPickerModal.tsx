@@ -55,6 +55,9 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   const insets = useSafeAreaInsets();
   const user = session?.user;
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const mgmtOpacity = useRef(new Animated.Value(0)).current;
+  const mgmtTranslateY = useRef(new Animated.Value(12)).current;
+  const [mgmtVisible, setMgmtVisible] = React.useState(false);
 
   const [allTags, setAllTags] = React.useState<TagOption[]>([]);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
@@ -131,7 +134,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   React.useEffect(() => {
     if (!visible) {
       setAllTags([]); setSelectedIds([]); setSaving(false);
-      setManagementOpen(false);
+      setManagementOpen(false); setMgmtVisible(false); mgmtOpacity.setValue(0); mgmtTranslateY.setValue(12);
       setNewTagName(''); setNewTagColor(PRESET_COLORS[0]);
       setEditingTagId(null); setEditingTagName(''); setMgmtError('');
     }
@@ -264,16 +267,32 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
               {/* ── GESTIONAR ── */}
               <TouchableOpacity
                 style={styles.manageButton}
-                onPress={() => setManagementOpen((prev) => !prev)}
+                onPress={() => {
+                  if (managementOpen) {
+                    Animated.parallel([
+                      Animated.timing(mgmtOpacity, { toValue: 0, duration: 160, useNativeDriver: true }),
+                      Animated.timing(mgmtTranslateY, { toValue: 12, duration: 160, useNativeDriver: true }),
+                    ]).start(() => { setMgmtVisible(false); setManagementOpen(false); });
+                  } else {
+                    setManagementOpen(true);
+                    setMgmtVisible(true);
+                    mgmtOpacity.setValue(0);
+                    mgmtTranslateY.setValue(12);
+                    Animated.parallel([
+                      Animated.timing(mgmtOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+                      Animated.timing(mgmtTranslateY, { toValue: 0, duration: 220, useNativeDriver: true }),
+                    ]).start();
+                  }
+                }}
                 activeOpacity={0.7}
               >
                 <Text style={styles.manageLink}>{managementOpen ? 'Ocultar gestión' : 'Gestionar etiquetas'}</Text>
               </TouchableOpacity>
 
-              {managementOpen && (
+              {mgmtVisible && (
+                <Animated.View style={{ opacity: mgmtOpacity, transform: [{ translateY: mgmtTranslateY }] }}>
                 <View style={styles.managementSection}>
-                  <View style={styles.divider} />
-                  <Text style={styles.managementTitle}>Gestionar etiquetas</Text>
+                  <Text style={styles.managementTitle}>Crear nueva etiqueta</Text>
 
                   <View style={styles.createRow}>
                     <TextInput
@@ -305,6 +324,9 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
                   </TouchableOpacity>
 
                   {mgmtError ? <Text style={styles.error}>{mgmtError}</Text> : null}
+
+                  <View style={styles.sectionDivider} />
+                  <Text style={styles.sectionLabel}>Gestionar mis etiquetas</Text>
 
                   {allTags.map((tag) => {
                     const isEditing = editingTagId === tag.id;
@@ -358,6 +380,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
                     );
                   })}
                 </View>
+                </Animated.View>
               )}
 
             </ScrollView>

@@ -83,7 +83,7 @@ export const styles = StyleSheet.create({
   counter: {
     marginTop: 12,
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 13,
     color: colors.brownMid,
     textAlign: 'right',
   },
@@ -121,11 +121,24 @@ export const styles = StyleSheet.create({
   // Management section
   managementSection: {
     paddingBottom: 8,
+    marginTop: 30,
   },
   divider: {
     height: 1,
     backgroundColor: `${colors.brown}18`,
     marginBottom: 16,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: `${colors.brown}18`,
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontSize: 16,
+    color: colors.brown,
+    marginBottom: 4,
   },
   managementTitle: {
     fontFamily: 'CabinetGrotesk-Bold',
@@ -179,10 +192,10 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: `${colors.brown}18`,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     marginTop: 8,
-    gap: 8,
+    gap: 10,
   },
   tagRow: {
     flexDirection: 'row',
@@ -211,13 +224,15 @@ export const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
+    justifyContent: 'center',
   },
   actionBtn: {
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
     alignItems: 'center',
+    minWidth: 110,
   },
   actionBtnPrimary: {
     backgroundColor: colors.salmon,
