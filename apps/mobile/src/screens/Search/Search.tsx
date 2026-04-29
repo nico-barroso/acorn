@@ -232,11 +232,11 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
         renderItem={renderItem}
         ListEmptyComponent={!loading ? renderEmpty() : null}
         ListHeaderComponent={loading && activeData.length === 0 ? (
-          <>
+          <View style={styles.skeletonContainer}>
             <SkeletonContentCard />
             <SkeletonContentCard />
             <SkeletonContentCard />
-          </>
+          </View>
         ) : null}
         contentContainerStyle={[
           activeData.length === 0 && !loading
