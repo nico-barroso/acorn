@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, ImageBackground, Image, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, FlatList, ImageBackground, Image, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FilterPanel } from './components/FilterPanel/FilterPanel';
 import { QuickFilters } from './components/QuickFilters/QuickFilters';
@@ -44,6 +44,15 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
 
   const insets = useSafeAreaInsets();
   const [showFilterPanel, setShowFilterPanel] = React.useState(false);
+  const filterPanelAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(filterPanelAnim, {
+      toValue: showFilterPanel ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [showFilterPanel]);
 
   const activeData = filteredResults;
 
@@ -164,27 +173,18 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
           onLayout={() => {}}
         />
       </View>
-      <View style={styles.inner}>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Text style={styles.resultsCounter}>
-          {hasActiveFilters
-            ? filteredResults.length === 1
-              ? `${filteredResults.length} resultado`
-              : `${filteredResults.length} resultados`
-            : totalCount == 1
-              ? `${totalCount} resultado`
-              : `${totalCount} resultados`}
-        </Text>
-      </View>
-      {tagFromQuery && (
-        <View style={styles.inner}>
-          <Text style={styles.tagQueryHint}>
-            Buscando por etiqueta: <Text style={styles.tagQueryBadge}>#{tagFromQuery}</Text>
-          </Text>
-        </View>
-      )}
-      {showFilterPanel && (
-        <View style={styles.filterPanel}>
+
+      <Animated.View
+        style={{
+          maxHeight: filterPanelAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1000],
+          }),
+          opacity: filterPanelAnim,
+          overflow: 'hidden',
+        }}
+      >
+        <View style={styles.filterPanelContainer}>
           <FilterPanel
             domains={domainOptions}
             tags={allUserTags}
@@ -203,6 +203,26 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
             onSelectRead={setSelectedRead}
             onClear={clearFilters}
           />
+        </View>
+      </Animated.View>
+
+      <View style={styles.inner}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Text style={styles.resultsCounter}>
+          {hasActiveFilters
+            ? filteredResults.length === 1
+              ? `${filteredResults.length} resultado`
+              : `${filteredResults.length} resultados`
+            : totalCount == 1
+              ? `${totalCount} resultado`
+              : `${totalCount} resultados`}
+        </Text>
+      </View>
+      {tagFromQuery && (
+        <View style={styles.inner}>
+          <Text style={styles.tagQueryHint}>
+            Buscando por etiqueta: <Text style={styles.tagQueryBadge}>#{tagFromQuery}</Text>
+          </Text>
         </View>
       )}
 
