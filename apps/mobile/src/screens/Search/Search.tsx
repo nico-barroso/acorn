@@ -81,8 +81,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
   }, [selectedRead, selectedDate, selectedDomain, selectedTag]);
 
   // Solo filtros manuales (panel), no quick filters
-  const hasManualFilters = selectedDomain !== null || selectedTag !== null || tagFromQuery !== null ||
-    !(selectedRead === 'all' && selectedDate === 'all') && !activeQuickFilter;
+  const hasManualFilters = hasActiveFilters && !activeQuickFilter;
 
   const renderEmpty = () => {
     return (
