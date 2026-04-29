@@ -5,76 +5,13 @@ export const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(192, 110, 82, 0.2)',
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25, // ← esto faltaba
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
-  },
-
-  // Thumbnail derecho con degradado diagonal
-  thumbnailRight: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 190,
-    borderTopRightRadius: 15,
-    borderBottomRightRadius: 15,
-    overflow: 'hidden',
-  },
-  thumbnailRightImage: {
-    width: '100%',
-    height: '100%',
-  },
-  thumbnailRightGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  // Hero expandido
-  heroImageBg: {
-    minHeight: 160,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-  },
-  heroImageBgImage: {
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-  },
-  heroGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  heroContent: {
-    padding: 18,
-    paddingHorizontal: 20,
-    gap: 5,
-  },
-  heroTitle: {
-    fontFamily: 'CabinetGrotesk-Bold',
-    fontWeight: '700',
-    fontSize: 18,
-    color: colors.white,
-    lineHeight: 23,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(10,5,2,0.55)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    overflow: 'hidden',
-  },
-  heroSource: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: -0.1,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(10,5,2,0.45)',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    overflow: 'hidden',
   },
 
   // Fila principal
@@ -95,24 +32,16 @@ export const styles = StyleSheet.create({
     marginRight: 12,
     backgroundColor: colors.black,
     flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   thumbnailImage: {
     width: '100%',
     height: '100%',
   },
-  thumbnailPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.black,
-  },
-  filePlaceholderGradient: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filePlaceholderEmoji: {
-    fontSize: 40,
+  thumbnailIcon: {
+    width: 44,
+    height: 44,
   },
   statusBadge: {
     flexDirection: 'row',

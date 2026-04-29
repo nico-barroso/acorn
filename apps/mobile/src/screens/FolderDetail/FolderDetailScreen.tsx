@@ -64,7 +64,6 @@ export function FolderDetailScreen({
       url={item.url}
       thumbnailUri={item.thumbnailUri}
       faviconUri={item.faviconUri}
-      isFile={item.isFile}
       onOpenDetail={onOpenDetail}
     />
   );
