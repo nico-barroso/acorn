@@ -160,6 +160,22 @@ export function ContentCard({
               </TouchableOpacity>
             ) : null}
           </View>
+          <View style={styles.tagsSection}>
+            <View style={styles.tagsSectionHeader}>
+              <Text style={styles.metaLabel}>Etiquetas</Text>
+              {onTagsPress && (
+                <TouchableOpacity onPress={() => onTagsPress(id)} activeOpacity={0.7} style={styles.addTagButton}>
+                  <Text style={styles.addTagIcon}>+</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {tags.length > 0 && (
+              <View style={styles.tagsRow}>
+                {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
+              </View>
+            )}
+          </View>
+
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Guardado:</Text>
             <Text style={styles.metaValue}>{savedDate}</Text>
