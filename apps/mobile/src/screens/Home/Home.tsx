@@ -36,7 +36,6 @@ type ResourceRow = {
   id: string;
   type: string | null;
   title: string | null;
-  og_title: string | null;
   is_read: boolean;
   created_at: string;
   url: string | null;
@@ -45,6 +44,7 @@ type ResourceRow = {
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
+  metadata: { og_title: string | null } | null;
 };
 
 type HomeScreenProps = {
@@ -89,7 +89,7 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
 
   return {
     id: row.id,
-    title: row.og_title?.trim() || row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+    title: row.metadata?.og_title?.trim() || row.domain || 'Recurso sin titulo',
     source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
@@ -116,7 +116,7 @@ async function fetchItemsPage(
 ): Promise<ItemsPage> {
   let q = supabase
     .from('items_with_links')
-    .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
+    .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags,metadata(og_title)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(PAGE_SIZE);

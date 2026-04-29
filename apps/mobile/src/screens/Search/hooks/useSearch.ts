@@ -41,7 +41,7 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
   const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
   return {
     id: row.id,
-    title: row.og_title?.trim() || row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+    title: row.metadata?.og_title?.trim() || row.domain || 'Recurso sin titulo',
     domain: isFile ? 'Archivo' : row.domain || 'Dominio no disponible',
     snippet: row.description?.trim() || row.url || 'Sin descripcion',
     url: fileUrl,
@@ -75,7 +75,7 @@ async function fetchSearchPage(
 
   let queryBuilder = supabase
     .from('items_with_links')
-    .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
+    .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);

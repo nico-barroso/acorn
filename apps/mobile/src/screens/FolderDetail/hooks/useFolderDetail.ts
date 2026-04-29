@@ -15,7 +15,6 @@ type ItemRow = {
   id: string;
   type: string | null;
   title: string | null;
-  og_title: string | null;
   is_read: boolean;
   created_at: string;
   url: string | null;
@@ -24,6 +23,7 @@ type ItemRow = {
   og_image_url: string | null;
   preview_image_url: string | null;
   favicon_url: string | null;
+  metadata: { og_title: string | null } | null;
 };
 
 type SmartRuleRow = {
@@ -86,7 +86,7 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
     supabase
       .from('items_with_links')
       .select(
-        'id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url',
+        'id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)',
       )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -114,7 +114,7 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
     const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
     return {
       id: row.id,
-      title: row.og_title?.trim() || row.title?.trim() || row.domain || row.url || 'Recurso sin título',
+      title: row.metadata?.og_title?.trim() || row.domain || 'Recurso sin título',
       source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
       domain: row.domain ?? undefined,
       tags: (row.tags ?? []).map((name) => ({
