@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     paddingHorizontal: 20,
-    minHeight: 110,
+    minHeight: 125,
   },
 
   // Thumbnail
@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
   // Texto principal
   textLayout: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     minHeight: 60,
     gap: 2,
   },
@@ -170,18 +170,20 @@ export const styles = StyleSheet.create({
   tagsSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   addTagButton: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.salmon,
+    borderWidth: 1.5,
+    borderColor: colors.salmon,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addTagIcon: {
-    color: colors.white,
+    color: colors.salmon,
     fontSize: 16,
     lineHeight: 20,
     fontFamily: 'Satoshi-Bold',

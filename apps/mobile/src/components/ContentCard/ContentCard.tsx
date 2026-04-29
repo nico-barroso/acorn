@@ -4,11 +4,18 @@ import {
   Easing,
   Image,
   ImageSourcePropType,
+  LayoutAnimation,
   Linking,
+  Platform,
   Text,
   TouchableOpacity,
+  UIManager,
   View,
 } from 'react-native';
+
+if (Platform.OS === 'android') {
+  UIManager.setLayoutAnimationEnabledExperimental?.(true);
+}
 import { supabase } from '../../../lib/supabase';
 import { styles } from './ContentCard.styles';
 import { Button } from '../Button/Button';
@@ -50,6 +57,7 @@ export function ContentCard({
   onTagsPress,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [tagsVisible, setTagsVisible] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);
   const animHeight = useRef(new Animated.Value(0)).current;
   const isRead = status === 'Visto';
@@ -57,6 +65,15 @@ export function ContentCard({
   const toggle = () => {
     const toExpand = !expanded;
     setExpanded(toExpand);
+
+    LayoutAnimation.configureNext({
+      duration: 220,
+      update: { type: LayoutAnimation.Types.easeInEaseOut },
+      delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+      create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+    });
+    setTagsVisible(!toExpand);
+
     if (toExpand) {
       Animated.spring(animHeight, {
         toValue: contentHeight,
@@ -122,7 +139,7 @@ export function ContentCard({
             <Text style={styles.sourceEmoji}>{isFile ? '📄' : '🔗'}</Text>
             <Text style={styles.source}>{source}</Text>
           </View>
-          {tags.length > 0 && (
+          {tags.length > 0 && tagsVisible && (
             <View style={styles.tagsRowCollapsed}>
               {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
             </View>
@@ -168,12 +185,8 @@ export function ContentCard({
                   <Text style={styles.addTagIcon}>+</Text>
                 </TouchableOpacity>
               )}
+              {tags.length > 0 && tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
             </View>
-            {tags.length > 0 && (
-              <View style={styles.tagsRow}>
-                {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
-              </View>
-            )}
           </View>
 
           <View style={styles.metaRow}>

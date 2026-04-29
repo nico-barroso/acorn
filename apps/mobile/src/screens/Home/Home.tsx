@@ -212,8 +212,15 @@ export default function HomeScreen({
   });
 
   const resources = React.useMemo(
-    () => data?.pages.flatMap((p) => p.items) ?? [],
-    [data],
+    () =>
+      (data?.pages.flatMap((p) => p.items) ?? []).map((item) => ({
+        ...item,
+        tags: item.tags.map((t) => ({
+          name: t.name,
+          color_hex: tagColorMap.get(t.name) ?? t.color_hex,
+        })),
+      })),
+    [data, tagColorMap],
   );
 
   const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';

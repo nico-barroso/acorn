@@ -197,8 +197,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
           await supabase.from('item_tags').delete().eq('tag_id', tag.id);
           await supabase.from('tags').delete().eq('id', tag.id).eq('user_id', user.id);
           setSelectedIds((prev) => prev.filter((id) => id !== tag.id));
-          setSaving(false);
           await loadTagsWithCount();
+          setSaving(false);
         })(),
       },
     ]);
