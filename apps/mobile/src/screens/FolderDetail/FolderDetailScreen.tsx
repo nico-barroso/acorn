@@ -99,6 +99,7 @@ export function FolderDetailScreen({
           onQuickFilter={onQuickFilter}
           onToggleFilterPanel={() => {}}
           onLayout={() => {}}
+          hideFilterButton
         />
       </View>
 
