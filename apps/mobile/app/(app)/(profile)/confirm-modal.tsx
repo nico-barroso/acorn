@@ -48,7 +48,7 @@ export default function ConfirmModalRoute() {
       await supabase.auth.signOut();
       router.back();
     } else if (action === 'deleteAccount') {
-      await supabase.rpc('delete_user');
+      await supabase.auth.signOut();
     }
   };
 

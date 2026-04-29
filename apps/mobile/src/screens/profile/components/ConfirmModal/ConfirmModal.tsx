@@ -68,11 +68,16 @@ export function ConfirmModal({
 
   const handleConfirm = async () => {
     setLoading(true);
-    await onConfirm();
-    setLoading(false);
-    if (successTitle) {
-      setSuccess(true);
-      onSuccessReached?.();
+    try {
+      await onConfirm();
+      if (successTitle) {
+        setSuccess(true);
+        onSuccessReached?.();
+      }
+    } catch {
+      // onConfirm handles user-facing error feedback
+    } finally {
+      setLoading(false);
     }
   };
 
