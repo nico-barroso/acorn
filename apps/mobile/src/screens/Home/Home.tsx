@@ -31,6 +31,7 @@ import { useSession } from '@context/SessionContext';
 import { queryClient } from '../../lib/queryClient';
 import { queryKeys } from '../../lib/queryKeys';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
+import { formatSavedDate } from '../../lib/formatSavedDate';
 
 type ResourceRow = {
   id: string;
@@ -58,23 +59,6 @@ type HomeScreenProps = {
 
 const PAGE_SIZE = 5;
 
-function formatSavedDate(isoDate: string) {
-  const created = new Date(isoDate).getTime();
-  const now = Date.now();
-  const diffMs = Math.max(now - created, 0);
-  const diffMinutes = Math.floor(diffMs / 60000);
-
-  if (diffMinutes < 1) return 'Hace unos segundos';
-  if (diffMinutes < 60) return `Hace ${diffMinutes} min`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `Hace ${diffHours} h`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `Hace ${diffDays} dias`;
-
-  return new Date(isoDate).toLocaleDateString();
-}
 
 const FILE_ICON = require('../../../assets/config/favicon.png');
 
@@ -156,18 +140,23 @@ export default function HomeScreen({
     queryFn: async () => {
       const { data } = await supabase
         .from('tags')
-        .select('name,color_hex')
+        .select('name,slug,color_hex')
         .eq('user_id', userId!);
-      return (data ?? []) as { name: string; color_hex: string | null }[];
+      return (data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
     },
     enabled: Boolean(userId),
     staleTime: 5 * 60 * 1000,
   });
 
-  const tagColorMap = React.useMemo(
-    () => new Map((tagData ?? []).map((t) => [t.name, t.color_hex])),
-    [tagData],
-  );
+  const tagColorMap = React.useMemo(() => {
+    const map = new Map<string, string | null>();
+    (tagData ?? []).forEach((t) => {
+      map.set(t.name, t.color_hex);
+      if (t.slug) map.set(t.slug, t.color_hex);
+      map.set(t.name.toLowerCase(), t.color_hex);
+    });
+    return map;
+  }, [tagData]);
 
   // Avatar query — shared cache with profile screen
   const { data: avatarUrl = null } = useQuery({

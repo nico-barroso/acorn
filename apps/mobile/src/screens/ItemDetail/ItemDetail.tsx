@@ -17,9 +17,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '../../../lib/supabase';
 import { useSession } from '@context/SessionContext';
+import { queryKeys } from '../../lib/queryKeys';
 import { Tag } from '../../components/Tag/Tag';
 import { styles } from './ItemDetail.styles';
 
@@ -37,6 +39,7 @@ type ItemDetailProps = {
 export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailProps) {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
+  const queryClient = useQueryClient();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   const [loading, setLoading] = React.useState(false);
@@ -84,15 +87,25 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
   ).current;
 
   const loadDetail = React.useCallback(async () => {
-    if (!visible || !itemId) return;
+    if (!visible || !itemId || !session?.user) return;
     setLoading(true);
     setError('');
 
-    const { data, error: detailError } = await supabase
-      .from('items_with_links')
-      .select('id,type,title,description,is_read,created_at,url,domain,tags,metadata(og_title)')
-      .eq('id', itemId)
-      .single();
+    // Check if tag colors are already in React Query cache
+    const cachedTags = queryClient.getQueryData<{ name: string; slug: string | null; color_hex: string | null }[]>(
+      queryKeys.tags(session.user.id),
+    );
+
+    const [{ data, error: detailError }, tagFetchResult] = await Promise.all([
+      supabase
+        .from('items_with_links')
+        .select('id,type,title,description,is_read,created_at,url,domain,tags,metadata(og_title)')
+        .eq('id', itemId)
+        .single(),
+      cachedTags
+        ? Promise.resolve({ data: cachedTags })
+        : supabase.from('tags').select('name,slug,color_hex').eq('user_id', session.user.id),
+    ]);
 
     if (detailError || !data) {
       setLoading(false);
@@ -100,20 +113,16 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
       return;
     }
 
-    const tagNames: string[] = ((data.tags ?? []) as string[]).filter(Boolean);
-    let tagDetails: TagDetail[] = tagNames.map((name) => ({ name, color_hex: null }));
+    const tagRows = (tagFetchResult.data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
+    const colorMap = new Map<string, string | null>();
+    tagRows.forEach((t) => {
+      colorMap.set(t.name, t.color_hex);
+      if (t.slug) colorMap.set(t.slug, t.color_hex);
+      colorMap.set(t.name.toLowerCase(), t.color_hex);
+    });
 
-    if (tagNames.length > 0 && session?.user) {
-      const { data: tagData } = await supabase
-        .from('tags')
-        .select('name,color_hex')
-        .eq('user_id', session.user.id)
-        .in('name', tagNames);
-      if (tagData) {
-        const colorMap = new Map((tagData as TagDetail[]).map((t) => [t.name, t.color_hex]));
-        tagDetails = tagNames.map((name) => ({ name, color_hex: colorMap.get(name) ?? null }));
-      }
-    }
+    const tagNames: string[] = ((data.tags ?? []) as string[]).filter(Boolean);
+    const tagDetails: TagDetail[] = tagNames.map((name) => ({ name, color_hex: colorMap.get(name) ?? null }));
 
     const resolvedTitle = (data.title as string | null)?.trim() || (data.metadata as { og_title?: string } | null)?.og_title?.trim() || (data.domain as string | null) || '';
     setTitle(resolvedTitle);
@@ -126,7 +135,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     setDomain(data.domain ?? '');
     setCreatedAt(new Date(data.created_at as string).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }));
     setLoading(false);
-  }, [itemId, visible, session?.user]);
+  }, [itemId, visible, session?.user, queryClient]);
 
   React.useEffect(() => { void loadDetail(); }, [loadDetail]);
 

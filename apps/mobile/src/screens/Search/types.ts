@@ -8,6 +8,7 @@ export type SearchResult = {
   snippet: string;
   url: string;
   createdAt: string;
+  savedDate: string;
   isRead: boolean;
   tags: TagItem[];
   thumbnailUri?: string;
