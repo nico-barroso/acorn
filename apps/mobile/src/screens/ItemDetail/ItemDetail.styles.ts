@@ -138,4 +138,15 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.family.primary.regular,
     fontSize: fonts.size.sm,
   },
+  deleteButton: {
+    marginTop: 8,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  deleteButtonText: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.sm,
+    color: '#8b2a1b',
+    textDecorationLine: 'underline',
+  },
 });

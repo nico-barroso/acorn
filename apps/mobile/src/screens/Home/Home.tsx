@@ -36,6 +36,7 @@ type ResourceRow = {
   id: string;
   type: string | null;
   title: string | null;
+  og_title: string | null;
   is_read: boolean;
   created_at: string;
   url: string | null;
@@ -88,7 +89,7 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
 
   return {
     id: row.id,
-    title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+    title: row.og_title?.trim() || row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
     source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
@@ -268,8 +269,8 @@ export default function HomeScreen({
     }
   };
 
-  const featured = resources.length >= 2 ? resources[0] : null;
-  const listData = resources.length >= 2 ? resources.slice(1, 5) : resources.slice(0, 5);
+  const featured = resources.length >= 1 ? resources[0] : null;
+  const listData = resources.length >= 2 ? resources.slice(1, 5) : [];
   const hasMoreThanFive = resources.length > 5;
   const showOnboarding = !loadingInitial && resources.length <= 1;
 

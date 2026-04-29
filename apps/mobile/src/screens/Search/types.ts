@@ -19,6 +19,7 @@ export type SearchRow = {
   id: string;
   type: string | null;
   title: string | null;
+  og_title: string | null;
   description: string | null;
   domain: string | null;
   url: string | null;

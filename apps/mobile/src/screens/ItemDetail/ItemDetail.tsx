@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Linking,
   Modal,
@@ -251,6 +252,34 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     await loadDetail();
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Eliminar recurso',
+      '¿Estás seguro? Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            const { error: deleteError } = await supabase
+              .from('items')
+              .delete()
+              .eq('id', itemId!);
+
+            if (deleteError) {
+              setError('No se pudo eliminar el recurso.');
+              return;
+            }
+
+            onUpdated?.();
+            onClose();
+          },
+        },
+      ],
+    );
+  };
+
   const handleOpenUrl = async () => {
     if (!url) return;
     console.log('[handleOpenUrl] url:', url);
@@ -332,6 +361,9 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
                           <Button label='Abrir enlace en navegador' onPress={handleOpenUrl} variant='secondary' />
                         </View>
                         <Button label='Cerrar' onPress={onClose} variant='secondary' />
+                        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete} activeOpacity={0.7}>
+                          <Text style={styles.deleteButtonText}>Eliminar recurso</Text>
+                        </TouchableOpacity>
                       </View>
                     </>
                   ) : (
