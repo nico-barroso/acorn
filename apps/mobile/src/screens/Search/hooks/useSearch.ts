@@ -29,7 +29,7 @@ async function fetchSearchCount(userId: string, term: string): Promise<number> {
   return count ?? 0;
 }
 
-const FILE_ICON = require('../../../../assets/favicon.png');
+const FILE_ICON = require('../../../../assets/config/favicon.png');
 
 function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);

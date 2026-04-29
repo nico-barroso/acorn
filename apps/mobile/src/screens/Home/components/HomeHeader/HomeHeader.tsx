@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, Text, TouchableOpacity, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { Animated, Image, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import AcornLogo from '../../../../../assets/svg/acorn-logo.svg';
 import { ContentCard } from '@components/ContentCard/ContentCard';
 import { ContentCardSkeleton } from '@components/ContentCardSkeleton/ContentCardSkeleton';
 import { styles } from '../../Home.styles';
@@ -62,11 +63,7 @@ export function HomeHeader({
         />
         <View style={styles.header}>
           <View style={styles.headerLogo}>
-            <Image
-              source={require('@assets/icon.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+            <AcornLogo width={112} height={28} />
           </View>
           <TouchableOpacity
             style={styles.headerAvatar}

@@ -75,7 +75,7 @@ function formatSavedDate(isoDate: string) {
   return new Date(isoDate).toLocaleDateString();
 }
 
-const FILE_ICON = require('../../../assets/favicon.png');
+const FILE_ICON = require('../../../assets/config/favicon.png');
 
 function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
