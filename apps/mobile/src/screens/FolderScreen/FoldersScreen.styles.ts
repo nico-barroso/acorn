@@ -4,8 +4,8 @@ import { fonts } from '../../theme/fonts';
 
 export const styles = StyleSheet.create({
   panel: {
-    flex:1,
-    backgroundColor: '#F3CCBE',
+    flex: 1,
+    backgroundColor: colors.background,
     paddingTop: 70,
   },
   inner: {
@@ -17,6 +17,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 50,
   },
   heroTitle: {
     fontFamily: 'CabinetGrotesk-Bold',
@@ -41,6 +42,7 @@ export const styles = StyleSheet.create({
   decorationShadowWrapper: {
     marginLeft: 0,
     marginRight: 0,
+    marginTop: -150,
     alignSelf: 'stretch',
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: -4 },
@@ -56,10 +58,11 @@ export const styles = StyleSheet.create({
     padding: 36,
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 8,
-    marginTop: -40,
+    elevation: 10,
+    zIndex: 2,
+    marginTop: -30,
   },
   scrollContent: {
     flexGrow: 1,

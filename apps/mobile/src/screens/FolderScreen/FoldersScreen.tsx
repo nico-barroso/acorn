@@ -96,13 +96,9 @@ export function FoldersScreen({
     ));
   };
 
-    return (
+  return (
     <View style={styles.panel}>
-      <Image
-        source={require('@assets/search-top-drop-gradient.webp')}
-        style={[styles.topGradient, { top: -insets.top, height: 300 + insets.top }]}
-        resizeMode="cover"
-      />
+
       <View style={styles.inner}>
         <View style={styles.headerRow}>
           <Text style={styles.heroTitle}>{'Orden\nsin esfuerzo'}</Text>
@@ -117,12 +113,12 @@ export function FoldersScreen({
       </View>
 
       <View style={styles.cardWrapper}>
-        <Text style={styles.sectionTitle}>Mis carpetas</Text>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: navBarHeight + 32 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
+          <Text style={styles.sectionTitle}>Mis carpetas</Text>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           {renderContent()}
         </ScrollView>
