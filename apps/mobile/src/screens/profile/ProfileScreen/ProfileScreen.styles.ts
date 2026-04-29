@@ -6,10 +6,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  scrollContent: {
-    flexGrow: 1,
-  },
-
   // Header
   header: {
     alignItems: 'center',
@@ -61,6 +57,20 @@ avatar: {
     marginHorizontal: 0,
     marginVertical: 0,
     padding: 0,
+  },
+  skeletonName: {
+    height: 34,
+    width: 140,
+    borderRadius: 8,
+    backgroundColor: colors.brown,
+    marginBottom: 4,
+  },
+  skeletonEmail: {
+    height: 18,
+    width: 180,
+    borderRadius: 6,
+    backgroundColor: colors.brown,
+    opacity: 0.4,
   },
   userName: {
     fontFamily: 'CabinetGrotesk-Bold',
