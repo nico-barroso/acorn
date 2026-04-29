@@ -30,10 +30,11 @@ export const styles = StyleSheet.create({
     borderRadius: 13,
     overflow: 'hidden',
     marginRight: 12,
-    backgroundColor: colors.black,
+    backgroundColor: 'transparent',
     flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 10,
   },
   thumbnailImage: {
     width: '100%',
@@ -110,7 +111,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 26,
     paddingBottom: 24,
     paddingTop: 4,
-    gap: 16,
+    gap: 22,
   },
 
   // Meta info
@@ -187,6 +188,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     fontFamily: 'Satoshi-Bold',
+    marginTop: -2,
   },
   tagsRow: {
     flexDirection: 'row',

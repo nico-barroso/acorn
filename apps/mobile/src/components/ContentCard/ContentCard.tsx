@@ -20,6 +20,7 @@ import { supabase } from '../../../lib/supabase';
 import { styles } from './ContentCard.styles';
 import { Button } from '../Button/Button';
 import { Tag } from '../Tag/Tag';
+import FileIcon from '../../../assets/icons/file-icon.svg';
 
 type TagItem = { name: string; color_hex: string | null };
 
@@ -127,6 +128,8 @@ export function ContentCard({
         <View style={styles.thumbnail}>
           {thumbnailUri ? (
             <Image source={{ uri: thumbnailUri }} style={styles.thumbnailImage} resizeMode="cover" />
+          ) : isFile ? (
+            <FileIcon width={62} height={62} />
           ) : faviconUri ? (
             <Image source={{ uri: faviconUri }} style={styles.thumbnailIcon} resizeMode="contain" />
           ) : iconSource ? (
