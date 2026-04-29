@@ -48,6 +48,7 @@ type ResourceRow = {
 
 type HomeScreenProps = {
   userName?: string;
+  isUserNameLoading?: boolean;
   greeting?: string;
   sharedUrl?: string | null;
   onSharedUrlHandled?: () => void;
@@ -132,6 +133,7 @@ async function fetchItemsPage(
 
 export default function HomeScreen({
   userName = 'Usuario',
+  isUserNameLoading = false,
   greeting = 'Buenos dias',
   sharedUrl,
   onSharedUrlHandled,
@@ -317,6 +319,7 @@ export default function HomeScreen({
         ListHeaderComponent={
           <HomeHeader
             userName={userName}
+            isUserNameLoading={isUserNameLoading}
             greeting={greeting}
             featured={featured}
             showOnboarding={showOnboarding}

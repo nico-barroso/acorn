@@ -5,8 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePasswordRecoveryRequest } from '@hooks/usePasswordRecovery';
 import { Button } from '@components/Button/Button';
 import { Input } from '@components/Input/Input';
+import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
 import { styles } from './ForgotPassword.styles';
-import AuthHeader from '../components/AuthHeader/AuthHeader';
 
 type ForgotPasswordScreenProps = {
   onGoToLogin: () => void;
@@ -18,8 +18,8 @@ export default function ForgotPasswordScreen({ onGoToLogin }: ForgotPasswordScre
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <ProfileHeader title="Cambiar contraseña" onBack={onGoToLogin} />
       <View style={styles.container}>
-        <AuthHeader subtitle="Crea una cuenta" />
 
         <Input
           label="Correo electronico"

@@ -76,7 +76,12 @@ export default function ProfileScreen({
     await setNotificationsEnabled(value);
   };
 
-  const displayName = profileData?.display_name?.trim() || session?.user?.email || 'Usuario';
+  const metadataName =
+    typeof session?.user?.user_metadata?.display_name === 'string'
+      ? session.user.user_metadata.display_name.trim()
+      : '';
+  const displayName =
+    profileData?.display_name?.trim() || metadataName || session?.user?.email || 'Usuario';
   const email = session?.user?.email ?? '';
 
   return (

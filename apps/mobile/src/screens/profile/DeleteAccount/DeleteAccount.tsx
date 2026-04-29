@@ -56,7 +56,12 @@ export default function DeleteAccountScreen({ onBack }: Props) {
     staleTime: 50 * 60 * 1000,
   });
 
-  const userName = profileData?.display_name?.trim() || session?.user?.email || 'Usuario';
+  const metadataName =
+    typeof session?.user?.user_metadata?.display_name === 'string'
+      ? session.user.user_metadata.display_name.trim()
+      : '';
+  const userName =
+    profileData?.display_name?.trim() || metadataName || session?.user?.email || 'Usuario';
 
   return (
     <SafeAreaView style={styles.safeArea}>
