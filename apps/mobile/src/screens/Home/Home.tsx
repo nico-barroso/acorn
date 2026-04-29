@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Alert,
-  ActivityIndicator,
   FlatList,
   Image,
   ImageBackground,
@@ -16,6 +15,7 @@ import { useQuery, useInfiniteQuery, type InfiniteData } from '@tanstack/react-q
 
 import { supabase } from '../../../lib/supabase';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { ContentCardSkeleton } from '../../components/ContentCardSkeleton/ContentCardSkeleton';
 import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
 import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
 import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
@@ -267,7 +267,8 @@ export default function HomeScreen({
   };
 
   const featured = resources.length >= 2 ? resources[0] : null;
-  const listData = resources.length >= 2 ? resources.slice(1) : resources;
+  const listData = resources.length >= 2 ? resources.slice(1, 5) : resources.slice(0, 5);
+  const hasMoreThanFive = resources.length > 5;
   const showOnboarding = !loadingInitial && resources.length <= 1;
 
   const handleFabPress = () => {
@@ -281,9 +282,9 @@ export default function HomeScreen({
   const renderEmpty = () => {
     if (loadingInitial && resources.length === 0) {
       return (
-        <View style={styles.emptyState}>
-          <ActivityIndicator color={colors.salmon} />
-          <Text style={styles.emptyTitle}>Cargando recursos...</Text>
+        <View style={{ gap: 12 }}>
+          <ContentCardSkeleton />
+          <ContentCardSkeleton />
         </View>
       );
     }
@@ -302,12 +303,12 @@ export default function HomeScreen({
     return null;
   };
 
-  const invalidateItems = () =>
+   const invalidateItems = () =>
     void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId!) });
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <FlatList
         style={styles.scroll}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: navBarHeight + 20 }]}
@@ -321,6 +322,7 @@ export default function HomeScreen({
             showOnboarding={showOnboarding}
             listError={listError}
             resources={resources}
+            isLoading={loadingInitial}
             avatarUrl={avatarUrl}
             onProfilePress={() => router.push('/(app)/(profile)/')}
             onOpenDetail={setSelectedItemId}
@@ -347,7 +349,16 @@ export default function HomeScreen({
         onEndReached={() => {
           if (hasNextPage && !loadingMore) void fetchNextPage();
         }}
-        ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.salmon} /> : null}
+        ListFooterComponent={
+          loadingMore ? (
+            <ContentCardSkeleton />
+          ) : hasMoreThanFive ? (
+            <TouchableOpacity style={styles.seeMoreButton} onPress={onSearchPress ?? (() => router.push('/(app)/search'))}>
+              <Text style={styles.seeMoreText}>Ver más recursos</Text>
+              <Text style={styles.seeMoreSubtext}>Acceder a todos mis enlaces</Text>
+            </TouchableOpacity>
+          ) : null
+        }
       />
       <ImageBackground
         source={require('../../../assets/bottom-home-noise-gradient.webp')}

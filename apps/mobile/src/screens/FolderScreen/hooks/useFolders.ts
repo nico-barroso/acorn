@@ -37,11 +37,11 @@ export function useFolders() {
   const userId = useCurrentUserId();
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<FolderData | null>(null);
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 
   const {
     data: folders = [],
     isLoading: loading,
-    isRefetching: refreshing,
     error: queryError,
     refetch,
   } = useQuery({
@@ -69,7 +69,7 @@ export function useFolders() {
   return {
     folders,
     loading,
-    refreshing,
+    refreshing: isPullRefreshing,
     error,
     builderOpen,
     editingFolder,
@@ -81,7 +81,10 @@ export function useFolders() {
       invalidateFolders();
     },
     onFolderPress: (id: string) => router.push(`/(app)/folders/${id}`),
-    onRefresh: () => void refetch(),
+    onRefresh: () => {
+      setIsPullRefreshing(true);
+      void refetch().finally(() => setIsPullRefreshing(false));
+    },
     onEditFolder: (id: string) => {
       const folder = folders.find((f) => f.id === id);
       if (folder) setEditingFolder(folder);

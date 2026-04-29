@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Alert } from 'react-native';
 import { ResetPasswordForm } from '@components/ResetPasswordForm/ResetPasswordForm';
+import { supabase } from '@lib/supabase';
 
-export const ResetPassword: React.FC = () => (
-  <ResetPasswordForm
-    onSubmit={async (newPassword) => {
-      // TODO: bussiness logic with suypabase updateUser
-      console.log('Nueva contraseña lista para enviar');
-    }}
-  />
-);
+export const ResetPassword: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (newPassword: string) => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setIsLoading(false);
+
+    if (error) {
+      Alert.alert('Error', 'No se pudo actualizar la contraseña. Intentalo de nuevo.');
+      return;
+    }
+
+    Alert.alert('¡Éxito!', 'Tu contraseña ha sido actualizada correctamente.');
+  };
+
+  return <ResetPasswordForm onSubmit={handleSubmit} isLoading={isLoading} />;
+};

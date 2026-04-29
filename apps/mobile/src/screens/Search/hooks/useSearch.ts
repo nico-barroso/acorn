@@ -6,7 +6,28 @@ import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import { useDebounce } from '../../../hooks/useDebounce';
 import type { DateFilterValue, ReadFilterValue, SearchResult, SearchRow } from '../types';
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
+
+async function fetchSearchCount(userId: string, term: string): Promise<number> {
+  const isTagQuery = term.trim().startsWith('#');
+  const backendTerm = isTagQuery ? '' : term;
+
+  let queryBuilder = supabase
+    .from('items_with_links')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (backendTerm.trim()) {
+    const termPattern = `%${backendTerm.trim().replace(/[%_]/g, '')}%`;
+    queryBuilder = queryBuilder.or(
+      `title.ilike.${termPattern},description.ilike.${termPattern},domain.ilike.${termPattern},url.ilike.${termPattern}`,
+    );
+  }
+
+  const { count, error } = await queryBuilder;
+  if (error) throw new Error('Error al contar resultados');
+  return count ?? 0;
+}
 
 const FILE_ICON = require('../../../../assets/favicon.png');
 
@@ -105,6 +126,14 @@ export function useSearch() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Total count query (for counter display)
+  const { data: totalCount = 0 } = useQuery({
+    queryKey: ['search-count', userId, debouncedQuery],
+    queryFn: () => fetchSearchCount(userId!, debouncedQuery),
+    enabled: Boolean(userId),
+    staleTime: 30 * 1000,
+  });
+
   const allUserTags = React.useMemo(
     () => (allTagsData ?? []).map((t) => t.name),
     [allTagsData],
@@ -194,6 +223,7 @@ export function useSearch() {
     error,
     filteredResults,
     results,
+    totalCount,
     domainOptions,
     tagOptions,
     allUserTags,

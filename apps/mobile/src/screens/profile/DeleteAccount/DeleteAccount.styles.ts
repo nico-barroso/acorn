@@ -47,11 +47,9 @@ export const styles = StyleSheet.create({
     position: 'relative',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: colors.brownMid,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   avatarPlaceholder: {
     width: 100,

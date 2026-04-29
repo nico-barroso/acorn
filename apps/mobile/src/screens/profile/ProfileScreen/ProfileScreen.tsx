@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, ImageBackground, Switch } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Image, ScrollView, ImageBackground, Switch, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { styles } from './ProfileScreen.styles';
@@ -28,7 +28,22 @@ export default function ProfileScreen({
   const userId = useCurrentUserId();
   const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
 
-  const { data: profileData } = useQuery({
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmerAnim, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [shimmerAnim]);
+
+  const shimmerOpacity = shimmerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] });
+
+  const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: queryKeys.profile(userId ?? ''),
     queryFn: async () => {
       if (!userId) return null;
@@ -66,101 +81,118 @@ export default function ProfileScreen({
 
   return (
     <View style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 30 }]}>
-          <ImageBackground
-            source={require('../assets/profile-header-top.webp')}
-            style={styles.headerBackgroundTop}
-          />
-          <ImageBackground
-            source={require('../assets/profile-header-bottom.webp')}
-            style={styles.headerBackgroundBottom}
-            resizeMode="stretch"
-          />
-
-          <View style={styles.avatarContainer}>
-            {avatarUrl ? (
-              <Image
-                source={{ uri: avatarUrl }}
-                style={styles.avatar}
-                resizeMode="cover"
-                onError={(e) => console.log('[ProfileScreen] image error:', e.nativeEvent.error)}
-                onLoad={() => console.log('[ProfileScreen] image loaded ok')}
-              />
-            ) : (
-              <Image source={require('@assets/default-avatar.png')} style={styles.avatar} />
-            )}
-          </View>
-          <Text style={styles.userName}>{displayName}</Text>
-          <Text style={styles.userEmail}>{email}</Text>
+      {/* Header fijo */}
+      <View style={[styles.header, { paddingTop: insets.top + 30 }]}>
+        <ImageBackground
+          source={require('../assets/profile-header-top.webp')}
+          style={styles.headerBackgroundTop}
+        />
+        <ImageBackground
+          source={require('../assets/profile-header-bottom.webp')}
+          style={styles.headerBackgroundBottom}
+          resizeMode="stretch"
+        />
+        <View style={styles.avatarContainer}>
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.avatar}
+              resizeMode="cover"
+              onError={(e) => console.log('[ProfileScreen] image error:', e.nativeEvent.error)}
+              onLoad={() => console.log('[ProfileScreen] image loaded ok')}
+            />
+          ) : (
+            <Image source={require('@assets/default-avatar.png')} style={styles.avatar} />
+          )}
         </View>
-        {/* Secciones */}
-        <View style={styles.sections}>
-          <ImageBackground
-            source={require('../assets/profile-section-bg.webp')}
-            style={styles.sectionsBackground}
-            resizeMode="stretch"
-          />
+        {profileLoading ? (
+          <>
+            <Animated.View style={[styles.skeletonName, { opacity: shimmerOpacity }]} />
+            <Animated.View style={[styles.skeletonEmail, { opacity: shimmerOpacity }]} />
+          </>
+        ) : (
+          <>
+            <Text style={styles.userName}>{displayName}</Text>
+            <Text style={styles.userEmail}>{email}</Text>
+          </>
+        )}
+      </View>
 
-          {/* Cuenta */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Cuenta</Text>
-            <View style={styles.sectionCard}>
-              <SectionButton
-                label="Mi perfil"
-                icon="user"
-                onPress={() => router.push('/(app)/(profile)/edit-profile')}
-              />
-              <SectionButton
-                label="Cambiar contraseña"
-                icon="lock"
-                onPress={() => router.push('/(app)/(profile)/reset-password')}
-              />
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 }}>
-                <Text style={{ fontSize: 16 }}>Notificaciones</Text>
+      {/* Secciones scrolleables */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.sections, { paddingBottom: insets.bottom + 40 }]}
+      >
+        <ImageBackground
+          source={require('../assets/profile-section-bg.webp')}
+          style={styles.sectionsBackground}
+          resizeMode="stretch"
+        />
+
+        {/* Cuenta */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Cuenta</Text>
+          <View style={styles.sectionCard}>
+            <SectionButton
+              label="Mi perfil"
+              icon="user"
+              onPress={() => router.push('/(app)/(profile)/edit-profile')}
+            />
+            <SectionButton
+              label="Cambiar contraseña"
+              icon="lock"
+              onPress={() => router.push('/(app)/(profile)/reset-password')}
+            />
+            <SectionButton
+              label="Notificaciones"
+              icon="bell"
+              onPress={() => toggleNotifications(!notificationsEnabled)}
+              rightElement={
                 <Switch
                   value={notificationsEnabled}
                   onValueChange={toggleNotifications}
+                  style={{ marginLeft: 'auto' }}
+                  trackColor={{ false: '#E0D9D4', true: '#C06E52' }}
+                  thumbColor="#FFFCFB"
                 />
-              </View>
-            </View>
+              }
+            />
           </View>
+        </View>
 
-          {/* Sesión */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Sesión</Text>
-            <View style={styles.sectionCard}>
-              <SectionButton
-                label="Cerrar sesión"
-                icon="logOut"
-                onPress={() =>
-                  router.push({
-                    pathname: '/(app)/(profile)/confirm-modal',
-                    params: {
-                      title: '¿Quieres cerrar sesión?',
-                      subtitle: '¿Estás seguro de querer cerrar tu sesión activa?',
-                      confirmLabel: 'Cerrar sesión',
-                      action: 'signOut',
-                    },
-                  })
-                }
-              />
-            </View>
-          </View>
-
-          {/* Eliminar cuenta */}
+        {/* Sesión */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Sesión</Text>
           <View style={styles.sectionCard}>
             <SectionButton
-              label="Eliminar cuenta"
-              icon="warning"
+              label="Cerrar sesión"
+              icon="logOut"
               onPress={() =>
                 router.push({
-                  pathname: '/(app)/(profile)/delete-account',
+                  pathname: '/(app)/(profile)/confirm-modal',
+                  params: {
+                    title: '¿Quieres cerrar sesión?',
+                    subtitle: '¿Estás seguro de querer cerrar tu sesión activa?',
+                    confirmLabel: 'Cerrar sesión',
+                    action: 'signOut',
+                  },
                 })
               }
             />
           </View>
+        </View>
+
+        {/* Eliminar cuenta */}
+        <View style={styles.sectionCard}>
+          <SectionButton
+            label="Eliminar cuenta"
+            icon="warning"
+            onPress={() =>
+              router.push({
+                pathname: '/(app)/(profile)/delete-account',
+              })
+            }
+          />
         </View>
       </ScrollView>
     </View>
