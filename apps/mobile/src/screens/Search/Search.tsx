@@ -102,11 +102,6 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
     );
   };
 
-  const skeletonData = React.useMemo(
-    () => (loading && activeData.length === 0 ? [1, 2, 3] : []),
-    [loading, activeData.length],
-  );
-
   const renderSkeleton = () => <SkeletonContentCard />;
 
   const renderItem = ({ item }: { item: SearchResult }) => (
@@ -212,12 +207,19 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       )}
 
        <FlatList
-        data={activeData.length > 0 ? activeData : skeletonData}
-        keyExtractor={(item, index) => (activeData.length > 0 ? item.id : `skeleton-${index}`)}
-        renderItem={activeData.length > 0 ? renderItem : renderSkeleton}
+        data={activeData}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
         ListEmptyComponent={!loading ? renderEmpty() : null}
+        ListHeaderComponent={loading && activeData.length === 0 ? (
+          <>
+            <SkeletonContentCard />
+            <SkeletonContentCard />
+            <SkeletonContentCard />
+          </>
+        ) : null}
         contentContainerStyle={[
-          activeData.length === 0 && skeletonData.length === 0 && !loading
+          activeData.length === 0 && !loading
             ? styles.listEmptyContent
             : styles.listContent,
           { paddingBottom: navBarHeight + 20 },
