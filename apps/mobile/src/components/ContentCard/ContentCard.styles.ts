@@ -108,26 +108,26 @@ export const styles = StyleSheet.create({
   // Sección expandida
   expandedSection: {
     paddingHorizontal: 26,
-    paddingBottom: 16,
-    gap: 8,
+    paddingBottom: 24,
+    paddingTop: 4,
+    gap: 16,
   },
 
   // Meta info
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
     gap: 6,
   },
   metaLabel: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     letterSpacing: -0.12,
   },
   metaValue: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     letterSpacing: -0.12,
   },
@@ -145,7 +145,7 @@ export const styles = StyleSheet.create({
   },
   copyUrlText: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     textDecorationLine: 'underline',
   },
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
   },
   readToggleText: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.salmon,
     textDecorationLine: 'underline',
   },
@@ -199,5 +199,15 @@ export const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Regular',
     fontSize: 12,
     color: colors.brownMid,
+  },
+  detailLink: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  detailLinkText: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 14,
+    color: colors.brownMid,
+    textDecorationLine: 'underline',
   },
 });

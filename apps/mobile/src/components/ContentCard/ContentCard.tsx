@@ -198,7 +198,11 @@ export function ContentCard({
             </TouchableOpacity>
           </View>
           <Button label="Abrir enlace original" onPress={handleOpenUrl} />
-          {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
+          {onOpenDetail ? (
+            <TouchableOpacity onPress={() => onOpenDetail(id)} activeOpacity={0.7} style={styles.detailLink}>
+              <Text style={styles.detailLinkText}>Ver detalles</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </Animated.View>
     </TouchableOpacity>
