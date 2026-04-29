@@ -14,8 +14,8 @@ function SkeletonBox({
   color?: string;
   opacityRange?: { min: number; max: number };
 }) {
-  const min = opacityRange?.min ?? 0.2;
-  const max = opacityRange?.max ?? 0.4;
+  const min = opacityRange?.min ?? 0.15;
+  const max = opacityRange?.max ?? 0.35;
   const opacity = React.useRef(new Animated.Value(min)).current;
 
   React.useEffect(() => {

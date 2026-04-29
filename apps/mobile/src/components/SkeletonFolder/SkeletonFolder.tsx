@@ -18,7 +18,7 @@ export function SkeletonFolder() {
 
   const opacity = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
+    outputRange: [0.2, 0.5],
   });
 
   return (
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+    width: '100%',
   },
   icon: {
     width: 50,

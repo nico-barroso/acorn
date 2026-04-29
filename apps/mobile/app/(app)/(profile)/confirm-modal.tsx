@@ -48,7 +48,7 @@ export default function ConfirmModalRoute() {
       await supabase.auth.signOut();
       router.back();
     } else if (action === 'deleteAccount') {
-      await supabase.auth.signOut();
+      // signOut is deferred to onSuccessDismiss so the success modal can be shown first
     }
   };
 

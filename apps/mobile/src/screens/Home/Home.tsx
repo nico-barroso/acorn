@@ -282,7 +282,7 @@ export default function HomeScreen({
   const renderEmpty = () => {
     if (loadingInitial && resources.length === 0) {
       return (
-        <View style={styles.emptyState}>
+        <View style={{ gap: 12 }}>
           <ContentCardSkeleton />
           <ContentCardSkeleton />
         </View>
