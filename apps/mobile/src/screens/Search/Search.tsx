@@ -6,12 +6,17 @@ import { QuickFilters } from './components/QuickFilters/QuickFilters';
 import { styles } from './Search.styles';
 import { useSearch } from './hooks/useSearch';
 import type { SearchResult, SearchScreenProps } from './types';
+
+export interface SearchScreenExtendedProps extends SearchScreenProps {
+  navBarHeight?: number;
+}
 import { Input as SearchInput } from '../../components/Input/Input';
 import SearchIcon from '../../../assets/icons/search-icon.svg';
 import { colors } from '../../theme/colors';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { SkeletonContentCard } from '../../components/SkeletonContentCard/SkeletonContentCard';
 
-export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
+export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchScreenExtendedProps) {
   const {
     query,
     setQuery,
@@ -21,6 +26,7 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
     error,
     filteredResults,
     results,
+    totalCount,
     domainOptions,
     allUserTags,
     selectedDomain,
@@ -43,29 +49,42 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
 
   const handleQuickFilter = (id: string) => {
     if (id === 'all') {
+      // Si ya estamos en 'all', no hacemos nada (o limpiamos todo)
       setSelectedRead('all');
       setSelectedDate('all');
     } else if (id === 'unread') {
-      setSelectedRead('unread');
-      setSelectedDate('all');
+      // Toggle: si ya está activo, volver a 'all'; si no, activar 'unread'
+      if (activeQuickFilter === 'unread') {
+        setSelectedRead('all');
+        setSelectedDate('all');
+      } else {
+        setSelectedRead('unread');
+        setSelectedDate('all');
+      }
     } else if (id === 'new') {
-      setSelectedRead('all');
-      setSelectedDate('7d');
+      // Toggle: si ya está activo, volver a 'all'; si no, activar 'new'
+      if (activeQuickFilter === 'new') {
+        setSelectedRead('all');
+        setSelectedDate('all');
+      } else {
+        setSelectedRead('all');
+        setSelectedDate('7d');
+      }
     }
   };
 
-  const activeQuickFilter =
-    hasActiveFilters ? null : selectedRead === 'unread' ? 'unread' : selectedDate === '7d' ? 'new' : 'all';
+  const activeQuickFilter = React.useMemo(() => {
+    if (selectedRead === 'unread' && selectedDate === 'all') return 'unread';
+    if (selectedRead === 'all' && selectedDate === '7d') return 'new';
+    if (selectedRead === 'all' && selectedDate === 'all' && !selectedDomain && !selectedTag) return 'all';
+    return null;
+  }, [selectedRead, selectedDate, selectedDomain, selectedTag]);
+
+  // Solo filtros manuales (panel), no quick filters
+  const hasManualFilters = selectedDomain !== null || selectedTag !== null || tagFromQuery !== null ||
+    !(selectedRead === 'all' && selectedDate === 'all') && !activeQuickFilter;
 
   const renderEmpty = () => {
-    if (loading)
-      return (
-        <View style={styles.emptyState}>
-          <ActivityIndicator />
-          <Text style={styles.emptyTitle}>Buscando...</Text>
-        </View>
-      );
-
     return (
       <View style={styles.emptyState}>
         <Text style={styles.emptyTitle}>Aquí no hay nada ... {'\n'}todavía</Text>
@@ -83,6 +102,13 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
       </View>
     );
   };
+
+  const skeletonData = React.useMemo(
+    () => (loading && activeData.length === 0 ? [1, 2, 3] : []),
+    [loading, activeData.length],
+  );
+
+  const renderSkeleton = () => <SkeletonContentCard />;
 
   const renderItem = ({ item }: { item: SearchResult }) => (
     <ContentCard
@@ -134,10 +160,10 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
         />
       </View>
 
-      <View style={{ marginTop: 16 }}>
+       <View style={{ marginTop: 16 }}>
         <QuickFilters
           activeQuickFilter={activeQuickFilter}
-          hasActiveFilters={hasActiveFilters}
+          hasActiveFilters={hasManualFilters}
           showFilterPanel={showFilterPanel}
           onQuickFilter={handleQuickFilter}
           onToggleFilterPanel={() => setShowFilterPanel((v) => !v)}
@@ -147,10 +173,13 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
       <View style={styles.inner}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.resultsCounter}>
-          {activeData.length == 1
-            ? `${activeData.length} resultado`
-            : `${activeData.length} resultados`}
-          {hasActiveFilters ? ` · Hay filtros activos` : ''}
+          {hasActiveFilters
+            ? filteredResults.length === 1
+              ? `${filteredResults.length} resultado`
+              : `${filteredResults.length} resultados`
+            : totalCount == 1
+              ? `${totalCount} resultado`
+              : `${totalCount} resultados`}
         </Text>
       </View>
       {tagFromQuery && (
@@ -183,14 +212,17 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
         </View>
       )}
 
-      <FlatList
-        data={activeData}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ListEmptyComponent={renderEmpty}
-        contentContainerStyle={
-          activeData.length === 0 ? styles.listEmptyContent : styles.listContent
-        }
+       <FlatList
+        data={activeData.length > 0 ? activeData : skeletonData}
+        keyExtractor={(item, index) => (activeData.length > 0 ? item.id : `skeleton-${index}`)}
+        renderItem={activeData.length > 0 ? renderItem : renderSkeleton}
+        ListEmptyComponent={!loading ? renderEmpty() : null}
+        contentContainerStyle={[
+          activeData.length === 0 && skeletonData.length === 0 && !loading
+            ? styles.listEmptyContent
+            : styles.listContent,
+          { paddingBottom: navBarHeight + 20 },
+        ]}
         onEndReached={loadMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={

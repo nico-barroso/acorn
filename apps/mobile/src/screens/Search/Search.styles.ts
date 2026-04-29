@@ -99,4 +99,9 @@ export const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Bold',
     color: colors.salmon,
   },
+  skeletonContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    gap: 12,
+  },
 });
