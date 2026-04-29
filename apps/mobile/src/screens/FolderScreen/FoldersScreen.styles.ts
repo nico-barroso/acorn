@@ -1,50 +1,43 @@
 import { StyleSheet } from 'react-native';
 import { colors } from '../../theme/colors';
+import { fonts } from '../../theme/fonts';
 
 export const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'transparent',
+  panel: {
+    flex:1,
+    backgroundColor: '#F3CCBE',
+    paddingTop: 70,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 32,
-  },
-
-  // ── Gradiente ──
-  topGradient: {
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-    zIndex: 0,
-  },
-  // ── Hero ──
-  heroContainer: {
-    paddingBottom: 10,
-    paddingHorizontal: 25,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+  inner: {
+    paddingHorizontal: 20,
+    gap: 20,
     zIndex: 1,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   heroTitle: {
     fontFamily: 'CabinetGrotesk-Bold',
-    fontSize: 30,
+    fontSize: fonts.size.xxl,
     color: colors.brown,
-    lineHeight: 31,
     fontWeight: '700',
-    paddingTop: 20,
   },
   newFolderLink: {
-    paddingTop: 20,
     fontFamily: 'Satoshi-Regular',
     fontSize: 16,
     color: colors.brown,
     textDecorationLine: 'underline',
     letterSpacing: 0.32,
-    marginTop: 4,
   },
-  // ── SVG pestaña ──
+  topGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 0,
+  },
   decorationShadowWrapper: {
     marginLeft: 0,
     marginRight: 0,
@@ -55,20 +48,23 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
-  // ── Contenedor carpetas ──
   cardWrapper: {
-    top: -90,
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#F3CCBE',
-    borderRadius: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 36,
     shadowColor: colors.salmon,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 8,
+    marginTop: -40,
   },
-  // ── Lista ──
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 100,
+  },
   sectionTitle: {
     fontFamily: 'CabinetGrotesk-Medium',
     fontSize: 20,
@@ -84,7 +80,6 @@ export const styles = StyleSheet.create({
     color: '#8b2a1b',
     marginBottom: 10,
   },
-  // ── Empty ──
   emptyState: {
     flex: 1,
     alignItems: 'center',

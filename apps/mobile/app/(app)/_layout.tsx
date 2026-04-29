@@ -34,7 +34,7 @@ export default function AppLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="search" />
-        <Stack.Screen name="folders" />
+        <Stack.Screen name="folders" options={{ contentStyle: { backgroundColor: '#F3CCBE' } }} />
         <Stack.Screen name="(profile)" />
       </Stack>
       {!modalActive && (

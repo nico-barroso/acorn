@@ -1,6 +1,5 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  ActivityIndicator,
   Image,
   RefreshControl,
   ScrollView,
@@ -13,7 +12,8 @@ import { styles } from './FoldersScreen.styles';
 import { FolderCard } from './components/FolderCard/FolderCard';
 import { NewFolderModal } from './components/NewFolderModal/NewFolderModal';
 import { EditFolderModal } from './components/EditFolderModal/EditFolderModal';
-import { colors } from '../../theme/colors';
+import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { SkeletonFolder } from '@components/SkeletonFolder/SkeletonFolder';
 import type { FolderData } from './FoldersScreen.types';
 import FolderDecoration from '@assets/svg/folder-decoration.svg';
 
@@ -56,14 +56,18 @@ export function FoldersScreen({
 }: FoldersScreenProps) {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
+  const { height: navBarHeight } = useNavBarHeight();
 
   const renderContent = () => {
-    if (loading) {
+    if (loading && !deletingFolderId) {
       return (
-        <View style={styles.emptyState}>
-          <ActivityIndicator color={colors.salmon} />
-          <Text style={styles.emptyTitle}>Cargando carpetas...</Text>
-        </View>
+        <>
+          <SkeletonFolder />
+          <View style={styles.separator} />
+          <SkeletonFolder />
+          <View style={styles.separator} />
+          <SkeletonFolder />
+        </>
       );
     }
 
@@ -78,51 +82,52 @@ export function FoldersScreen({
       );
     }
 
-    return (
-      <>
-        <View style={[styles.decorationShadowWrapper, { marginHorizontal: -25 }]}>
-          <FolderDecoration width={screenWidth} height={screenWidth * (193 / 375)} />
-        </View>
-        <View style={styles.cardWrapper}>
-          <Text style={styles.sectionTitle}>Mis carpetas</Text>
-          {folders.map((item, index) => (
-            <View key={item.id}>
-              <FolderCard
-                {...item}
-                isDeleting={deletingFolderId === item.id}
-                onPress={() => onFolderPress(item.id)}
-                onRename={() => onEditFolder(item.id)}
-                onDelete={() => onDeleteFolder(item.id)}
-              />
-              {index < folders.length - 1 && <View style={styles.separator} />}
-            </View>
-          ))}
-        </View>
-      </>
-    );
+    return folders.map((item, index) => (
+      <View key={item.id}>
+        <FolderCard
+          {...item}
+          isDeleting={deletingFolderId === item.id}
+          onPress={() => onFolderPress(item.id)}
+          onRename={() => onEditFolder(item.id)}
+          onDelete={() => onDeleteFolder(item.id)}
+        />
+        {index < folders.length - 1 && <View style={styles.separator} />}
+      </View>
+    ));
   };
 
-  return (
-    <View style={styles.safeArea}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        <Image
-          source={require('@assets/search-top-drop-gradient.webp')}
-          style={[styles.topGradient, { height: 220 + insets.top }]}
-          resizeMode="stretch"
-        />
-        <View style={[styles.heroContainer, { paddingTop: insets.top + 16 }]}>
+    return (
+    <View style={styles.panel}>
+      <Image
+        source={require('@assets/search-top-drop-gradient.webp')}
+        style={[styles.topGradient, { top: -insets.top, height: 300 + insets.top }]}
+        resizeMode="cover"
+      />
+      <View style={styles.inner}>
+        <View style={styles.headerRow}>
           <Text style={styles.heroTitle}>{'Orden\nsin esfuerzo'}</Text>
           <TouchableOpacity onPress={onNewFolder} activeOpacity={0.7}>
             <Text style={styles.newFolderLink}>+ Nueva carpeta</Text>
           </TouchableOpacity>
         </View>
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        {renderContent()}
-      </ScrollView>
+      </View>
+
+      <View style={styles.decorationShadowWrapper}>
+        <FolderDecoration width={screenWidth} height={screenWidth * (193 / 375)} />
+      </View>
+
+      <View style={styles.cardWrapper}>
+        <Text style={styles.sectionTitle}>Mis carpetas</Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: navBarHeight + 32 }]}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {renderContent()}
+        </ScrollView>
+      </View>
+
       <NewFolderModal visible={builderOpen} onClose={onBuilderClose} onCreated={onBuilderCreated} />
       <EditFolderModal
         visible={editingFolder !== null}
