@@ -84,6 +84,13 @@ export const styles = StyleSheet.create({
     opacity: 0.8,
     fontWeight: '400',
   },
+  greetingSkeleton: {
+    height: 18,
+    width: 140,
+    borderRadius: 6,
+    backgroundColor: colors.brown,
+    marginBottom: 8,
+  },
   greetingTitle: {
     fontFamily: 'CabinetGrotesk-Bold',
     fontSize: 35,

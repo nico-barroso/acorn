@@ -33,6 +33,31 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
   // Aquí puedes navegar según los datos de la notificación
 }
 
+async function syncProfileDisplayName(user: Session['user']) {
+  const metadataName =
+    typeof user.user_metadata?.display_name === 'string'
+      ? user.user_metadata.display_name.trim()
+      : '';
+  if (!metadataName) return;
+
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (existing?.display_name && existing.display_name.trim().length > 0) return;
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ display_name: metadataName })
+    .eq('id', user.id);
+
+  if (error) {
+    console.warn('[AuthGate] syncProfileDisplayName error:', error);
+  }
+}
+
 function AuthGate() {
   const router = useRouter();
   const segments = useSegments();
@@ -64,6 +89,10 @@ function AuthGate() {
 
       if (event === 'SIGNED_OUT') {
         queryClient.clear();
+      }
+
+      if (event === 'SIGNED_IN' && nextSession?.user) {
+        void syncProfileDisplayName(nextSession.user);
       }
 
       setSession(nextSession);

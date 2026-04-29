@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 
 type FormErrors = {
   email?: string;
+  displayName?: string;
   password?: string;
   confirmPassword?: string;
   general?: string;
@@ -27,6 +28,7 @@ function getRegisterErrorMessage(message: string) {
 
 export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
   const [email, setEmail] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
@@ -36,11 +38,18 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
   function validate(): boolean {
     const newErrors: FormErrors = {};
     const normalizedEmail = email.trim();
+    const normalizedDisplayName = displayName.trim();
 
     if (!normalizedEmail) {
       newErrors.email = 'El email es obligatorio';
     } else if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
       newErrors.email = 'El email no es valido';
+    }
+
+    if (!normalizedDisplayName) {
+      newErrors.displayName = 'El nombre de usuario es obligatorio';
+    } else if (normalizedDisplayName.length < 2) {
+      newErrors.displayName = 'El nombre de usuario debe tener al menos 2 caracteres';
     }
 
     if (!password) {
@@ -66,23 +75,41 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
     setErrors({});
     setRegistered(false);
 
+    const trimmedDisplayName = displayName.trim();
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      options: {
+        data: { display_name: trimmedDisplayName },
+      },
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       setErrors({ general: getRegisterErrorMessage(error.message) });
       return;
     }
 
     if (data.session) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ display_name: trimmedDisplayName })
+        .eq('id', data.session.user.id);
+
+      setLoading(false);
+
+      if (profileError) {
+        console.warn('[useRegister] profiles update error:', profileError);
+        setErrors({ general: 'Cuenta creada pero no se pudo guardar el nombre.' });
+        return;
+      }
+
       onSuccess?.();
       return;
     }
 
+    setLoading(false);
     setRegistered(true);
     setPassword('');
     setConfirmPassword('');
@@ -91,6 +118,8 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
   return {
     email,
     setEmail,
+    displayName,
+    setDisplayName,
     password,
     setPassword,
     confirmPassword,

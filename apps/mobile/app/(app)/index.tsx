@@ -12,6 +12,7 @@ function sanitizeDisplayName(name: string): string {
 export default function HomeRoute() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState<string>('Usuario');
+  const [isUserNameLoading, setIsUserNameLoading] = useState<boolean>(true);
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,17 +22,29 @@ export default function HomeRoute() {
       const { data } = await supabase?.auth.getUser() ?? { data: { user: null } };
       if (!mounted) return;
       const userId = data.user?.id;
-      if (!userId) return;
+      if (!userId) {
+        setIsUserNameLoading(false);
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('display_name')
         .eq('id', userId)
         .single();
-        
+
       if (!mounted) return;
-      const raw = profile?.display_name ?? data.user?.email ?? 'Usuario';
+      const metadataName =
+        typeof data.user?.user_metadata?.display_name === 'string'
+          ? data.user.user_metadata.display_name.trim()
+          : '';
+      const raw =
+        profile?.display_name?.trim() ||
+        metadataName ||
+        data.user?.email ||
+        'Usuario';
       setDisplayName(sanitizeDisplayName(raw));
+      setIsUserNameLoading(false);
     };
 
     void fetchProfile();
@@ -44,6 +57,7 @@ export default function HomeRoute() {
   return (
     <HomeScreen
       userName={displayName}
+      isUserNameLoading={isUserNameLoading}
       sharedUrl={sharedUrl}
       onSharedUrlHandled={() => setSharedUrl(null)}
       onSearchPress={() => router.push('/(app)/search')}

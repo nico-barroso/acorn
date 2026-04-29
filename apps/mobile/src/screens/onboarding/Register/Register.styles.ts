@@ -12,11 +12,16 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 60,
+    paddingBottom: 40,
     width: '100%',
     gap: 25,
+  },
+
+  submitWrapper: {
+    marginTop: 15,
   },
 
   infoText: {
