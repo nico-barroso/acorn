@@ -1,23 +1,18 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
   Image,
   ImageSourcePropType,
-  LayoutAnimation,
   Linking,
-  Platform,
   Text,
   TouchableOpacity,
-  UIManager,
   View,
 } from 'react-native';
 import { supabase } from '../../../lib/supabase';
 import { styles } from './ContentCard.styles';
 import { Button } from '../Button/Button';
 import { Tag } from '../Tag/Tag';
-
-if (Platform.OS === 'android') {
-  UIManager.setLayoutAnimationEnabledExperimental?.(true);
-}
 
 type TagItem = { name: string; color_hex: string | null };
 
@@ -32,6 +27,7 @@ export interface ContentCardProps {
   thumbnailUri?: string;
   faviconUri?: string;
   iconSource?: ImageSourcePropType;
+  isFile?: boolean;
   onOpenDetail?: (id: string) => void;
   onToggleRead?: (id: string, nextRead: boolean) => void;
   onTagsPress?: (id: string) => void;
@@ -48,21 +44,34 @@ export function ContentCard({
   thumbnailUri,
   faviconUri,
   iconSource,
+  isFile = false,
   onOpenDetail,
   onToggleRead,
   onTagsPress,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+  const animHeight = useRef(new Animated.Value(0)).current;
   const isRead = status === 'Visto';
 
-  const handleToggleExpanded = () => {
-    LayoutAnimation.configureNext({
-      duration: 280,
-      create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-      update: { type: LayoutAnimation.Types.easeInEaseOut },
-      delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-    });
-    setExpanded(prev => !prev);
+  const toggle = () => {
+    const toExpand = !expanded;
+    setExpanded(toExpand);
+    if (toExpand) {
+      Animated.spring(animHeight, {
+        toValue: contentHeight,
+        speed: 14,
+        bounciness: 2,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      Animated.timing(animHeight, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: false,
+      }).start();
+    }
   };
 
   const handleCopyUrl = () => {
@@ -94,7 +103,7 @@ export function ContentCard({
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.9}
-      onPress={handleToggleExpanded}
+      onPress={toggle}
       onLongPress={() => onOpenDetail?.(id)}
     >
       <View style={styles.row}>
@@ -110,7 +119,7 @@ export function ContentCard({
         <View style={styles.textLayout}>
           <Text style={styles.title} numberOfLines={expanded ? undefined : 2}>{title}</Text>
           <View style={styles.sourceRow}>
-            {faviconUri ? <Image source={{ uri: faviconUri }} style={styles.favicon} /> : null}
+            <Text style={styles.sourceEmoji}>{isFile ? '📄' : '🔗'}</Text>
             <Text style={styles.source}>{source}</Text>
           </View>
           {tags.length > 0 && (
@@ -122,8 +131,17 @@ export function ContentCard({
         <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
       </View>
 
-      {expanded && (
-        <View style={styles.expandedSection}>
+      <Animated.View style={{ height: animHeight, overflow: 'hidden' }}>
+        <View
+          style={styles.expandedSection}
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0 && h !== contentHeight) {
+              setContentHeight(h);
+              if (expanded) animHeight.setValue(h);
+            }
+          }}
+        >
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Estado:</Text>
             <View style={styles.statusBadge}>
@@ -153,7 +171,7 @@ export function ContentCard({
           <Button label="Abrir enlace original" onPress={handleOpenUrl} />
           {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
         </View>
-      )}
+      </Animated.View>
     </TouchableOpacity>
   );
 }

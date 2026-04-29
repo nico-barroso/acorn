@@ -81,10 +81,8 @@ export const styles = StyleSheet.create({
     gap: 5,
     marginTop: 4,
   },
-  favicon: {
-    width: 14,
-    height: 14,
-    borderRadius: 3,
+  sourceEmoji: {
+    fontSize: 11,
   },
   source: {
     fontFamily: 'Satoshi-Regular',
