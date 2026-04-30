@@ -1,31 +1,34 @@
 # Acorn
 
-## Política de merges / Merge Policy
+Acorn is a personal content library — save links and files, tag them, organize them into smart folders, and find them later.
 
-### ¿Se pueden hacer merges automáticos?
+The project is split into two independent apps that share the same Supabase backend:
 
-Sí, el proyecto soporta **merges automáticos** mediante el label `auto-merge`.
+| App | Stack | Path |
+|-----|-------|------|
+| Mobile | Expo / React Native | `apps/mobile` |
+| Web | Next.js 15 | `apps/web` |
 
-#### Cómo funciona
+Each app has its own `package.json` and `node_modules`. There is no monorepo tooling — install and run each app independently from its own directory.
 
-1. **CI obligatorio**: Todo pull request debe pasar los checks de CI (lint y build) definidos en `.github/workflows/ci.yml` antes de poder ser mergeado.
-2. **Revisión requerida**: Por defecto, se requiere la aprobación de al menos un code owner (definido en `.github/CODEOWNERS`) antes de que el merge pueda completarse.
-3. **Auto-merge**: Si un PR tiene el label `auto-merge`, el workflow `.github/workflows/auto-merge.yml` habilitará el auto-merge automáticamente. Cuando todos los checks pasen y se cumplan los requisitos de aprobación, GitHub mergeará el PR de forma automática usando squash.
+## Backend
 
-#### Flujo recomendado
+Both apps connect to the same [Supabase](https://supabase.com) project. The schema and migrations live in `supabase/migrations/`. Edge Functions (metadata extraction, link saving) live in `supabase/functions/`.
 
-```
-1. Abrir un PR hacia `main`
-2. El CI corre automáticamente (lint + build)
-3. Solicitar revisión (o esperar que CODEOWNERS sea notificado)
-4. Agregar el label `auto-merge` si se desea que el PR se mergee solo al cumplir los requisitos
-5. Una vez aprobado y con todos los checks verdes → merge automático
-```
+## Apps
 
-> **Sin el label `auto-merge`**: el PR requiere que alguien lo mergee manualmente después de la aprobación.
+See [`apps/README.md`](apps/README.md) for per-app setup and run instructions.
 
 ---
 
-### Does the project support automatic merges?
+## Merge policy
 
-Yes. Add the `auto-merge` label to a pull request and GitHub will merge it automatically (squash) once all required CI checks pass and the required review approvals are satisfied.
+### Automatic merges
+
+The project supports automatic merges via the `auto-merge` label.
+
+1. **Required CI**: every PR must pass the CI checks (lint + build) defined in `.github/workflows/ci.yml`.
+2. **Required review**: at least one approval from a code owner (`.github/CODEOWNERS`) is required before the merge can complete.
+3. **Auto-merge**: adding the `auto-merge` label triggers `.github/workflows/auto-merge.yml`, which enables squash auto-merge once all checks and approvals are satisfied.
+
+> Without the `auto-merge` label the PR must be merged manually after approval.
