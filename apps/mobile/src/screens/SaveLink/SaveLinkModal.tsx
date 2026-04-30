@@ -3,7 +3,6 @@ import {
   Animated,
   Dimensions,
   Image,
-  ImageBackground,
   Keyboard,
   ScrollView,
   Text,
@@ -16,6 +15,7 @@ import { useNavBarHeight } from '@context/NavBarHeightContext';
 import { supabase } from '@lib/supabase';
 import { useSaveFileFlow } from '../../../hooks/useSaveFileFlow';
 import { styles } from './SaveLinkModal.styles';
+import FileIcon from '../../../assets/icons/file-icon.svg';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -133,6 +133,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
 
   // File state
   const { pickedFile, loading: fileLoading, progress, error: fileError, pickFile, confirmUpload, resetFlow } = useSaveFileFlow();
+  const [editedFileName, setEditedFileName] = useState('');
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
@@ -178,6 +179,10 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
     return () => { show.remove(); hide.remove(); };
   }, []);
 
+  useEffect(() => {
+    if (pickedFile) setEditedFileName(pickedFile.name);
+  }, [pickedFile]);
+
   const resetAll = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (fetchAbortRef.current) fetchAbortRef.current.abort();
@@ -190,6 +195,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
     setEditExpanded(false);
     setPreviewMeta(null);
     setPreviewLoading(false);
+    setEditedFileName('');
     resetFlow();
   };
 
@@ -244,7 +250,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
   };
 
   const handleSaveFile = async () => {
-    await confirmUpload();
+    await confirmUpload(editedFileName.trim() || undefined);
     onSaved();
     handleClose();
   };
@@ -261,17 +267,20 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
       <Animated.View
         style={[
           styles.sheet,
-          {
-            transform: [{ translateY }],
-            paddingBottom: keyboardHeight > 0 ? keyboardHeight + 16 : insets.bottom + navBarHeight + 16,
-          },
+          { transform: [{ translateY }] },
         ]}
       >
         <View style={styles.handleContainer}>
           <View style={styles.handle} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            paddingBottom: keyboardHeight > 0 ? keyboardHeight + 16 : insets.bottom + navBarHeight + 32,
+          }}
+        >
           <Text style={styles.title}>Guardar recurso</Text>
 
           {/* Toggle modo */}
@@ -318,45 +327,26 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
 
               {urlValid && (
                 <>
-                  <TouchableOpacity style={styles.previewCard} activeOpacity={0.9} disabled>
-                    {ogImage ? (
-                      <ImageBackground
-                        source={{ uri: ogImage }}
-                        style={styles.previewImageBg}
-                        imageStyle={styles.previewImageBgImage}
-                      >
-                        <View style={styles.previewImageOverlay} />
-                        <View style={styles.previewRow}>
-                          <View style={styles.previewTextLayout}>
-                            <Text style={[styles.previewTitle, styles.previewTitleOnImage]} numberOfLines={2}>
-                              {previewLoading && !previewTitle ? domain : previewTitle}
-                            </Text>
-                            <View style={styles.previewSourceRow}>
-                              {faviconUrl ? <Image source={{ uri: faviconUrl }} style={styles.previewFavicon} onError={() => {}} /> : null}
-                              <Text style={[styles.previewSource, styles.previewSourceOnImage]}>{domain}</Text>
-                            </View>
-                          </View>
-                        </View>
-                      </ImageBackground>
-                    ) : (
-                      <View style={styles.previewRow}>
-                        <View style={styles.previewThumbnail}>
-                          {faviconUrl && !previewLoading ? (
-                            <Image source={{ uri: faviconUrl }} style={styles.previewThumbnailIcon} onError={() => {}} />
-                          ) : null}
-                        </View>
-                        <View style={styles.previewTextLayout}>
-                          <Text style={styles.previewTitle} numberOfLines={2}>
-                            {previewLoading && !previewMeta ? domain : previewTitle}
-                          </Text>
-                          <View style={styles.previewSourceRow}>
-                            {faviconUrl && !previewLoading ? <Image source={{ uri: faviconUrl }} style={styles.previewFavicon} onError={() => {}} /> : null}
-                            <Text style={styles.previewSource}>{domain}</Text>
-                          </View>
+                  <View style={styles.previewCard}>
+                    <View style={styles.previewRow}>
+                      <View style={styles.previewThumbnail}>
+                        {ogImage ? (
+                          <Image source={{ uri: ogImage }} style={styles.previewThumbnailImage} resizeMode="cover" />
+                        ) : faviconUrl && !previewLoading ? (
+                          <Image source={{ uri: faviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => {}} />
+                        ) : null}
+                      </View>
+                      <View style={styles.previewTextLayout}>
+                        <Text style={styles.previewTitle} numberOfLines={2} ellipsizeMode="tail">
+                          {previewLoading && !previewMeta ? domain : previewTitle}
+                        </Text>
+                        <View style={styles.previewSourceRow}>
+                          <Text style={styles.previewSourceEmoji}>🔗</Text>
+                          <Text style={styles.previewSource}>{domain}</Text>
                         </View>
                       </View>
-                    )}
-                  </TouchableOpacity>
+                    </View>
+                  </View>
 
                   <TouchableOpacity
                     style={styles.editToggle}
@@ -425,10 +415,34 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
               </TouchableOpacity>
 
               {pickedFile && (
-                <View style={styles.filePreviewCard}>
-                  <Text style={styles.fileName} numberOfLines={2}>{pickedFile.name}</Text>
-                  <Text style={styles.fileMeta}>{pickedFile.type} · {formatBytes(pickedFile.size)}</Text>
-                </View>
+                <>
+                  <View style={styles.previewCard}>
+                    <View style={styles.previewRow}>
+                      <View style={styles.previewThumbnail}>
+                        <FileIcon width={62} height={62} />
+                      </View>
+                      <View style={styles.previewTextLayout}>
+                        <Text style={styles.previewTitle} numberOfLines={2} ellipsizeMode="tail">
+                          {editedFileName || pickedFile.name}
+                        </Text>
+                        <View style={styles.previewSourceRow}>
+                          <Text style={styles.previewSourceEmoji}>📄</Text>
+                          <Text style={styles.previewSource}>{formatBytes(pickedFile.size)}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  <Text style={styles.label}>Nombre</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editedFileName}
+                    onChangeText={setEditedFileName}
+                    placeholder="Nombre del archivo"
+                    placeholderTextColor="#8B8179"
+                    editable={!fileLoading}
+                  />
+                </>
               )}
 
               {fileError ? <Text style={styles.error}>{fileError}</Text> : null}

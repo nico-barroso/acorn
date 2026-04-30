@@ -4,6 +4,7 @@ import { supabase } from '../../../../lib/supabase';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { formatSavedDate } from '../../../lib/formatSavedDate';
 import type { DateFilterValue, ReadFilterValue, SearchResult, SearchRow } from '../types';
 
 const PAGE_SIZE = 10;
@@ -29,7 +30,7 @@ async function fetchSearchCount(userId: string, term: string): Promise<number> {
   return count ?? 0;
 }
 
-const FILE_ICON = require('../../../../assets/favicon.png');
+const FILE_ICON = require('../../../../assets/config/favicon.png');
 
 function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
@@ -41,11 +42,12 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
   const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
   return {
     id: row.id,
-    title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-    domain: isFile ? 'Archivo' : row.domain || 'Dominio no disponible',
+    title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
+    domain: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     snippet: row.description?.trim() || row.url || 'Sin descripcion',
     url: fileUrl,
     createdAt: row.created_at,
+    savedDate: formatSavedDate(row.created_at),
     isRead: Boolean(row.is_read),
     tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
@@ -75,7 +77,7 @@ async function fetchSearchPage(
 
   let queryBuilder = supabase
     .from('items_with_links')
-    .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url')
+    .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
@@ -89,14 +91,17 @@ async function fetchSearchPage(
 
   const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
     queryBuilder,
-    supabase.from('tags').select('name,color_hex').eq('user_id', userId),
+    supabase.from('tags').select('name,slug,color_hex').eq('user_id', userId),
   ]);
 
   if (fetchError) throw new Error('No se pudieron cargar los recursos.');
 
-  const tagColorMap = new Map(
-    ((tagRows ?? []) as { name: string; color_hex: string | null }[]).map((t) => [t.name, t.color_hex]),
-  );
+  const tagColorMap = new Map<string, string | null>();
+  ((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]).forEach((t) => {
+    tagColorMap.set(t.name, t.color_hex);
+    if (t.slug) tagColorMap.set(t.slug, t.color_hex);
+    tagColorMap.set(t.name.toLowerCase(), t.color_hex);
+  });
 
   return ((data ?? []) as SearchRow[]).map((row) => mapSearchResult(row, tagColorMap));
 }

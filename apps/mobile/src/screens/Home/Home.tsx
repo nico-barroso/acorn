@@ -31,6 +31,7 @@ import { useSession } from '@context/SessionContext';
 import { queryClient } from '../../lib/queryClient';
 import { queryKeys } from '../../lib/queryKeys';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
+import { formatSavedDate } from '../../lib/formatSavedDate';
 
 type ResourceRow = {
   id: string;
@@ -44,6 +45,7 @@ type ResourceRow = {
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
+  metadata: { og_title: string | null }[] | null;
 };
 
 type HomeScreenProps = {
@@ -57,25 +59,8 @@ type HomeScreenProps = {
 
 const PAGE_SIZE = 5;
 
-function formatSavedDate(isoDate: string) {
-  const created = new Date(isoDate).getTime();
-  const now = Date.now();
-  const diffMs = Math.max(now - created, 0);
-  const diffMinutes = Math.floor(diffMs / 60000);
 
-  if (diffMinutes < 1) return 'Hace unos segundos';
-  if (diffMinutes < 60) return `Hace ${diffMinutes} min`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `Hace ${diffHours} h`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `Hace ${diffDays} dias`;
-
-  return new Date(isoDate).toLocaleDateString();
-}
-
-const FILE_ICON = require('../../../assets/favicon.png');
+const FILE_ICON = require('../../../assets/config/favicon.png');
 
 function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
@@ -88,7 +73,7 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
 
   return {
     id: row.id,
-    title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+    title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
     source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
@@ -115,7 +100,7 @@ async function fetchItemsPage(
 ): Promise<ItemsPage> {
   let q = supabase
     .from('items_with_links')
-    .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags')
+    .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags,metadata(og_title)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(PAGE_SIZE);
@@ -155,18 +140,23 @@ export default function HomeScreen({
     queryFn: async () => {
       const { data } = await supabase
         .from('tags')
-        .select('name,color_hex')
+        .select('name,slug,color_hex')
         .eq('user_id', userId!);
-      return (data ?? []) as { name: string; color_hex: string | null }[];
+      return (data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
     },
     enabled: Boolean(userId),
     staleTime: 5 * 60 * 1000,
   });
 
-  const tagColorMap = React.useMemo(
-    () => new Map((tagData ?? []).map((t) => [t.name, t.color_hex])),
-    [tagData],
-  );
+  const tagColorMap = React.useMemo(() => {
+    const map = new Map<string, string | null>();
+    (tagData ?? []).forEach((t) => {
+      map.set(t.name, t.color_hex);
+      if (t.slug) map.set(t.slug, t.color_hex);
+      map.set(t.name.toLowerCase(), t.color_hex);
+    });
+    return map;
+  }, [tagData]);
 
   // Avatar query — shared cache with profile screen
   const { data: avatarUrl = null } = useQuery({
@@ -211,8 +201,15 @@ export default function HomeScreen({
   });
 
   const resources = React.useMemo(
-    () => data?.pages.flatMap((p) => p.items) ?? [],
-    [data],
+    () =>
+      (data?.pages.flatMap((p) => p.items) ?? []).map((item) => ({
+        ...item,
+        tags: item.tags.map((t) => ({
+          name: t.name,
+          color_hex: tagColorMap.get(t.name) ?? t.color_hex,
+        })),
+      })),
+    [data, tagColorMap],
   );
 
   const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';
@@ -268,8 +265,8 @@ export default function HomeScreen({
     }
   };
 
-  const featured = resources.length >= 2 ? resources[0] : null;
-  const listData = resources.length >= 2 ? resources.slice(1, 5) : resources.slice(0, 5);
+  const featured = resources.length >= 1 ? resources[0] : null;
+  const listData = resources.length >= 2 ? resources.slice(1, 5) : [];
   const hasMoreThanFive = resources.length > 5;
   const showOnboarding = !loadingInitial && resources.length <= 1;
 

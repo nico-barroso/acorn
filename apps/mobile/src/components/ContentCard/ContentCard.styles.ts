@@ -5,76 +5,13 @@ export const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(192, 110, 82, 0.2)',
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25, // ← esto faltaba
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
-  },
-
-  // Thumbnail derecho con degradado diagonal
-  thumbnailRight: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 190,
-    borderTopRightRadius: 15,
-    borderBottomRightRadius: 15,
-    overflow: 'hidden',
-  },
-  thumbnailRightImage: {
-    width: '100%',
-    height: '100%',
-  },
-  thumbnailRightGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  // Hero expandido
-  heroImageBg: {
-    minHeight: 160,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-  },
-  heroImageBgImage: {
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-  },
-  heroGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  heroContent: {
-    padding: 18,
-    paddingHorizontal: 20,
-    gap: 5,
-  },
-  heroTitle: {
-    fontFamily: 'CabinetGrotesk-Bold',
-    fontWeight: '700',
-    fontSize: 18,
-    color: colors.white,
-    lineHeight: 23,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(10,5,2,0.55)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    overflow: 'hidden',
-  },
-  heroSource: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: -0.1,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(10,5,2,0.45)',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    overflow: 'hidden',
   },
 
   // Fila principal
@@ -83,7 +20,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     paddingHorizontal: 20,
-    minHeight: 110,
+    minHeight: 125,
   },
 
   // Thumbnail
@@ -93,26 +30,19 @@ export const styles = StyleSheet.create({
     borderRadius: 13,
     overflow: 'hidden',
     marginRight: 12,
-    backgroundColor: colors.black,
+    backgroundColor: 'transparent',
     flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
   },
   thumbnailImage: {
     width: '100%',
     height: '100%',
   },
-  thumbnailPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.black,
-  },
-  filePlaceholderGradient: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filePlaceholderEmoji: {
-    fontSize: 40,
+  thumbnailIcon: {
+    width: 44,
+    height: 44,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -135,7 +65,7 @@ export const styles = StyleSheet.create({
   // Texto principal
   textLayout: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     minHeight: 60,
     gap: 2,
   },
@@ -152,10 +82,8 @@ export const styles = StyleSheet.create({
     gap: 5,
     marginTop: 4,
   },
-  favicon: {
-    width: 14,
-    height: 14,
-    borderRadius: 3,
+  sourceEmoji: {
+    fontSize: 11,
   },
   source: {
     fontFamily: 'Satoshi-Regular',
@@ -181,26 +109,26 @@ export const styles = StyleSheet.create({
   // Sección expandida
   expandedSection: {
     paddingHorizontal: 26,
-    paddingBottom: 16,
-    gap: 8,
+    paddingBottom: 24,
+    paddingTop: 4,
+    gap: 22,
   },
 
   // Meta info
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
     gap: 6,
   },
   metaLabel: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     letterSpacing: -0.12,
   },
   metaValue: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     letterSpacing: -0.12,
   },
@@ -218,7 +146,7 @@ export const styles = StyleSheet.create({
   },
   copyUrlText: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     textDecorationLine: 'underline',
   },
@@ -227,7 +155,7 @@ export const styles = StyleSheet.create({
   },
   readToggleText: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.salmon,
     textDecorationLine: 'underline',
   },
@@ -243,21 +171,24 @@ export const styles = StyleSheet.create({
   tagsSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   addTagButton: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.salmon,
+    borderWidth: 1.5,
+    borderColor: colors.salmon,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addTagIcon: {
-    color: colors.white,
+    color: colors.salmon,
     fontSize: 16,
     lineHeight: 20,
     fontFamily: 'Satoshi-Bold',
+    marginTop: -2,
   },
   tagsRow: {
     flexDirection: 'row',
@@ -270,5 +201,15 @@ export const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Regular',
     fontSize: 12,
     color: colors.brownMid,
+  },
+  detailLink: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  detailLinkText: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 14,
+    color: colors.brownMid,
+    textDecorationLine: 'underline',
   },
 });

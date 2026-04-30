@@ -41,7 +41,11 @@ export function useUploadFile({ onSuccess, onError }: UploadFileOptions = {}) {
     console.log('[uploadFile] user ok', user.id);
 
     const timestamp = Date.now();
-    const storagePath = `${user.id}/${timestamp}_${file.name}`;
+    const sanitizedName = file.name
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${user.id}/${timestamp}_${sanitizedName}`;
 
     console.log('[uploadFile] reading file as arraybuffer', file.uri);
     const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {

@@ -3,32 +3,32 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'acorn-mobile',
-  slug: 'acorn-mobile',
+  name: 'Acorn',
+  slug: 'acorn',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/icon.png',
+  icon: './assets/config/icon.png',
   userInterfaceStyle: 'light',
   scheme: 'acorn',
   splash: {
-    image: './assets/splash-icon.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
+    image: './assets/config/splash.png',
+    resizeMode: 'cover',
+    backgroundColor: '#FFFCFB',
   },
   ios: {
-    supportsTablet: true,
+    supportsTablet: false,
     bundleIdentifier: 'com.nicobarroso.acornmobile',
   },
   android: {
     package: 'com.nicobarroso.acornmobile',
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
+      foregroundImage: './assets/config/adaptive-icon.png',
+      backgroundColor: '#FFFCFB',
     },
     predictiveBackGestureEnabled: false,
   },
   web: {
-    favicon: './assets/favicon.png',
+    favicon: './assets/config/favicon.png',
   },
   plugins: [
     'expo-router',

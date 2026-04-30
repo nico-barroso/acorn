@@ -7,6 +7,8 @@ import { useNavBarHeight } from '@context/NavBarHeightContext';
 import { SaveLinkModal } from '@screens/SaveLink/SaveLinkModal';
 import { useItemsRealtime, useTagsRealtime } from '../../src/hooks/useRealtimeItems';
 import { useCurrentUserId } from '../../src/hooks/useCurrentUserId';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../src/lib/queryKeys';
 
 function RealtimeSyncProvider() {
   const userId = useCurrentUserId();
@@ -20,6 +22,16 @@ export default function AppLayout() {
   const segments = useSegments();
   const { setHeight } = useNavBarHeight();
   const [saveLinkVisible, setSaveLinkVisible] = useState(false);
+  const queryClient = useQueryClient();
+  const userId = useCurrentUserId();
+
+  const handleSaved = () => {
+    setSaveLinkVisible(false);
+    if (!userId) return;
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId) });
+    void queryClient.invalidateQueries({ queryKey: ['search', userId] });
+    void queryClient.invalidateQueries({ queryKey: ['folders', userId] });
+  };
 
   const currentRoute = segments[segments.length - 1];
   const searchActive = currentRoute === 'search';
@@ -66,7 +78,7 @@ export default function AppLayout() {
       <SaveLinkModal
         visible={saveLinkVisible}
         onClose={() => setSaveLinkVisible(false)}
-        onSaved={() => setSaveLinkVisible(false)}
+        onSaved={handleSaved}
       />
     </View>
   );

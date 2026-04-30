@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import {
   Animated,
+  Easing,
   Image,
-  ImageBackground,
   ImageSourcePropType,
   LayoutAnimation,
   Linking,
@@ -12,16 +12,15 @@ import {
   UIManager,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { supabase } from '../../../lib/supabase';
-import { styles } from './ContentCard.styles';
-import { Button } from '../Button/Button';
-import { Tag } from '../Tag/Tag';
-import { colors } from '../../theme/colors';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
+import { supabase } from '../../../lib/supabase';
+import { styles } from './ContentCard.styles';
+import { Button } from '../Button/Button';
+import { Tag } from '../Tag/Tag';
+import FileIcon from '../../../assets/icons/file-icon.svg';
 
 type TagItem = { name: string; color_hex: string | null };
 
@@ -59,31 +58,37 @@ export function ContentCard({
   onTagsPress,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [tagsVisible, setTagsVisible] = useState(true);
+  const [contentHeight, setContentHeight] = useState(0);
+  const animHeight = useRef(new Animated.Value(0)).current;
   const isRead = status === 'Visto';
 
-  const collapsedOpacity = useRef(new Animated.Value(1)).current;
-  const expandedOpacity = useRef(new Animated.Value(0)).current;
-
-  const handleToggleExpanded = () => {
+  const toggle = () => {
     const toExpand = !expanded;
+    setExpanded(toExpand);
 
     LayoutAnimation.configureNext({
-      duration: 280,
-      create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+      duration: 220,
       update: { type: LayoutAnimation.Types.easeInEaseOut },
       delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+      create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
     });
+    setTagsVisible(!toExpand);
 
     if (toExpand) {
-      Animated.timing(collapsedOpacity, { toValue: 0, duration: 160, useNativeDriver: true }).start(() => {
-        setExpanded(true);
-        Animated.timing(expandedOpacity, { toValue: 1, duration: 220, useNativeDriver: true }).start();
-      });
+      Animated.spring(animHeight, {
+        toValue: contentHeight,
+        speed: 14,
+        bounciness: 2,
+        useNativeDriver: false,
+      }).start();
     } else {
-      Animated.timing(expandedOpacity, { toValue: 0, duration: 140, useNativeDriver: true }).start(() => {
-        setExpanded(false);
-        Animated.timing(collapsedOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-      });
+      Animated.timing(animHeight, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: false,
+      }).start();
     }
   };
 
@@ -112,195 +117,32 @@ export function ContentCard({
     void Linking.openURL(url);
   };
 
-  if (isFile) console.log('[ContentCard] isFile=true thumbnailUri=', thumbnailUri, 'id=', id);
-
-  const sourceIcon = faviconUri
-    ? <Image source={{ uri: faviconUri }} style={styles.favicon} />
-    : iconSource
-      ? <Image source={iconSource} style={styles.favicon} />
-      : null;
-
-  // Archivos y links con imagen usan el layout de thumbnail
-  if (thumbnailUri || isFile) {
-    const filePlaceholder = !thumbnailUri && isFile;
-
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.92}
-        onPress={handleToggleExpanded}
-        onLongPress={() => onOpenDetail?.(id)}
-      >
-        {/* ── COLLAPSED ── */}
-        {!expanded && (
-          <Animated.View style={{ opacity: collapsedOpacity }}>
-            <View style={styles.thumbnailRight}>
-              {filePlaceholder ? (
-                <LinearGradient
-                  colors={[colors.brownMid, colors.salmon]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.filePlaceholderGradient}
-                >
-                  <Text style={styles.filePlaceholderEmoji}>📄</Text>
-                </LinearGradient>
-              ) : (
-                <Image source={{ uri: thumbnailUri }} style={styles.thumbnailRightImage} />
-              )}
-              <LinearGradient
-                colors={[colors.white, colors.white, 'transparent']}
-                locations={[0, 0.35, 1]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.thumbnailRightGradient}
-              />
-            </View>
-            <View style={styles.row}>
-              <View style={styles.textLayout}>
-                <Text style={styles.title} numberOfLines={2}>{title}</Text>
-                <View style={styles.sourceRow}>
-                  {sourceIcon}
-                  <Text style={styles.source}>{source}</Text>
-                </View>
-                {tags.length > 0 && (
-                  <View style={styles.tagsRowCollapsed}>
-                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
-                  </View>
-                )}
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </View>
-          </Animated.View>
-        )}
-
-        {/* ── EXPANDED HERO ── */}
-        {expanded && (
-          <Animated.View style={{ opacity: expandedOpacity }}>
-            {filePlaceholder ? (
-              <LinearGradient
-                colors={[colors.brownMid, colors.salmon]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.heroImageBg}
-              >
-                <LinearGradient
-                  colors={['transparent', 'rgba(15,8,4,0.72)']}
-                  style={styles.heroGradient}
-                />
-                <View style={styles.heroContent}>
-                  <Text style={styles.heroTitle} numberOfLines={3}>{title}</Text>
-                  <View style={styles.sourceRow}>
-                    {sourceIcon}
-                    <Text style={styles.heroSource}>{source}</Text>
-                  </View>
-                  {tags.length > 0 && (
-                  <View style={styles.tagsRowCollapsed}>
-                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
-                  </View>
-                )}
-                </View>
-              </LinearGradient>
-            ) : (
-              <ImageBackground
-                source={{ uri: thumbnailUri }}
-                style={styles.heroImageBg}
-                imageStyle={styles.heroImageBgImage}
-              >
-                <LinearGradient
-                  colors={['transparent', 'rgba(15,8,4,0.72)']}
-                  style={styles.heroGradient}
-                />
-                <View style={styles.heroContent}>
-                  <Text style={styles.heroTitle} numberOfLines={3}>{title}</Text>
-                  <View style={styles.sourceRow}>
-                    {sourceIcon}
-                    <Text style={styles.heroSource}>{source}</Text>
-                  </View>
-                  {tags.length > 0 && (
-                  <View style={styles.tagsRowCollapsed}>
-                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
-                  </View>
-                )}
-                </View>
-              </ImageBackground>
-            )}
-
-            <View style={styles.expandedSection}>
-              <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Estado:</Text>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusText}>{status}</Text>
-                  <Text style={styles.statusIcon}>👁</Text>
-                </View>
-                {onToggleRead ? (
-                  <TouchableOpacity
-                    style={styles.readToggleButton}
-                    onPress={() => onToggleRead(id, !isRead)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.readToggleText}>
-                      {isRead ? 'Marcar como no visto' : 'Marcar como visto'}
-                    </Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-              <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Guardado:</Text>
-                <Text style={styles.metaValue}>{savedDate}</Text>
-                <TouchableOpacity style={styles.copyUrlButton} onPress={handleCopyUrl} activeOpacity={0.7}>
-                  <Text style={styles.copyUrlIcon}>⧉</Text>
-                  <Text style={styles.copyUrlText}>Copiar URL</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.tagsSection}>
-                <View style={styles.tagsSectionHeader}>
-                  <Text style={styles.metaLabel}>Etiquetas</Text>
-                  {onTagsPress && (
-                    <TouchableOpacity onPress={() => onTagsPress(id)} activeOpacity={0.7} style={styles.addTagButton}>
-                      <Text style={styles.addTagIcon}>+</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {tags.length > 0 ? (
-                  <View style={styles.tagsRow}>
-                    {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
-                  </View>
-                ) : (
-                  <Text style={styles.noTagsHint}>Toca + para añadir etiquetas</Text>
-                )}
-              </View>
-              <Button label="Abrir enlace original" onPress={handleOpenUrl} />
-              {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
-            </View>
-          </Animated.View>
-        )}
-      </TouchableOpacity>
-    );
-  }
-
-  // ── SIN THUMBNAIL (solo links sin imagen) ──
   return (
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.9}
-      onPress={handleToggleExpanded}
+      onPress={toggle}
       onLongPress={() => onOpenDetail?.(id)}
     >
       <View style={styles.row}>
         <View style={styles.thumbnail}>
-          {iconSource ? (
-            <Image source={iconSource} style={styles.thumbnailImage} />
-          ) : (
-            <View style={styles.thumbnailPlaceholder} />
-          )}
+          {thumbnailUri ? (
+            <Image source={{ uri: thumbnailUri }} style={styles.thumbnailImage} resizeMode="cover" />
+          ) : isFile ? (
+            <FileIcon width={62} height={62} />
+          ) : faviconUri ? (
+            <Image source={{ uri: faviconUri }} style={styles.thumbnailIcon} resizeMode="contain" />
+          ) : iconSource ? (
+            <Image source={iconSource} style={styles.thumbnailIcon} resizeMode="contain" />
+          ) : null}
         </View>
         <View style={styles.textLayout}>
           <Text style={styles.title} numberOfLines={expanded ? undefined : 2}>{title}</Text>
           <View style={styles.sourceRow}>
-            {faviconUri ? <Image source={{ uri: faviconUri }} style={styles.favicon} /> : null}
+            <Text style={styles.sourceEmoji}>{isFile ? '📄' : '🔗'}</Text>
             <Text style={styles.source}>{source}</Text>
           </View>
-          {tags.length > 0 && (
+          {tags.length > 0 && tagsVisible && (
             <View style={styles.tagsRowCollapsed}>
               {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
             </View>
@@ -309,8 +151,17 @@ export function ContentCard({
         <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
       </View>
 
-      {expanded && (
-        <View style={styles.expandedSection}>
+      <Animated.View style={{ height: animHeight, overflow: 'hidden' }}>
+        <View
+          style={styles.expandedSection}
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0 && h !== contentHeight) {
+              setContentHeight(h);
+              if (expanded) animHeight.setValue(h);
+            }
+          }}
+        >
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Estado:</Text>
             <View style={styles.statusBadge}>
@@ -329,6 +180,18 @@ export function ContentCard({
               </TouchableOpacity>
             ) : null}
           </View>
+          <View style={styles.tagsSection}>
+            <View style={styles.tagsSectionHeader}>
+              <Text style={styles.metaLabel}>Etiquetas</Text>
+              {onTagsPress && (
+                <TouchableOpacity onPress={() => onTagsPress(id)} activeOpacity={0.7} style={styles.addTagButton}>
+                  <Text style={styles.addTagIcon}>+</Text>
+                </TouchableOpacity>
+              )}
+              {tags.length > 0 && tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
+            </View>
+          </View>
+
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Guardado:</Text>
             <Text style={styles.metaValue}>{savedDate}</Text>
@@ -338,9 +201,13 @@ export function ContentCard({
             </TouchableOpacity>
           </View>
           <Button label="Abrir enlace original" onPress={handleOpenUrl} />
-          {onOpenDetail ? <Button label="Ver detalle" onPress={() => onOpenDetail(id)} /> : null}
+          {onOpenDetail ? (
+            <TouchableOpacity onPress={() => onOpenDetail(id)} activeOpacity={0.7} style={styles.detailLink}>
+              <Text style={styles.detailLinkText}>Ver detalles</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
-      )}
+      </Animated.View>
     </TouchableOpacity>
   );
 }

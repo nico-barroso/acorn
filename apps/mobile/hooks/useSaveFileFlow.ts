@@ -50,13 +50,13 @@ export function useSaveFileFlow() {
     });
   };
 
-  const confirmUpload = async () => {
+  const confirmUpload = async (customName?: string) => {
     if (!pickedFile) {
       setGlobalError('Selecciona primero un archivo para continuar.');
       return;
     }
 
-    await uploadFile(pickedFile);
+    await uploadFile(customName ? { ...pickedFile, name: customName } : pickedFile);
   };
 
   const resetFlow = () => {

@@ -35,13 +35,13 @@ export const styles = StyleSheet.create({
     fontSize: 22,
     color: colors.brown,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 16,
   },
   subtitle: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 14,
+    fontSize: 15,
     color: colors.brownMid,
-    marginBottom: 16,
+    marginBottom: 26,
   },
   // Mode toggle
   modeToggle: {
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F0E6E0',
     borderRadius: 14,
     padding: 4,
-    marginBottom: 16,
+    marginBottom: 28,
   },
   modeTab: {
     flex: 1,
@@ -83,7 +83,7 @@ export const styles = StyleSheet.create({
     borderStyle: 'dashed',
     paddingVertical: 18,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 18,
   },
   filePickButtonText: {
     fontFamily: 'CabinetGrotesk-Bold',
@@ -146,98 +146,77 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
 
-  // Preview card
+  // Preview card — mirrors collapsed ContentCard
   previewCard: {
     backgroundColor: colors.white,
     borderRadius: 15,
-    marginTop: 16,
-    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(192, 110, 82, 0.2)',
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
     elevation: 3,
-  },
-  previewImageBg: {
-    borderRadius: 15,
-    overflow: 'hidden',
-    minHeight: 110,
-  },
-  previewImageBgImage: {
-    borderRadius: 15,
-  },
-  previewImageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(20, 12, 8, 0.55)',
-    borderRadius: 15,
+    marginTop: 26,
   },
   previewRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    paddingHorizontal: 16,
-    minHeight: 90,
+    padding: 10,
+    paddingHorizontal: 20,
+    minHeight: 100,
   },
   previewThumbnail: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-    backgroundColor: '#E8D8CF',
+    width: 74,
+    height: 74,
+    borderRadius: 13,
+    overflow: 'hidden',
     marginRight: 12,
+    backgroundColor: 'transparent',
     flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    padding: 10,
+  },
+  previewThumbnailImage: {
+    width: '100%',
+    height: '100%',
   },
   previewThumbnailIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
+    width: 44,
+    height: 44,
   },
   previewTextLayout: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   previewTitle: {
     fontFamily: 'CabinetGrotesk-Medium',
     fontWeight: '500',
-    fontSize: 15,
+    fontSize: 16,
     color: colors.black,
-    lineHeight: 19,
-  },
-  previewTitleOnImage: {
-    color: colors.white,
+    lineHeight: 20,
   },
   previewSourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    marginTop: 4,
+  },
+  previewSourceEmoji: {
+    fontSize: 11,
+  },
+  previewSource: {
+    fontFamily: 'Satoshi-Regular',
+    fontWeight: '400',
+    fontSize: 12,
+    color: colors.black,
+    letterSpacing: -0.12,
   },
   previewFavicon: {
     width: 13,
     height: 13,
     borderRadius: 3,
-  },
-  previewSource: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
-    color: colors.brownMid,
-    letterSpacing: -0.1,
-  },
-  previewSourceOnImage: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-  previewTag: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.brownMid,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  previewTagText: {
-    fontFamily: 'Satoshi-Regular',
-    fontSize: 11,
-    color: colors.white,
   },
 
   // Editar toggle
@@ -317,7 +296,7 @@ export const styles = StyleSheet.create({
   buttons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 20,
+    marginTop: 36,
   },
   cancelButton: {
     flex: 1,
