@@ -42,7 +42,7 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
   const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
   return {
     id: row.id,
-    title: row.title?.trim() || row.metadata?.og_title?.trim() || row.domain || 'Recurso sin titulo',
+    title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
     domain: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     snippet: row.description?.trim() || row.url || 'Sin descripcion',
     url: fileUrl,

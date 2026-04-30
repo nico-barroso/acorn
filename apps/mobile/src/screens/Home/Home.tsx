@@ -45,7 +45,7 @@ type ResourceRow = {
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
-  metadata: { og_title: string | null } | null;
+  metadata: { og_title: string | null }[] | null;
 };
 
 type HomeScreenProps = {
@@ -73,7 +73,7 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
 
   return {
     id: row.id,
-    title: row.title?.trim() || row.metadata?.og_title?.trim() || row.domain || 'Recurso sin titulo',
+    title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
     source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
