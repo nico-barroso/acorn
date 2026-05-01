@@ -1,34 +1,100 @@
 # Acorn
 
-Acorn is a personal content library — save links and files, tag them, organize them into smart folders, and find them later.
 
-The project is split into two independent apps that share the same Supabase backend:
 
-| App | Stack | Path |
-|-----|-------|------|
-| Mobile | Expo / React Native | `apps/mobile` |
-| Web | Next.js 15 | `apps/web` |
+Acorn es una aplicación multiplataforma para la gestión centralizada de recursos digitales. Permite guardar enlaces y archivos, enriquecerlos con metadatos, organizarlos con etiquetas y carpetas inteligentes, y recuperarlos después mediante búsqueda y filtros.
 
-Each app has its own `package.json` and `node_modules`. There is no monorepo tooling — install and run each app independently from its own directory.
+## Problema que resuelve
 
-## Backend
+Guardar contenido en internet es trivial; recuperarlo cuando realmente se necesita no lo es. Acorn nace para reducir ese problema de acumulación desorganizada de recursos digitales y transformar el almacenamiento pasivo en una gestión activa del contenido guardado.
 
-Both apps connect to the same [Supabase](https://supabase.com) project. The schema and migrations live in `supabase/migrations/`. Edge Functions (metadata extraction, link saving) live in `supabase/functions/`.
+## Propuesta de valor
 
-## Apps
+- Guardado de enlaces y archivos
+- Extracción automática de metadatos
+- Búsqueda full-text y filtros
+- Sistema de etiquetas
+- Carpetas inteligentes basadas en reglas
+- Cliente web y cliente móvil sobre backend compartido
 
-See [`apps/README.md`](apps/README.md) for per-app setup and run instructions.
+## Arquitectura
 
----
+- **Web:** Next.js 15
+- **Móvil:** React Native + Expo
+- **Backend:** Supabase
+- **Base de datos:** PostgreSQL
+- **Autenticación:** email/password + Google OAuth
+- **Storage:** bucket privado para archivos de usuario
+- **Lógica server-side:** Edge Functions
 
-## Merge policy
+## Estructura del repositorio
 
-### Automatic merges
 
-The project supports automatic merges via the `auto-merge` label.
+apps/
+  mobile/     Cliente móvil Expo / React Native
+  web/        Cliente web Next.js
+supabase/
+  migrations/ Esquema y migraciones
+  functions/  Edge Functions
+.github/
+  workflows/  Automatizaciones de CI
+## Merge( PE)
+## Requisitos previos
+.-Node.js 20 o superior
+.-npm
+.-Proyecto de Supabase configurado
+.-Variables de entorno para web y móvil
 
-1. **Required CI**: every PR must pass the CI checks (lint + build) defined in `.github/workflows/ci.yml`.
-2. **Required review**: at least one approval from a code owner (`.github/CODEOWNERS`) is required before the merge can complete.
-3. **Auto-merge**: adding the `auto-merge` label triggers `.github/workflows/auto-merge.yml`, which enables squash auto-merge once all checks and approvals are satisfied.
+## Puesta en marcha
+# Web
+bash
 
-> Without the `auto-merge` label the PR must be merged manually after approval.
+
+cd apps/web
+npm install
+cp .env.example .env.local
+npm run dev
+
+# Variables necesarias:
+
+env
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+## Móvil
+bash
+
+cd apps/mobile
+npm install
+cp .env.example .env
+npm run start
+
+# Variables necesarias:
+
+env
+
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_ANON_KEY=
+
+## Demo
+
+.-Demo web: <ENLACE_DEMO_WEB>
+.-Vídeo de demo: <ENLACE_VIDEO_DEMO>
+.-Diseño en Figma: <ENLACE_FIGMA>
+.-Planificación en Linear: <ENLACE_LINEAR>
+
+## Capturas
+Añade aquí 3–5 capturas limpias: login, home, búsqueda, carpetas y perfil.
+
+## Estado del proyecto
+MVP funcional desarrollado como Proyecto Final de DAM.
+
+## Autores
+Débora Fernández Moraña
+José Nicolás Barroso García
+Jorge Espinoza Martínez
+
+## Documentación relacionada
+Memoria del proyecto
+Research & Strategy
+Anexos de wireframes y RFTP
