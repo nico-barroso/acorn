@@ -124,6 +124,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       url={item.url}
       thumbnailUri={item.thumbnailUri}
       faviconUri={item.faviconUri}
+      faviconFallbackUri={item.faviconFallbackUri}
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
     />

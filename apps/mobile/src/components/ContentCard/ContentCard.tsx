@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -34,6 +34,7 @@ export interface ContentCardProps {
   url?: string;
   thumbnailUri?: string;
   faviconUri?: string;
+  faviconFallbackUri?: string;
   iconSource?: ImageSourcePropType;
   isFile?: boolean;
   onOpenDetail?: (id: string) => void;
@@ -51,6 +52,7 @@ export function ContentCard({
   url,
   thumbnailUri,
   faviconUri,
+  faviconFallbackUri,
   iconSource,
   isFile = false,
   onOpenDetail,
@@ -60,6 +62,24 @@ export function ContentCard({
   const [expanded, setExpanded] = useState(false);
   const [tagsVisible, setTagsVisible] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);
+  const [faviconStage, setFaviconStage] = useState<'primary' | 'fallback' | 'none'>('primary');
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  useEffect(() => { setThumbnailError(false); }, [thumbnailUri]);
+  useEffect(() => { setFaviconStage('primary'); }, [faviconUri]);
+
+  const activeFaviconUri =
+    faviconStage === 'primary' ? faviconUri :
+    faviconStage === 'fallback' ? faviconFallbackUri :
+    undefined;
+
+  const handleFaviconFail = () => {
+    if (faviconStage === 'primary' && faviconFallbackUri) {
+      setFaviconStage('fallback');
+    } else {
+      setFaviconStage('none');
+    }
+  };
   const animHeight = useRef(new Animated.Value(0)).current;
   const isRead = status === 'Visto';
 
@@ -126,12 +146,26 @@ export function ContentCard({
     >
       <View style={styles.row}>
         <View style={styles.thumbnail}>
-          {thumbnailUri ? (
-            <Image source={{ uri: thumbnailUri }} style={styles.thumbnailImage} resizeMode="cover" />
+          {thumbnailUri && !thumbnailError ? (
+            <Image
+              source={{ uri: thumbnailUri }}
+              style={styles.thumbnailImage}
+              resizeMode="cover"
+              onError={() => setThumbnailError(true)}
+            />
           ) : isFile ? (
             <FileIcon width={62} height={62} />
-          ) : faviconUri ? (
-            <Image source={{ uri: faviconUri }} style={styles.thumbnailIcon} resizeMode="contain" />
+          ) : activeFaviconUri ? (
+            <Image
+              source={{ uri: activeFaviconUri }}
+              style={styles.thumbnailIcon}
+              resizeMode="contain"
+              onLoad={(e) => {
+                const { width, height } = e.nativeEvent.source;
+                if (width <= 16 && height <= 16) handleFaviconFail();
+              }}
+              onError={handleFaviconFail}
+            />
           ) : iconSource ? (
             <Image source={iconSource} style={styles.thumbnailIcon} resizeMode="contain" />
           ) : null}

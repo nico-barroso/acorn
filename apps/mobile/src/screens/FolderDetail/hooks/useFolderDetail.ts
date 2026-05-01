@@ -128,7 +128,7 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
       isRead: Boolean(row.is_read),
       url: fileUrl,
       thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
-      faviconUri: row.favicon_url ?? undefined,
+      faviconUri: row.favicon_url ?? (row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : undefined),
       isFile,
     };
   });

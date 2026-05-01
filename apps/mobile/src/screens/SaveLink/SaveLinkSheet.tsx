@@ -218,7 +218,6 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
           url: trimmedUrl,
           og_title: previewMeta?.ogTitle ?? undefined,
           og_image_url: previewMeta?.ogImage ?? undefined,
-          favicon_url: previewMeta?.faviconUrl ?? undefined,
         },
       });
     }

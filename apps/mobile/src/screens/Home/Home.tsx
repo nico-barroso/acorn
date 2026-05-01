@@ -77,7 +77,8 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
     isRead: Boolean(row.is_read),
     url: fileUrl,
     thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
-    faviconUri: row.favicon_url ?? undefined,
+    faviconUri: row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : (row.favicon_url ?? undefined),
+    faviconFallbackUri: row.favicon_url ?? undefined,
     iconSource: isFile ? FILE_ICON : undefined,
     isFile,
   };
@@ -207,6 +208,13 @@ export default function HomeScreen({
 
   const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';
 
+  React.useEffect(() => {
+    resources.forEach((item) => {
+      if (item.faviconUri) void Image.prefetch(item.faviconUri);
+      if (item.thumbnailUri) void Image.prefetch(item.thumbnailUri);
+    });
+  }, [resources]);
+
 
   const handleToggleRead = async (itemId: string, nextRead: boolean) => {
     // Optimistic update across all infinite pages
@@ -255,10 +263,10 @@ export default function HomeScreen({
     }
   };
 
-  const featured = resources.length >= 1 ? resources[0] : null;
-  const listData = resources.length >= 2 ? resources.slice(1, 5) : [];
-  const hasMoreThanFive = resources.length > 5;
   const showOnboarding = !loadingInitial && resources.length <= 1;
+  const featured = showOnboarding ? null : resources[0] ?? null;
+  const listData = showOnboarding ? resources : resources.slice(1, 5);
+  const hasMoreThanFive = resources.length > 5;
 
   const renderEmpty = () => {
     if (loadingInitial && resources.length === 0) {

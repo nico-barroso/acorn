@@ -51,7 +51,8 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
     isRead: Boolean(row.is_read),
     tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
-    faviconUri: row.favicon_url ?? undefined,
+    faviconUri: row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : (row.favicon_url ?? undefined),
+    faviconFallbackUri: row.favicon_url ?? undefined,
     isFile,
   };
 }

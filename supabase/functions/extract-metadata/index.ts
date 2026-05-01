@@ -186,7 +186,6 @@ serve(async (req) => {
 
     const prefetchedOgTitle = typeof body.og_title === "string" ? body.og_title : undefined;
     const prefetchedOgImage = typeof body.og_image_url === "string" ? body.og_image_url : undefined;
-    const prefetchedFavicon = typeof body.favicon_url === "string" ? body.favicon_url : undefined;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -239,20 +238,17 @@ serve(async (req) => {
       throw metadataError;
     }
 
-    const linkUpdates: Record<string, string> = {};
-    if (domain) linkUpdates.domain = domain;
-    if (prefetchedFavicon) linkUpdates.favicon_url = prefetchedFavicon;
-
-    if (Object.keys(linkUpdates).length > 0) {
+    if (domain) {
       const { error: linkUpdateError } = await supabase
         .from("links")
-        .update(linkUpdates)
+        .update({ domain })
         .eq("id", itemId);
 
       if (linkUpdateError) {
-        log("warn", "link_update_failed", {
+        log("warn", "link_domain_update_failed", {
           requestId,
           itemId,
+          domain,
           error: linkUpdateError.message,
         });
       }

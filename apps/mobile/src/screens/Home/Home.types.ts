@@ -13,6 +13,7 @@ export type ContentCardData = {
   url?: string;
   thumbnailUri?: string;
   faviconUri?: string;
+  faviconFallbackUri?: string;
   iconSource?: ImageSourcePropType;
   isFile?: boolean;
 };

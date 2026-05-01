@@ -13,6 +13,7 @@ export type SearchResult = {
   tags: TagItem[];
   thumbnailUri?: string;
   faviconUri?: string;
+  faviconFallbackUri?: string;
   isFile: boolean;
 };
 
