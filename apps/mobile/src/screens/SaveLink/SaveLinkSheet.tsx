@@ -229,6 +229,7 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
   const previewTitle = title.trim() || previewMeta?.ogTitle || domain;
   const ogImage = previewMeta?.ogImage;
   const faviconUrl = previewMeta?.faviconUrl;
+  const previewFaviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null;
 
   return (
     <View style={{ flex: 1, justifyContent: 'flex-end' }}>
@@ -280,8 +281,8 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
                   <View style={styles.previewThumbnail}>
                     {ogImage ? (
                       <Image source={{ uri: ogImage }} style={styles.previewThumbnailImage} resizeMode="cover" />
-                    ) : faviconUrl && !previewLoading ? (
-                      <Image source={{ uri: faviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => {}} />
+                    ) : previewFaviconUrl ? (
+                      <Image source={{ uri: previewFaviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => {}} />
                     ) : null}
                   </View>
                   <View style={styles.previewTextLayout}>

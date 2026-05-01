@@ -110,11 +110,12 @@ async function fetchPreviewMeta(url: string, signal: AbortSignal): Promise<Previ
 
 type SaveLinkModalProps = {
   visible: boolean;
+  initialUrl?: string;
   onClose: () => void;
   onSaved: () => void;
 };
 
-export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps) {
+export function SaveLinkModal({ visible, initialUrl, onClose, onSaved }: SaveLinkModalProps) {
   const insets = useSafeAreaInsets();
   const { height: navBarHeight } = useNavBarHeight();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -124,7 +125,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
   const [mode, setMode] = useState<Mode>('link');
 
   // Link state
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(initialUrl ?? '');
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [linkError, setLinkError] = useState('');
@@ -191,7 +192,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (fetchAbortRef.current) fetchAbortRef.current.abort();
     setMode('link');
-    setUrl('');
+    setUrl(initialUrl ?? '');
     setTitle('');
     setNotes('');
     setLinkError('');
@@ -270,6 +271,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
   const previewTitle = title.trim() || previewMeta?.ogTitle || domain;
   const ogImage = previewMeta?.ogImage;
   const faviconUrl = previewMeta?.faviconUrl;
+  const previewFaviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null;
 
   return (
     <View style={styles.backdrop}>
@@ -342,8 +344,8 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
                       <View style={styles.previewThumbnail}>
                         {ogImage ? (
                           <Image source={{ uri: ogImage }} style={styles.previewThumbnailImage} resizeMode="cover" />
-                        ) : faviconUrl && !previewLoading ? (
-                          <Image source={{ uri: faviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => {}} />
+                        ) : previewFaviconUrl ? (
+                          <Image source={{ uri: previewFaviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => {}} />
                         ) : null}
                       </View>
                       <View style={styles.previewTextLayout}>

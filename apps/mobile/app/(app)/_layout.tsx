@@ -12,7 +12,7 @@ export default function AppLayout() {
   const searchActive = currentRoute === 'search';
   const tagsActive = currentRoute === 'folders';
   const profileActive = segments.includes('(profile)');
-  const modalActive = currentRoute === 'confirm-modal' || currentRoute === 'save-link';
+  const modalActive = currentRoute === 'confirm-modal' || currentRoute === 'save-link' || currentRoute === 'add';
   const homeActive = !searchActive && !tagsActive && !profileActive && !modalActive;
 
   return (
@@ -24,6 +24,14 @@ export default function AppLayout() {
         <Stack.Screen name="(profile)" />
         <Stack.Screen
           name="save-link"
+          options={{
+            presentation: 'transparentModal',
+            animation: 'fade',
+            contentStyle: { backgroundColor: 'rgba(0,0,0,0.4)' },
+          }}
+        />
+        <Stack.Screen
+          name="add"
           options={{
             presentation: 'transparentModal',
             animation: 'fade',
@@ -46,7 +54,7 @@ export default function AppLayout() {
                 }
               }
             }}
-            onAddPress={() => router.push('/(app)/save-link')}
+            onAddPress={() => router.push('/(app)/add')}
             onSearchPress={() => { if (!searchActive) router.push('/(app)/search'); }}
             onTagsPress={() => { if (!tagsActive) router.push('/(app)/folders'); }}
             onProfilePress={() => { if (!profileActive) router.push('/(app)/(profile)/'); }}
