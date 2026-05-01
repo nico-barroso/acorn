@@ -230,7 +230,7 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
     const { data: linkData, error: fnError } = await supabase.functions.invoke('link-test', {
       body: {
         url: trimmedUrl,
-        title: title.trim() || undefined,
+        title: title.trim() || previewMeta?.ogTitle || undefined,
         description: notes.trim() || undefined,
       },
     });
@@ -245,7 +245,13 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
     const itemId = linkData?.data?.id;
     if (itemId) {
       void supabase.functions.invoke('extract-metadata-test', {
-        body: { item_id: itemId, url: trimmedUrl },
+        body: {
+          item_id: itemId,
+          url: trimmedUrl,
+          og_title: previewMeta?.ogTitle ?? undefined,
+          og_image_url: previewMeta?.ogImage ?? undefined,
+          favicon_url: previewMeta?.faviconUrl ?? undefined,
+        },
       });
     }
 
