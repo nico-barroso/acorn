@@ -4,6 +4,7 @@ import {
   Alert,
   Animated,
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   PanResponder,
@@ -80,7 +81,9 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   }, [visible]);
 
 
+
   const dismiss = (callback?: () => void) => {
+    Keyboard.dismiss();
     Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 200, useNativeDriver: true })
       .start(() => { translateY.setValue(SCREEN_HEIGHT); callback?.(); });
   };
@@ -206,20 +209,24 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
-      <>
-        <TouchableWithoutFeedback onPress={handleClose}>
-          <View style={styles.backdrop} />
-        </TouchableWithoutFeedback>
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View style={styles.backdrop} />
+      </TouchableWithoutFeedback>
 
+      <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Animated.View
-          style={[styles.sheet, { transform: [{ translateY }], paddingBottom: insets.bottom + 16 }]}
+          style={[styles.sheet, { transform: [{ translateY }] }]}
         >
           <View style={styles.handleContainer} {...panResponder.panHandlers}>
             <View style={styles.handle} />
           </View>
 
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+          >
 
               {/* ── SELECTOR ── */}
               <Text style={styles.title}>Etiquetas</Text>
@@ -384,9 +391,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
               )}
 
             </ScrollView>
-          </KeyboardAvoidingView>
         </Animated.View>
-      </>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
