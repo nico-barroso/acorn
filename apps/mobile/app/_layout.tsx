@@ -7,6 +7,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { supabase } from '@lib/supabase';
+import { ShareIntentProvider } from 'expo-share-intent';
 import { Keyboard, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
 import { SessionProvider } from '@context/SessionContext';
@@ -160,22 +161,24 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister: asyncStoragePersister,
-        maxAge: 1000 * 60 * 60 * 24,
-        dehydrateOptions: {
-          shouldDehydrateQuery: (query) => query.queryKey[0] !== 'search',
-        },
-      }}
-    >
-      <SafeAreaProvider>
-        <NavBarHeightProvider>
-          <AuthGate />
-          <StatusBar style="dark" translucent backgroundColor="transparent" />
-        </NavBarHeightProvider>
-      </SafeAreaProvider>
-    </PersistQueryClientProvider>
+    <ShareIntentProvider options={{ debug: true }}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister: asyncStoragePersister,
+          maxAge: 1000 * 60 * 60 * 24,
+          dehydrateOptions: {
+            shouldDehydrateQuery: (query) => query.queryKey[0] !== 'search',
+          },
+        }}
+      >
+        <SafeAreaProvider>
+          <NavBarHeightProvider>
+            <AuthGate />
+            <StatusBar style="dark" translucent backgroundColor="transparent" />
+          </NavBarHeightProvider>
+        </SafeAreaProvider>
+      </PersistQueryClientProvider>
+    </ShareIntentProvider>
   );
 }

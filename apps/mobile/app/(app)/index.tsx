@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import HomeScreen from '@screens/Home/Home';
 import { supabase } from '@lib/supabase/client';
+import { useShareIntentContext } from 'expo-share-intent';
 
 function sanitizeDisplayName(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -14,6 +15,7 @@ export default function HomeRoute() {
   const [displayName, setDisplayName] = useState<string>('Usuario');
   const [isUserNameLoading, setIsUserNameLoading] = useState<boolean>(true);
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
 
   useEffect(() => {
     let mounted = true;
@@ -54,12 +56,32 @@ export default function HomeRoute() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log('[ShareIntent] hasShareIntent:', hasShareIntent);
+    console.log('[ShareIntent] shareIntent:', JSON.stringify(shareIntent));
+    if (!hasShareIntent) return;
+
+    const url = shareIntent.webUrl ?? shareIntent.text ?? null;
+    console.log('[ShareIntent] extracted url:', url);
+
+    if (url) {
+      setSharedUrl(url);
+    } else {
+      console.warn('[ShareIntent] intent received but no url found, resetting');
+      resetShareIntent();
+    }
+  }, [hasShareIntent, shareIntent]);
+
   return (
     <HomeScreen
       userName={displayName}
       isUserNameLoading={isUserNameLoading}
       sharedUrl={sharedUrl}
-      onSharedUrlHandled={() => setSharedUrl(null)}
+      onSharedUrlHandled={() => {
+        console.log('[ShareIntent] handled, resetting intent');
+        setSharedUrl(null);
+        resetShareIntent();
+      }}
       onSearchPress={() => router.push('/(app)/search')}
     />
   );
