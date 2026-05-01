@@ -37,6 +37,8 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
     setSelectedDate,
     selectedRead,
     setSelectedRead,
+    selectedType,
+    setSelectedType,
     hasActiveFilters,
     tagFromQuery,
     clearFilters,
@@ -193,6 +195,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
             selectedTag={selectedTag}
             selectedDate={selectedDate}
             selectedRead={selectedRead}
+            selectedType={selectedType}
             onSelectDomain={setSelectedDomain}
             onSelectTag={(tag) => {
               if (query.trim().startsWith('#')) {
@@ -202,6 +205,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
             }}
             onSelectDate={setSelectedDate}
             onSelectRead={setSelectedRead}
+            onSelectType={setSelectedType}
             onClear={clearFilters}
           />
         </View>
@@ -210,13 +214,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       <View style={styles.inner}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.resultsCounter}>
-          {hasActiveFilters
-            ? filteredResults.length === 1
-              ? `${filteredResults.length} resultado`
-              : `${filteredResults.length} resultados`
-            : totalCount == 1
-              ? `${totalCount} resultado`
-              : `${totalCount} resultados`}
+          {totalCount === 1 ? `${totalCount} resultado` : `${totalCount} resultados`}
         </Text>
       </View>
       {tagFromQuery && (

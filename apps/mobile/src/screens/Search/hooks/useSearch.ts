@@ -5,32 +5,16 @@ import { queryKeys } from '../../../lib/queryKeys';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { formatSavedDate } from '../../../lib/formatSavedDate';
-import type { DateFilterValue, ReadFilterValue, SearchResult, SearchRow } from '../types';
+import type { DateFilterValue, ReadFilterValue, TypeFilterValue, SearchResult, SearchRow } from '../types';
 
 const PAGE_SIZE = 10;
 
-async function fetchSearchCount(userId: string, term: string): Promise<number> {
-  const isTagQuery = term.trim().startsWith('#');
-  const backendTerm = isTagQuery ? '' : term;
-
-  let queryBuilder = supabase
-    .from('items_with_links')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  if (backendTerm.trim()) {
-    const termPattern = `%${backendTerm.trim().replace(/[%_]/g, '')}%`;
-    queryBuilder = queryBuilder.or(
-      `title.ilike.${termPattern},description.ilike.${termPattern},domain.ilike.${termPattern},url.ilike.${termPattern}`,
-    );
-  }
-
-  const { count, error } = await queryBuilder;
-  if (error) throw new Error('Error al contar resultados');
-  return count ?? 0;
-}
-
-const FILE_ICON = require('../../../../assets/config/favicon.png');
+type SearchFilters = {
+  domain: string | null;
+  date: DateFilterValue;
+  read: ReadFilterValue;
+  type: TypeFilterValue;
+};
 
 function isImageUrl(url: string): boolean {
   return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
@@ -43,6 +27,7 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
   return {
     id: row.id,
     title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
+    rawDomain: isFile ? null : row.domain ?? null,
     domain: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
     snippet: row.description?.trim() || row.url || 'Sin descripcion',
     url: fileUrl,
@@ -57,45 +42,97 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
   };
 }
 
-function applyDateFilter(createdAt: string, filter: DateFilterValue) {
-  if (filter === 'all') return true;
-  const createdTime = new Date(createdAt).getTime();
-  if (Number.isNaN(createdTime)) return false;
-  const dayToMs = 24 * 60 * 60 * 1000;
-  const now = Date.now();
-  if (filter === '7d') return createdTime >= now - 7 * dayToMs;
-  if (filter === '30d') return createdTime >= now - 30 * dayToMs;
-  return createdTime >= now - 365 * dayToMs;
+function dateThreshold(filter: DateFilterValue): string | null {
+  if (filter === 'all') return null;
+  const days = filter === '7d' ? 7 : filter === '30d' ? 30 : 365;
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function buildQuery(
+  base: ReturnType<typeof supabase.from<'items_with_links', any>>,
+  term: string,
+  filters: SearchFilters,
+  isTagQuery: boolean,
+) {
+  let q = base;
+
+  // Text search via ilike (view doesn't expose search_vector)
+  if (!isTagQuery && term.trim()) {
+    const pat = `%${term.trim().replace(/[%_]/g, '')}%`;
+    q = (q as any).or(
+      `title.ilike.${pat},description.ilike.${pat},domain.ilike.${pat},url.ilike.${pat}`,
+    );
+  }
+
+  // Type filter server-side (type column is on items, exposed by view)
+  if (filters.type !== 'all') {
+    q = (q as any).eq('type', filters.type);
+  }
+
+  // Domain filter server-side
+  if (filters.domain) {
+    q = (q as any).eq('domain', filters.domain);
+  }
+
+  // Date filter server-side
+  const threshold = dateThreshold(filters.date);
+  if (threshold) {
+    q = (q as any).gte('created_at', threshold);
+  }
+
+  // Read/unread filter server-side
+  if (filters.read === 'read') q = (q as any).eq('is_read', true);
+  else if (filters.read === 'unread') q = (q as any).eq('is_read', false);
+
+  return q;
+}
+
+async function fetchSearchCount(
+  userId: string,
+  term: string,
+  filters: SearchFilters,
+  isTagQuery: boolean,
+): Promise<number> {
+  let q = supabase
+    .from('items_with_links')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  q = buildQuery(q as any, term, filters, isTagQuery);
+
+  const { count, error } = await (q as any);
+  if (error) {
+    console.error('[search-count]', error);
+    throw new Error('Error al contar resultados');
+  }
+  return count ?? 0;
 }
 
 async function fetchSearchPage(
   userId: string,
   term: string,
+  filters: SearchFilters,
+  isTagQuery: boolean,
   pageIndex: number,
 ): Promise<SearchResult[]> {
-  const isTagQuery = term.trim().startsWith('#');
-  const backendTerm = isTagQuery ? '' : term;
-
-  let queryBuilder = supabase
+  let q = supabase
     .from('items_with_links')
     .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
 
-  if (backendTerm.trim()) {
-    const termPattern = `%${backendTerm.trim().replace(/[%_]/g, '')}%`;
-    queryBuilder = queryBuilder.or(
-      `title.ilike.${termPattern},description.ilike.${termPattern},domain.ilike.${termPattern},url.ilike.${termPattern}`,
-    );
-  }
+  q = buildQuery(q as any, term, filters, isTagQuery);
 
   const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
-    queryBuilder,
+    (q as any),
     supabase.from('tags').select('name,slug,color_hex').eq('user_id', userId),
   ]);
 
-  if (fetchError) throw new Error('No se pudieron cargar los recursos.');
+  if (fetchError) {
+    console.error('[search-page]', fetchError);
+    throw new Error('No se pudieron cargar los recursos.');
+  }
 
   const tagColorMap = new Map<string, string | null>();
   ((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]).forEach((t) => {
@@ -116,8 +153,21 @@ export function useSearch() {
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
   const [selectedDate, setSelectedDate] = React.useState<DateFilterValue>('all');
   const [selectedRead, setSelectedRead] = React.useState<ReadFilterValue>('all');
+  const [selectedType, setSelectedType] = React.useState<TypeFilterValue>('all');
 
-  // Tags query — reads from shared cache
+  const tagFromQuery = debouncedQuery.trim().startsWith('#')
+    ? debouncedQuery.trim().slice(1).toLowerCase()
+    : null;
+  const isTagQuery = tagFromQuery !== null;
+  const effectiveTag = tagFromQuery ?? (selectedTag ? selectedTag.toLowerCase() : null);
+
+  const filters: SearchFilters = {
+    domain: selectedDomain,
+    date: selectedDate,
+    read: selectedRead,
+    type: selectedType,
+  };
+
   const { data: allTagsData } = useQuery({
     queryKey: queryKeys.tags(userId ?? ''),
     queryFn: async () => {
@@ -132,10 +182,42 @@ export function useSearch() {
     staleTime: 0,
   });
 
-  // Total count query (for counter display)
-  const { data: totalCount = 0 } = useQuery({
-    queryKey: ['search-count', userId, debouncedQuery],
-    queryFn: () => fetchSearchCount(userId!, debouncedQuery),
+  // Domain options: same filters as main query but WITHOUT domain filter,
+  // so available domains stay visible even after one is selected
+  const { data: domainOptions = [] } = useQuery({
+    queryKey: ['search-domains', userId, debouncedQuery, selectedDate, selectedRead, selectedType],
+    queryFn: async () => {
+      let q = supabase
+        .from('items_with_links')
+        .select('domain')
+        .eq('user_id', userId!)
+        .not('domain', 'is', null)
+        .limit(200);
+
+      if (!isTagQuery && debouncedQuery.trim()) {
+        const pat = `%${debouncedQuery.trim().replace(/[%_]/g, '')}%`;
+        q = (q as any).or(
+          `title.ilike.${pat},description.ilike.${pat},domain.ilike.${pat},url.ilike.${pat}`,
+        );
+      }
+      const threshold = dateThreshold(selectedDate);
+      if (threshold) q = (q as any).gte('created_at', threshold);
+      if (selectedRead === 'read') q = (q as any).eq('is_read', true);
+      else if (selectedRead === 'unread') q = (q as any).eq('is_read', false);
+      if (selectedType !== 'all') q = (q as any).eq('type', selectedType);
+
+      const { data } = await (q as any);
+      return Array.from(
+        new Set((data ?? []).map((r: { domain: string }) => r.domain).filter(Boolean)),
+      ).slice(0, 20) as string[];
+    },
+    enabled: Boolean(userId),
+    staleTime: 30 * 1000,
+  });
+
+  const { data: serverCount = 0 } = useQuery({
+    queryKey: ['search-count', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType],
+    queryFn: () => fetchSearchCount(userId!, debouncedQuery, filters, isTagQuery),
     enabled: Boolean(userId),
     staleTime: 30 * 1000,
   });
@@ -153,8 +235,9 @@ export function useSearch() {
     isLoading: loading,
     error: queryError,
   } = useInfiniteQuery({
-    queryKey: queryKeys.search(userId ?? '', debouncedQuery),
-    queryFn: ({ pageParam }) => fetchSearchPage(userId!, debouncedQuery, (pageParam as number) ?? 0),
+    queryKey: ['search', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType],
+    queryFn: ({ pageParam }) =>
+      fetchSearchPage(userId!, debouncedQuery, filters, isTagQuery, (pageParam as number) ?? 0),
     initialPageParam: 0 as number,
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       lastPage.length === PAGE_SIZE ? (lastPageParam as number) + 1 : undefined,
@@ -168,6 +251,18 @@ export function useSearch() {
     [infiniteData],
   );
 
+  // Tag filter stays client-side: the tags column in the view uses json_agg
+  // and the @> operator doesn't work reliably on JSON arrays via PostgREST
+  const filteredResults = React.useMemo(
+    () =>
+      effectiveTag
+        ? results.filter((r) => r.tags.some((t) => t.name.toLowerCase() === effectiveTag))
+        : results,
+    [results, effectiveTag],
+  );
+
+  const totalCount = effectiveTag ? filteredResults.length : serverCount;
+
   const error = queryError ? 'No se pudieron cargar los recursos.' : '';
 
   const loadMore = React.useCallback(() => {
@@ -179,45 +274,18 @@ export function useSearch() {
     setSelectedTag(null);
     setSelectedDate('all');
     setSelectedRead('all');
+    setSelectedType('all');
     setQuery((q) => (q.trim().startsWith('#') ? '' : q));
   }, []);
 
-  const domainOptions = React.useMemo(
-    () => Array.from(new Set(results.map((r) => r.domain).filter(Boolean))).slice(0, 20),
-    [results],
-  );
-
-  const tagOptions = React.useMemo(
-    () =>
-      Array.from(
-        new Set(results.flatMap((r) => r.tags.map((t) => t.name.trim()).filter(Boolean))),
-      ).slice(0, 30),
-    [results],
-  );
-
-  const tagFromQuery = query.trim().startsWith('#') ? query.trim().slice(1).toLowerCase() : null;
-  const effectiveTag = tagFromQuery ?? (selectedTag ? selectedTag.toLowerCase() : null);
-
-  const filteredResults = React.useMemo(
-    () =>
-      results.filter((result) => {
-        if (selectedDomain && result.domain !== selectedDomain) return false;
-        if (effectiveTag && !result.tags.some((t) => t.name.toLowerCase() === effectiveTag))
-          return false;
-        if (!applyDateFilter(result.createdAt, selectedDate)) return false;
-        if (selectedRead === 'read' && !result.isRead) return false;
-        if (selectedRead === 'unread' && result.isRead) return false;
-        return true;
-      }),
-    [results, selectedDate, selectedDomain, selectedRead, effectiveTag],
-  );
 
   const hasActiveFilters =
     selectedDomain !== null ||
     selectedTag !== null ||
     tagFromQuery !== null ||
     selectedDate !== 'all' ||
-    selectedRead !== 'all';
+    selectedRead !== 'all' ||
+    selectedType !== 'all';
 
   return {
     query,
@@ -231,7 +299,7 @@ export function useSearch() {
     results,
     totalCount,
     domainOptions,
-    tagOptions,
+    tagOptions: allUserTags,
     allUserTags,
     selectedDomain,
     setSelectedDomain,
@@ -241,6 +309,8 @@ export function useSearch() {
     setSelectedDate,
     selectedRead,
     setSelectedRead,
+    selectedType,
+    setSelectedType,
     hasActiveFilters,
     tagFromQuery,
     clearFilters,
