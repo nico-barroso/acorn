@@ -142,11 +142,11 @@ export function ContentCard({
             <Text style={styles.sourceEmoji}>{isFile ? '📄' : '🔗'}</Text>
             <Text style={styles.source}>{source}</Text>
           </View>
-          {tags.length > 0 && tagsVisible && (
+          {tags.length > 0 && tagsVisible ? (
             <View style={styles.tagsRowCollapsed}>
               {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
             </View>
-          )}
+          ) : null}
         </View>
         <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>
       </View>
