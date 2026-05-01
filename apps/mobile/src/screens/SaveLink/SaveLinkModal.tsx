@@ -397,12 +397,12 @@ export function SaveLinkModal({ visible, onClose, onSaved }: SaveLinkModalProps)
                   <Text style={styles.cancelLabel}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.confirmButton, !urlValid && styles.confirmButtonDisabled]}
+                  style={[styles.confirmButton, (!urlValid || previewLoading) && styles.confirmButtonDisabled]}
                   onPress={handleSaveLink}
                   activeOpacity={0.7}
-                  disabled={linkLoading || !urlValid}
+                  disabled={linkLoading || !urlValid || previewLoading}
                 >
-                  <Text style={styles.confirmLabel}>{linkLoading ? 'Guardando...' : 'Guardar'}</Text>
+                  <Text style={styles.confirmLabel}>{linkLoading ? 'Guardando...' : previewLoading ? 'Cargando...' : 'Guardar'}</Text>
                 </TouchableOpacity>
               </View>
             </>
