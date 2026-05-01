@@ -129,7 +129,7 @@ export function useSearch() {
       return (data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
     },
     enabled: Boolean(userId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   // Total count query (for counter display)

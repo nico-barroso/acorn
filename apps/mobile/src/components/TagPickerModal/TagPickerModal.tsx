@@ -76,6 +76,14 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   const [editingTagColor, setEditingTagColor] = React.useState(PRESET_COLORS[0]);
   const [mgmtError, setMgmtError] = React.useState('');
 
+  const [keyboardVisible, setKeyboardVisible] = React.useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
   useEffect(() => {
     if (visible) {
       Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }).start();
@@ -176,7 +184,6 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     if (error) { setSaving(false); setMgmtError('No se pudo crear la etiqueta.'); return; }
     setNewTagName(''); setNewTagColor(PRESET_COLORS[0]); setSaving(false);
     void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
     await loadTagsWithCount();
   };
 
@@ -191,7 +198,6 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     if (error) { setSaving(false); setMgmtError('No se pudo actualizar la etiqueta.'); return; }
     setEditingTagId(null); setEditingTagName(''); setSaving(false);
     void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
     await loadTagsWithCount();
   };
 
@@ -207,7 +213,6 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
           await supabase.from('tags').delete().eq('id', tag.id).eq('user_id', user.id);
           setSelectedIds((prev) => prev.filter((id) => id !== tag.id));
           void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
-          void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
           await loadTagsWithCount();
           setSaving(false);
         })(),
@@ -216,7 +221,18 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={() => {
+        if (keyboardVisible) {
+          Keyboard.dismiss();
+        } else {
+          handleClose();
+        }
+      }}
+    >
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
@@ -224,6 +240,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
       <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Animated.View
           style={[styles.sheet, { transform: [{ translateY }] }]}
+          onStartShouldSetResponder={() => true}
         >
           <View style={styles.handleContainer} {...panResponder.panHandlers}>
             <View style={styles.handle} />

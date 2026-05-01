@@ -145,8 +145,8 @@ export default function HomeScreen({
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
   const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
 
-  // Tags query — pre-populates cache so fetchItemsPage can use it on subsequent fetches
-  useQuery({
+  // Tags query — staleTime: 0 ensures fresh colors are picked up across devices on every mount.
+  const { data: tagData } = useQuery({
     queryKey: queryKeys.tags(userId ?? ''),
     queryFn: async () => {
       const { data } = await supabase
@@ -156,8 +156,18 @@ export default function HomeScreen({
       return (data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
     },
     enabled: Boolean(userId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
+
+  const tagColorMap = React.useMemo(() => {
+    const map = new Map<string, string | null>();
+    (tagData ?? []).forEach((t) => {
+      map.set(t.name, t.color_hex);
+      if (t.slug) map.set(t.slug, t.color_hex);
+      map.set(t.name.toLowerCase(), t.color_hex);
+    });
+    return map;
+  }, [tagData]);
 
   // Avatar query — shared cache with profile screen
   const { data: avatarUrl = null } = useQuery({
@@ -202,8 +212,15 @@ export default function HomeScreen({
   });
 
   const resources = React.useMemo(
-    () => data?.pages.flatMap((p) => p.items) ?? [],
-    [data],
+    () =>
+      (data?.pages.flatMap((p) => p.items) ?? []).map((item) => ({
+        ...item,
+        tags: item.tags.map((t) => ({
+          name: t.name,
+          color_hex: tagColorMap.get(t.name) ?? tagColorMap.get(t.name.toLowerCase()) ?? t.color_hex,
+        })),
+      })),
+    [data, tagColorMap],
   );
 
   const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';
@@ -380,7 +397,10 @@ export default function HomeScreen({
       <TagPickerModal
         visible={Boolean(tagPickerItemId)}
         itemId={tagPickerItemId}
-        onClose={() => setTagPickerItemId(null)}
+        onClose={() => {
+          setTagPickerItemId(null);
+          invalidateItems();
+        }}
         onSaved={() => {
           setTagPickerItemId(null);
           invalidateItems();
