@@ -11,9 +11,6 @@ import { ShareIntentProvider } from 'expo-share-intent';
 import { Keyboard, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
 import { SessionProvider } from '@context/SessionContext';
-import { useNotificationChannel } from '@hooks/useNotificationChannel';
-import * as Notifications from 'expo-notifications';
-import { registerForPushNotificationsAsync } from '@lib/notificationService';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,12 +24,6 @@ const asyncStoragePersister = createAsyncStoragePersister({
   key: 'ACORN_QUERY_CACHE',
   throttleTime: 1000,
 });
-
-function handleNotificationResponse(response: Notifications.NotificationResponse) {
-  const data = response.notification.request.content.data;
-  console.log('Notification tapped:', data);
-  // Aquí puedes navegar según los datos de la notificación
-}
 
 async function syncProfileDisplayName(user: Session['user']) {
   const metadataName =
@@ -65,10 +56,6 @@ function AuthGate() {
   const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-  useNotificationChannel({
-    userId: session?.user?.id,
-  });
-
   useEffect(() => {
     let mounted = true;
 
@@ -100,12 +87,9 @@ function AuthGate() {
       setInitialized(true);
     });
 
-    const notificationSubscription = Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
-
     return () => {
       mounted = false;
       subscription.unsubscribe();
-      notificationSubscription.remove();
     };
   }, []);
 

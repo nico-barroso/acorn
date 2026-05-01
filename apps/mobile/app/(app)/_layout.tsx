@@ -3,16 +3,6 @@ import { View } from 'react-native';
 import { NavBar } from '@components/NavBar/NavBar';
 import { useSegments } from 'expo-router';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useItemsRealtime, useTagsRealtime } from '../../src/hooks/useRealtimeItems';
-import { useCurrentUserId } from '../../src/hooks/useCurrentUserId';
-
-function RealtimeSyncProvider() {
-  const userId = useCurrentUserId();
-  useItemsRealtime(userId);
-  useTagsRealtime(userId);
-  return null;
-}
-
 export default function AppLayout() {
   const router = useRouter();
   const segments = useSegments();
@@ -27,7 +17,6 @@ export default function AppLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <RealtimeSyncProvider />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="search" />

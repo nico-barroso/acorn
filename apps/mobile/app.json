@@ -15,11 +15,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nicobarroso.acorn",
-      "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification"
-        ]
-      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,15 +28,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#ffffff"
-        }
-      ]
-    ],
+    "plugins": [],
     "owner": "nicobarroso"
   }
 }
