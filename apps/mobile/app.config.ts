@@ -17,10 +17,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.nicobarroso.acornmobile',
+    bundleIdentifier: 'com.nicobarroso.acorn',
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
-    package: 'com.nicobarroso.acornmobile',
+    package: 'com.nicobarroso.acorn',
     adaptiveIcon: {
       foregroundImage: './assets/config/adaptive-icon.png',
       backgroundColor: '#FFFCFB',
@@ -62,7 +65,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     eas: {
-      projectId: '85e23e07-f828-4ee6-8825-63896cccb192',
+      projectId: 'efcc103c-2a5e-4975-b431-fe2e2e12e40c',
     },
   },
 });
