@@ -8,10 +8,6 @@ import type { FolderResource } from '../FolderDetail.types';
 
 const FILE_ICON = require('../../../../assets/config/favicon.png');
 
-function isImageUrl(url: string): boolean {
-  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
-}
-
 type ItemRow = {
   id: string;
   type: string | null;
@@ -113,7 +109,6 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
   const mapped: FolderResource[] = rows.map((row): FolderResource => {
     const isFile = row.type === 'file';
     const fileUrl = row.url ?? undefined;
-    const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
     return {
       id: row.id,
       title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin título',
@@ -127,7 +122,7 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
       status: row.is_read ? 'Visto' : 'No visto',
       isRead: Boolean(row.is_read),
       url: fileUrl,
-      thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+      thumbnailUri: isFile ? undefined : (row.og_image_url ?? row.preview_image_url ?? undefined),
       faviconUri: row.favicon_url ?? (row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : undefined),
       isFile,
     };

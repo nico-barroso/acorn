@@ -16,14 +16,9 @@ type SearchFilters = {
   type: TypeFilterValue;
 };
 
-function isImageUrl(url: string): boolean {
-  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
-}
-
 function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>): SearchResult {
   const isFile = row.type === 'file';
   const fileUrl = row.url || '';
-  const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
   return {
     id: row.id,
     title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
@@ -35,7 +30,7 @@ function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>
     savedDate: formatSavedDate(row.created_at),
     isRead: Boolean(row.is_read),
     tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
-    thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+    thumbnailUri: isFile ? undefined : (row.og_image_url ?? row.preview_image_url ?? undefined),
     faviconUri: row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : (row.favicon_url ?? undefined),
     faviconFallbackUri: row.favicon_url ?? undefined,
     isFile,

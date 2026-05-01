@@ -58,14 +58,9 @@ const PAGE_SIZE = 5;
 
 const FILE_ICON = require('../../../assets/config/favicon.png');
 
-function isImageUrl(url: string): boolean {
-  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
-}
-
 function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>): ContentCardData {
   const isFile = row.type === 'file';
   const fileUrl = row.url ?? undefined;
-  const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
 
   return {
     id: row.id,
@@ -76,7 +71,7 @@ function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>):
     status: row.is_read ? 'Visto' : 'No visto',
     isRead: Boolean(row.is_read),
     url: fileUrl,
-    thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
+    thumbnailUri: isFile ? undefined : (row.og_image_url ?? row.preview_image_url ?? undefined),
     faviconUri: row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : (row.favicon_url ?? undefined),
     faviconFallbackUri: row.favicon_url ?? undefined,
     iconSource: isFile ? FILE_ICON : undefined,
