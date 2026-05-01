@@ -123,10 +123,10 @@ export function useSearch() {
     queryFn: async () => {
       const { data } = await supabase
         .from('tags')
-        .select('name')
+        .select('name,slug,color_hex')
         .eq('user_id', userId!)
         .order('name');
-      return (data ?? []) as { name: string }[];
+      return (data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
     },
     enabled: Boolean(userId),
     staleTime: 5 * 60 * 1000,

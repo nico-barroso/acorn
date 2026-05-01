@@ -19,6 +19,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../../lib/supabase';
 import { useSession } from '@context/SessionContext';
+import { queryClient } from '../../lib/queryClient';
+import { queryKeys } from '../../lib/queryKeys';
 import { styles } from './TagPickerModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -173,6 +175,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     const { error } = await supabase.from('tags').insert({ user_id: user.id, name: normalized, slug, color_hex: newTagColor });
     if (error) { setSaving(false); setMgmtError('No se pudo crear la etiqueta.'); return; }
     setNewTagName(''); setNewTagColor(PRESET_COLORS[0]); setSaving(false);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
     await loadTagsWithCount();
   };
 
@@ -186,6 +190,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     const { error } = await supabase.from('tags').update({ name: normalized, slug, color_hex: editingTagColor }).eq('id', tagId).eq('user_id', user.id);
     if (error) { setSaving(false); setMgmtError('No se pudo actualizar la etiqueta.'); return; }
     setEditingTagId(null); setEditingTagName(''); setSaving(false);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
     await loadTagsWithCount();
   };
 
@@ -200,6 +206,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
           await supabase.from('item_tags').delete().eq('tag_id', tag.id);
           await supabase.from('tags').delete().eq('id', tag.id).eq('user_id', user.id);
           setSelectedIds((prev) => prev.filter((id) => id !== tag.id));
+          void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
+          void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
           await loadTagsWithCount();
           setSaving(false);
         })(),

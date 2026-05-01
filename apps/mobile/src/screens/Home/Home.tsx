@@ -92,9 +92,12 @@ type ItemsPage = {
 
 async function fetchItemsPage(
   userId: string,
-  tagColorMap: Map<string, string | null>,
   cursor: string | null,
 ): Promise<ItemsPage> {
+  const cachedTags = queryClient.getQueryData<{ name: string; slug: string | null; color_hex: string | null }[]>(
+    queryKeys.tags(userId),
+  );
+
   let q = supabase
     .from('items_with_links')
     .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags,metadata(og_title)')
@@ -104,8 +107,22 @@ async function fetchItemsPage(
 
   if (cursor) q = q.lt('created_at', cursor);
 
-  const { data, error } = await q;
+  const [{ data, error }, tagFetchResult] = await Promise.all([
+    q,
+    cachedTags
+      ? Promise.resolve({ data: cachedTags })
+      : supabase.from('tags').select('name,slug,color_hex').eq('user_id', userId),
+  ]);
+
   if (error) throw new Error('No se pudieron cargar los recursos.');
+
+  const tagRows = (tagFetchResult.data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
+  const tagColorMap = new Map<string, string | null>();
+  tagRows.forEach((t) => {
+    tagColorMap.set(t.name, t.color_hex);
+    if (t.slug) tagColorMap.set(t.slug, t.color_hex);
+    tagColorMap.set(t.name.toLowerCase(), t.color_hex);
+  });
 
   const rows = (data ?? []) as ResourceRow[];
   const items = rows.map((row) => mapResource(row, tagColorMap));
@@ -128,8 +145,8 @@ export default function HomeScreen({
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
   const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
 
-  // Tags query — shared cache with other screens
-  const { data: tagData } = useQuery({
+  // Tags query — pre-populates cache so fetchItemsPage can use it on subsequent fetches
+  useQuery({
     queryKey: queryKeys.tags(userId ?? ''),
     queryFn: async () => {
       const { data } = await supabase
@@ -141,16 +158,6 @@ export default function HomeScreen({
     enabled: Boolean(userId),
     staleTime: 5 * 60 * 1000,
   });
-
-  const tagColorMap = React.useMemo(() => {
-    const map = new Map<string, string | null>();
-    (tagData ?? []).forEach((t) => {
-      map.set(t.name, t.color_hex);
-      if (t.slug) map.set(t.slug, t.color_hex);
-      map.set(t.name.toLowerCase(), t.color_hex);
-    });
-    return map;
-  }, [tagData]);
 
   // Avatar query — shared cache with profile screen
   const { data: avatarUrl = null } = useQuery({
@@ -187,7 +194,7 @@ export default function HomeScreen({
   } = useInfiniteQuery({
     queryKey: queryKeys.items(userId ?? ''),
     queryFn: ({ pageParam }) =>
-      fetchItemsPage(userId!, tagColorMap, (pageParam as string | null) ?? null),
+      fetchItemsPage(userId!, (pageParam as string | null) ?? null),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: Boolean(userId),
@@ -195,15 +202,8 @@ export default function HomeScreen({
   });
 
   const resources = React.useMemo(
-    () =>
-      (data?.pages.flatMap((p) => p.items) ?? []).map((item) => ({
-        ...item,
-        tags: item.tags.map((t) => ({
-          name: t.name,
-          color_hex: tagColorMap.get(t.name) ?? t.color_hex,
-        })),
-      })),
-    [data, tagColorMap],
+    () => data?.pages.flatMap((p) => p.items) ?? [],
+    [data],
   );
 
   const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';

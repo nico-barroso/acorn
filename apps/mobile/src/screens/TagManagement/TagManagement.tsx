@@ -19,6 +19,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../components/Button/Button';
 import { useSession } from '@context/SessionContext';
+import { queryClient } from '../../lib/queryClient';
+import { queryKeys } from '../../lib/queryKeys';
 import { styles } from './TagManagement.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -187,6 +189,8 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     if (insertError) { setSaving(false); setError('No se pudo crear la etiqueta.'); return; }
 
     setNewTagName(''); setNewTagColor(PRESET_COLORS[0]); setSaving(false);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
     onUpdated?.();
     await loadTags();
   };
@@ -204,6 +208,8 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
     if (updateError) { setSaving(false); setError('No se pudo actualizar la etiqueta.'); return; }
 
     setEditingTagId(null); setEditingTagName(''); setSaving(false);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
     onUpdated?.();
     await loadTags();
   };
@@ -224,7 +230,10 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
             const { error: deleteTagError } = await supabase.from('tags').delete().eq('id', tag.id).eq('user_id', user.id);
             if (deleteTagError) { setSaving(false); setError('No se pudo eliminar la etiqueta.'); return; }
 
-            setSaving(false); onUpdated?.();
+            setSaving(false);
+            void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.items(user.id) });
+            onUpdated?.();
             await loadTags();
           })();
         },
