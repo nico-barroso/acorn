@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Alert,
   FlatList,
   Image,
   ImageBackground,
@@ -18,7 +17,6 @@ import { ContentCard } from '../../components/ContentCard/ContentCard';
 import { ContentCardSkeleton } from '../../components/ContentCardSkeleton/ContentCardSkeleton';
 import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
 import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
-import { SaveLinkFlow } from '../../components/SaveLinkFlow/SaveLinkFlow';
 import { ItemDetail } from '../ItemDetail/ItemDetail';
 import { useRouter } from 'expo-router';
 import { colors } from '../../theme/colors';
@@ -52,8 +50,6 @@ type HomeScreenProps = {
   userName?: string;
   isUserNameLoading?: boolean;
   greeting?: string;
-  sharedUrl?: string | null;
-  onSharedUrlHandled?: () => void;
   onSearchPress?: () => void;
 };
 
@@ -120,8 +116,6 @@ export default function HomeScreen({
   userName = 'Usuario',
   isUserNameLoading = false,
   greeting = 'Buenos dias',
-  sharedUrl,
-  onSharedUrlHandled,
   onSearchPress,
 }: HomeScreenProps) {
   const router = useRouter();
@@ -129,7 +123,6 @@ export default function HomeScreen({
   const { session } = useSession();
   const userId = session?.user?.id;
 
-  const [saveLinkOpen, setSaveLinkOpen] = React.useState(false);
   const [saveFileOpen, setSaveFileOpen] = React.useState(false);
   const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
   const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
@@ -214,9 +207,6 @@ export default function HomeScreen({
 
   const listError = queryError ? 'No se pudieron cargar los recursos. Intenta refrescar.' : '';
 
-  React.useEffect(() => {
-    if (sharedUrl) setSaveLinkOpen(true);
-  }, [sharedUrl]);
 
   const handleToggleRead = async (itemId: string, nextRead: boolean) => {
     // Optimistic update across all infinite pages
@@ -269,14 +259,6 @@ export default function HomeScreen({
   const listData = resources.length >= 2 ? resources.slice(1, 5) : [];
   const hasMoreThanFive = resources.length > 5;
   const showOnboarding = !loadingInitial && resources.length <= 1;
-
-  const handleFabPress = () => {
-    Alert.alert('Guardar recurso', 'Elige el tipo de contenido que quieres guardar', [
-      { text: 'Enlace', onPress: () => setSaveLinkOpen(true) },
-      { text: 'Archivo', onPress: () => setSaveFileOpen(true) },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
-  };
 
   const renderEmpty = () => {
     if (loadingInitial && resources.length === 0) {
@@ -370,17 +352,6 @@ export default function HomeScreen({
           <AcornEmpty style={styles.emptyImage} />
         </View>
       )}
-
-      <SaveLinkFlow
-        visible={saveLinkOpen}
-        onClose={() => setSaveLinkOpen(false)}
-        initialUrl={sharedUrl ?? undefined}
-        onInitialUrlConsumed={onSharedUrlHandled}
-        onSaved={() => {
-          setSaveLinkOpen(false);
-          invalidateItems();
-        }}
-      />
 
       <SaveFileFlow
         visible={saveFileOpen}

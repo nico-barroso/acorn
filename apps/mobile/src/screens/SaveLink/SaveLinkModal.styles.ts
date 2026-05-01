@@ -1,9 +1,10 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from '../../theme/colors';
 
 export const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
+    top: Platform.OS === 'android' ? -(StatusBar.currentHeight ?? 0) : 0,
     justifyContent: 'flex-end',
     zIndex: 100,
   },

@@ -14,7 +14,6 @@ export default function HomeRoute() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState<string>('Usuario');
   const [isUserNameLoading, setIsUserNameLoading] = useState<boolean>(true);
-  const [sharedUrl, setSharedUrl] = useState<string | null>(null);
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
 
   useEffect(() => {
@@ -57,17 +56,14 @@ export default function HomeRoute() {
   }, []);
 
   useEffect(() => {
-    console.log('[ShareIntent] hasShareIntent:', hasShareIntent);
-    console.log('[ShareIntent] shareIntent:', JSON.stringify(shareIntent));
     if (!hasShareIntent) return;
 
     const url = shareIntent.webUrl ?? shareIntent.text ?? null;
-    console.log('[ShareIntent] extracted url:', url);
 
     if (url) {
-      setSharedUrl(url);
+      resetShareIntent();
+      router.push({ pathname: '/(app)/save-link', params: { url } });
     } else {
-      console.warn('[ShareIntent] intent received but no url found, resetting');
       resetShareIntent();
     }
   }, [hasShareIntent, shareIntent]);
@@ -76,12 +72,6 @@ export default function HomeRoute() {
     <HomeScreen
       userName={displayName}
       isUserNameLoading={isUserNameLoading}
-      sharedUrl={sharedUrl}
-      onSharedUrlHandled={() => {
-        console.log('[ShareIntent] handled, resetting intent');
-        setSharedUrl(null);
-        resetShareIntent();
-      }}
       onSearchPress={() => router.push('/(app)/search')}
     />
   );

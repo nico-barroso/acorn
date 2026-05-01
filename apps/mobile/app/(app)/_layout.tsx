@@ -1,14 +1,10 @@
-import { Stack } from 'expo-router';
-import { useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { NavBar } from '@components/NavBar/NavBar';
-import { useRouter, useSegments } from 'expo-router';
+import { useSegments } from 'expo-router';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { SaveLinkModal } from '@screens/SaveLink/SaveLinkModal';
 import { useItemsRealtime, useTagsRealtime } from '../../src/hooks/useRealtimeItems';
 import { useCurrentUserId } from '../../src/hooks/useCurrentUserId';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../src/lib/queryKeys';
 
 function RealtimeSyncProvider() {
   const userId = useCurrentUserId();
@@ -21,23 +17,12 @@ export default function AppLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { setHeight } = useNavBarHeight();
-  const [saveLinkVisible, setSaveLinkVisible] = useState(false);
-  const queryClient = useQueryClient();
-  const userId = useCurrentUserId();
-
-  const handleSaved = () => {
-    setSaveLinkVisible(false);
-    if (!userId) return;
-    void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId) });
-    void queryClient.invalidateQueries({ queryKey: ['search', userId] });
-    void queryClient.invalidateQueries({ queryKey: ['folders', userId] });
-  };
 
   const currentRoute = segments[segments.length - 1];
   const searchActive = currentRoute === 'search';
   const tagsActive = currentRoute === 'folders';
   const profileActive = segments.includes('(profile)');
-  const modalActive = currentRoute === 'confirm-modal';
+  const modalActive = currentRoute === 'confirm-modal' || currentRoute === 'save-link';
   const homeActive = !searchActive && !tagsActive && !profileActive && !modalActive;
 
   return (
@@ -48,6 +33,14 @@ export default function AppLayout() {
         <Stack.Screen name="search" />
         <Stack.Screen name="folders" options={{ contentStyle: { backgroundColor: '#F3CCBE' } }} />
         <Stack.Screen name="(profile)" />
+        <Stack.Screen
+          name="save-link"
+          options={{
+            presentation: 'transparentModal',
+            animation: 'fade',
+            contentStyle: { backgroundColor: 'rgba(0,0,0,0.4)' },
+          }}
+        />
       </Stack>
       {!modalActive && (
         <View
@@ -64,7 +57,7 @@ export default function AppLayout() {
                 }
               }
             }}
-            onAddPress={() => setSaveLinkVisible(true)}
+            onAddPress={() => router.push('/(app)/save-link')}
             onSearchPress={() => { if (!searchActive) router.push('/(app)/search'); }}
             onTagsPress={() => { if (!tagsActive) router.push('/(app)/folders'); }}
             onProfilePress={() => { if (!profileActive) router.push('/(app)/(profile)/'); }}
@@ -75,11 +68,6 @@ export default function AppLayout() {
           />
         </View>
       )}
-      <SaveLinkModal
-        visible={saveLinkVisible}
-        onClose={() => setSaveLinkVisible(false)}
-        onSaved={handleSaved}
-      />
     </View>
   );
 }
