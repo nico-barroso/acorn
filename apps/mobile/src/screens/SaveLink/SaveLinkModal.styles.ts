@@ -182,6 +182,7 @@ export const styles = StyleSheet.create({
   previewThumbnailImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 13,
   },
   previewThumbnailIcon: {
     width: 44,

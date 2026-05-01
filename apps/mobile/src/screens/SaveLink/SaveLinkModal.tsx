@@ -139,6 +139,7 @@ export function SaveLinkModal({ visible, initialUrl, onClose, onSaved }: SaveLin
   const [editedFileName, setEditedFileName] = useState('');
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [previewFaviconError, setPreviewFaviconError] = useState(false);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -201,6 +202,7 @@ export function SaveLinkModal({ visible, initialUrl, onClose, onSaved }: SaveLin
     setPreviewMeta(null);
     setPreviewLoading(false);
     setEditedFileName('');
+    setPreviewFaviconError(false);
     resetFlow();
   };
 
@@ -343,8 +345,10 @@ export function SaveLinkModal({ visible, initialUrl, onClose, onSaved }: SaveLin
                       <View style={styles.previewThumbnail}>
                         {ogImage ? (
                           <Image source={{ uri: ogImage }} style={styles.previewThumbnailImage} resizeMode="cover" />
-                        ) : previewFaviconUrl ? (
-                          <Image source={{ uri: previewFaviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => {}} />
+                        ) : previewFaviconUrl && !previewFaviconError ? (
+                          <Image source={{ uri: previewFaviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => setPreviewFaviconError(true)} />
+                        ) : faviconUrl ? (
+                          <Image source={{ uri: faviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" />
                         ) : null}
                       </View>
                       <View style={styles.previewTextLayout}>
