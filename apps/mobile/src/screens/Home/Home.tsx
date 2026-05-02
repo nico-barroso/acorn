@@ -272,6 +272,10 @@ export default function HomeScreen({
         contentContainerStyle={[styles.scrollContent, { paddingBottom: navBarHeight + 20 }]}
         data={listData}
         keyExtractor={(item) => item.id}
+        removeClippedSubviews
+        maxToRenderPerBatch={5}
+        updateCellsBatchingPeriod={50}
+        windowSize={7}
         ListHeaderComponent={
           <HomeHeader
             userName={userName}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { supabase } from '../lib/supabase';
+import { isValidEmail } from '../src/lib/validators';
 
 type FormErrors = {
   email?: string;
@@ -42,7 +43,7 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
 
     if (!normalizedEmail) {
       newErrors.email = 'El email es obligatorio';
-    } else if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
+    } else if (!isValidEmail(normalizedEmail)) {
       newErrors.email = 'El email no es valido';
     }
 

@@ -3,12 +3,7 @@ import { useRouter } from 'expo-router';
 import HomeScreen from '@screens/Home/Home';
 import { supabase } from '@lib/supabase/client';
 import { useShareIntentContext } from 'expo-share-intent';
-
-function sanitizeDisplayName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  return `${parts[0]} ${parts[1][0]}.`;
-}
+import { formatDisplayName } from '../../src/utils/formatDisplayName';
 
 export default function HomeRoute() {
   const router = useRouter();
@@ -44,7 +39,7 @@ export default function HomeRoute() {
         metadataName ||
         data.user?.email ||
         'Usuario';
-      setDisplayName(sanitizeDisplayName(raw));
+      setDisplayName(formatDisplayName(raw));
       setIsUserNameLoading(false);
     };
 

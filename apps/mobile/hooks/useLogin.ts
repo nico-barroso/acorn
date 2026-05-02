@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { isValidEmail } from '../src/lib/validators';
 
 type FormErrors = {
   email?: string;
@@ -18,7 +19,7 @@ export function useLogin() {
 
     if (!email) {
       newErrors.email = 'El email es obligatorio';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!isValidEmail(email)) {
       newErrors.email = 'El email no es válido';
     }
 

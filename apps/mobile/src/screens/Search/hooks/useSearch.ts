@@ -138,26 +138,16 @@ export function useSearch() {
   const { data: domainOptions = [] } = useQuery({
     queryKey: ['search', 'domains', userId, debouncedQuery, selectedDate, selectedRead, selectedType],
     queryFn: async () => {
-      let q = supabase
+      const base = supabase
         .from('items_with_links')
         .select('domain')
         .eq('user_id', userId!)
         .not('domain', 'is', null)
         .limit(200);
 
-      if (!isTagQuery && debouncedQuery.trim()) {
-        const pat = `%${debouncedQuery.trim().replace(/[%_]/g, '')}%`;
-        q = (q as any).or(
-          `title.ilike.${pat},description.ilike.${pat},domain.ilike.${pat},url.ilike.${pat}`,
-        );
-      }
-      const threshold = dateThreshold(selectedDate);
-      if (threshold) q = (q as any).gte('created_at', threshold);
-      if (selectedRead === 'read') q = (q as any).eq('is_read', true);
-      else if (selectedRead === 'unread') q = (q as any).eq('is_read', false);
-      if (selectedType !== 'all') q = (q as any).eq('type', selectedType);
+      const q = buildQuery(base, debouncedQuery, { domain: null, date: selectedDate, read: selectedRead, type: selectedType }, isTagQuery);
 
-      const { data } = await (q as any);
+      const { data } = await q;
       return Array.from(
         new Set((data ?? []).map((r: { domain: string }) => r.domain).filter(Boolean)),
       ).slice(0, 20) as string[];
