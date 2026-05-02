@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../../../../theme/colors';
+import { colors } from '@/theme/colors';
 import { styles } from './Pill.styles';
-import ChevronRightIcon from '../../../../../assets/icons/chevron-right.svg';
+import ChevronRightIcon from '@/assets/icons/chevron-right.svg';
 
 type IconProps = {
   width?: number;

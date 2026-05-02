@@ -10,11 +10,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useSession } from '@context/SessionContext';
-import { supabase } from '@lib/supabase';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { useSession } from '@/context/SessionContext';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './EditFolderModal.styles';
-import type { FolderData } from '../../FoldersScreen.types';
+import type { FolderData } from '@/screens/FolderScreen/FoldersScreen.types';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 

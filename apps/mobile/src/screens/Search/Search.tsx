@@ -10,13 +10,19 @@ import type { SearchResult, SearchScreenProps } from './types';
 export interface SearchScreenExtendedProps extends SearchScreenProps {
   navBarHeight?: number;
 }
-import { Input as SearchInput } from '../../components/Input/Input';
-import SearchIcon from '../../../assets/icons/search-icon.svg';
-import { colors } from '../../theme/colors';
-import { ContentCard } from '../../components/ContentCard/ContentCard';
-import { SkeletonContentCard } from '../../components/SkeletonContentCard/SkeletonContentCard';
+import { Input as SearchInput } from '@/components/Input/Input';
+import SearchIcon from '@/assets/icons/search-icon.svg';
+import { colors } from '@/theme/colors';
+import { ContentCard } from '@/components/ContentCard/ContentCard';
+import { SkeletonContentCard } from '@/components/SkeletonContentCard/SkeletonContentCard';
+import { TagPickerModal } from '@/components/TagPickerModal/TagPickerModal';
+import { queryClient } from '@/lib/queryClient';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 
 export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchScreenExtendedProps) {
+  const userId = useCurrentUserId();
+  const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
+
   const {
     query,
     setQuery,
@@ -37,9 +43,12 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
     setSelectedDate,
     selectedRead,
     setSelectedRead,
+    selectedType,
+    setSelectedType,
     hasActiveFilters,
     tagFromQuery,
     clearFilters,
+    handleToggleRead,
   } = useSearch();
 
   const insets = useSafeAreaInsets();
@@ -103,7 +112,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
         </Text>
         <View style={styles.emptyImageContainer}>
           <Image
-            source={require('../../../assets/search-empty-drawing.png')}
+            source={require('./assets/search-empty-drawing.png')}
             style={styles.emptyImage}
           />
         </View>
@@ -124,15 +133,18 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       url={item.url}
       thumbnailUri={item.thumbnailUri}
       faviconUri={item.faviconUri}
+      faviconFallbackUri={item.faviconFallbackUri}
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
+      onToggleRead={handleToggleRead}
+      onTagsPress={setTagPickerItemId}
     />
   );
 
   return (
     <View style={styles.panel}>
       <ImageBackground
-        source={require('../../../assets/search-top-drop-gradient.webp')}
+        source={require('@/assets/search-top-drop-gradient.webp')}
         style={{
           position: 'absolute',
           top: -insets.top,
@@ -192,6 +204,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
             selectedTag={selectedTag}
             selectedDate={selectedDate}
             selectedRead={selectedRead}
+            selectedType={selectedType}
             onSelectDomain={setSelectedDomain}
             onSelectTag={(tag) => {
               if (query.trim().startsWith('#')) {
@@ -201,6 +214,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
             }}
             onSelectDate={setSelectedDate}
             onSelectRead={setSelectedRead}
+            onSelectType={setSelectedType}
             onClear={clearFilters}
           />
         </View>
@@ -209,13 +223,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       <View style={styles.inner}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.resultsCounter}>
-          {hasActiveFilters
-            ? filteredResults.length === 1
-              ? `${filteredResults.length} resultado`
-              : `${filteredResults.length} resultados`
-            : totalCount == 1
-              ? `${totalCount} resultado`
-              : `${totalCount} resultados`}
+          {totalCount === 1 ? `${totalCount} resultado` : `${totalCount} resultados`}
         </Text>
       </View>
       {tagFromQuery && (
@@ -252,6 +260,18 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
           ) : null
         }
         keyboardShouldPersistTaps="handled"
+      />
+      <TagPickerModal
+        visible={Boolean(tagPickerItemId)}
+        itemId={tagPickerItemId}
+        onClose={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: ['search', userId] });
+        }}
+        onSaved={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: ['search', userId] });
+        }}
       />
     </View>
   );

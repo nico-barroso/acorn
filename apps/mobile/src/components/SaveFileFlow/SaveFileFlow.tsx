@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import { useSaveFileFlow } from '../../../hooks/useSaveFileFlow';
-import { Button } from '../Button/Button';
+import { useSaveFileFlow } from '@/hooks/useSaveFileFlow';
+import { Button } from '@/components/Button/Button';
 import { styles } from './SaveFileFlow.styles';
 
 type SaveFileFlowProps = {

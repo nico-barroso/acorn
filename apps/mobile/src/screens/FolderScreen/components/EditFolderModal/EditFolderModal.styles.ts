@@ -1,1 +1,1 @@
-export { styles } from '../NewFolderModal/NewFolderModal.styles';
+export { styles } from '@/screens/FolderScreen/components/NewFolderModal/NewFolderModal.styles';

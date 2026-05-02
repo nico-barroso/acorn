@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '@theme/colors';
+import { colors } from '@/theme/colors';
 
 export const styles = StyleSheet.create({
   safeArea: {
@@ -20,5 +20,11 @@ export const styles = StyleSheet.create({
   },
   form: {
     gap: 24,
+  },
+  emailConfirmation: {
+    fontSize: 13,
+    color: '#6B6059',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

@@ -8,8 +8,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
-import { Input } from '@components/Input/Input';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
+import { Input } from '@/components/Input/Input';
 import { styles } from './ResetPasswordForm.styles';
 
 const isValidPassword = (p: string) => p.length >= 8;

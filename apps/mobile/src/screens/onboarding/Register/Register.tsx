@@ -2,14 +2,14 @@ import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useGoogleOAuth } from '../../../../hooks/useGoogleOAuth';
-import { useRegister } from '../../../../hooks/useRegister';
-import { Button } from '../../../components/Button/Button';
-import { Input } from '../../../components/Input/Input';
+import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
+import { useRegister } from './useRegister';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
 import { styles } from './Register.styles';
-import AuthHeader from '@screens/onboarding/components/AuthHeader/AuthHeader';
-import GoogleSignInButton from '../components/GoogleButton/GoogleButton';
-import Divider from '../components/Divider/Divider';
+import AuthHeader from '@/screens/onboarding/components/AuthHeader/AuthHeader';
+import GoogleSignInButton from '@/screens/onboarding/components/GoogleButton/GoogleButton';
+import Divider from '@/screens/onboarding/components/Divider/Divider';
 type RegisterScreenProps = {
   onRegisterSuccess: () => void;
   onGoToLogin: () => void;
@@ -27,6 +27,7 @@ export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: Regis
     setConfirmPassword,
     errors,
     loading,
+    cooldown,
     registered,
     handleRegister,
   } = useRegister({ onSuccess: onRegisterSuccess });
@@ -36,7 +37,7 @@ export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: Regis
     handleGoogleSignIn,
   } = useGoogleOAuth();
 
-  const isSubmitting = loading || oauthLoading;
+  const isSubmitting = loading || oauthLoading || cooldown;
 
   return (
     <SafeAreaView style={styles.safeArea}>

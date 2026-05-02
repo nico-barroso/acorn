@@ -10,9 +10,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useSession } from '@context/SessionContext';
-import { supabase } from '@lib/supabase';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { useSession } from '@/context/SessionContext';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './NewFolderModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;

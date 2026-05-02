@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, ScrollView, ImageBackground, Switch, Animated } from 'react-native';
+import { View, Text, Image, ScrollView, ImageBackground, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { styles } from './ProfileScreen.styles';
-import SectionButton from '../components/SectionButton/SectionButton';
-import { areNotificationsEnabled, setNotificationsEnabled } from '@lib/notificationService';
-import { useSession } from '@context/SessionContext';
+import SectionButton from '@/screens/profile/components/SectionButton/SectionButton';
+import { useSession } from '@/context/SessionContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@lib/supabase';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
+import { supabase } from '@mobile/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 
 type ProfileScreenProps = {
   avatarUrl?: string | null;
@@ -26,8 +25,6 @@ export default function ProfileScreen({
   const insets = useSafeAreaInsets();
   const { session } = useSession();
   const userId = useCurrentUserId();
-  const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
-
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -59,7 +56,7 @@ export default function ProfileScreen({
   });
 
   const { data: avatarUrl } = useQuery({
-    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryKey: [...queryKeys.avatarUrl(userId ?? ''), profileData?.avatar_url ?? ''],
     queryFn: async () => {
       if (!profileData?.avatar_url) return null;
       const { data: signed } = await supabase.storage
@@ -70,11 +67,6 @@ export default function ProfileScreen({
     enabled: Boolean(profileData?.avatar_url),
     staleTime: 50 * 60 * 1000,
   });
-
-  const toggleNotifications = async (value: boolean) => {
-    setNotificationsEnabledState(value);
-    await setNotificationsEnabled(value);
-  };
 
   const metadataName =
     typeof session?.user?.user_metadata?.display_name === 'string'
@@ -99,15 +91,9 @@ export default function ProfileScreen({
         />
         <View style={styles.avatarContainer}>
           {avatarUrl ? (
-            <Image
-              source={{ uri: avatarUrl }}
-              style={styles.avatar}
-              resizeMode="cover"
-              onError={(e) => console.log('[ProfileScreen] image error:', e.nativeEvent.error)}
-              onLoad={() => console.log('[ProfileScreen] image loaded ok')}
-            />
+            <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="cover" />
           ) : (
-            <Image source={require('@assets/default-avatar.png')} style={styles.avatar} />
+            <Image source={require('@/assets/default-avatar.png')} style={styles.avatar} />
           )}
         </View>
         {profileLoading ? (
@@ -147,20 +133,6 @@ export default function ProfileScreen({
               label="Cambiar contraseña"
               icon="lock"
               onPress={() => router.push('/(app)/(profile)/reset-password')}
-            />
-            <SectionButton
-              label="Notificaciones"
-              icon="bell"
-              onPress={() => toggleNotifications(!notificationsEnabled)}
-              rightElement={
-                <Switch
-                  value={notificationsEnabled}
-                  onValueChange={toggleNotifications}
-                  style={{ marginLeft: 'auto' }}
-                  trackColor={{ false: '#E0D9D4', true: '#C06E52' }}
-                  thumbColor="#FFFCFB"
-                />
-              }
             />
           </View>
         </View>

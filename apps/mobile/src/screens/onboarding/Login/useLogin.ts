@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@mobile/lib/supabase';
+import { isValidEmail } from '@/lib/validators';
 
 type FormErrors = {
   email?: string;
@@ -7,18 +8,21 @@ type FormErrors = {
   general?: string;
 };
 
+const COOLDOWN_MS = 3000;
+
 export function useLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
   function validate(): boolean {
     const newErrors: FormErrors = {};
 
     if (!email) {
       newErrors.email = 'El email es obligatorio';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!isValidEmail(email)) {
       newErrors.email = 'El email no es válido';
     }
 
@@ -50,6 +54,8 @@ export function useLogin() {
       } else {
         setErrors({ general: 'Email o contraseña incorrectos' });
       }
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), COOLDOWN_MS);
       return;
     }
 
@@ -62,6 +68,7 @@ export function useLogin() {
     setPassword,
     errors,
     loading,
+    cooldown,
     handleLogin,
   };
 }

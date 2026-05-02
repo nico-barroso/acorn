@@ -7,12 +7,16 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProfileHeader } from '../../components/ProfileHeader/ProfileHeader';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
 import { styles } from './FolderDetail.styles';
 import { useFolderDetail } from './hooks/useFolderDetail';
-import { QuickFilters } from '../Search/components/QuickFilters/QuickFilters';
-import { ContentCard } from '../../components/ContentCard/ContentCard';
-import { colors } from '../../theme/colors';
+import { QuickFilters } from '@/screens/Search/components/QuickFilters/QuickFilters';
+import { ContentCard } from '@/components/ContentCard/ContentCard';
+import { TagPickerModal } from '@/components/TagPickerModal/TagPickerModal';
+import { colors } from '@/theme/colors';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 import type { FolderDetailScreenProps, FolderResource } from './FolderDetail.types';
 
 export function FolderDetailScreen({
@@ -20,6 +24,9 @@ export function FolderDetailScreen({
   onBack,
   onOpenDetail,
 }: FolderDetailScreenProps) {
+  const userId = useCurrentUserId();
+  const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
+
   const {
     folderName,
     folderDescription,
@@ -29,6 +36,7 @@ export function FolderDetailScreen({
     hasActiveFilters,
     onQuickFilter,
     error,
+    handleToggleRead,
   } = useFolderDetail(folderId);
 
   const insets = useSafeAreaInsets();
@@ -66,13 +74,15 @@ export function FolderDetailScreen({
       faviconUri={item.faviconUri}
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
+      onToggleRead={handleToggleRead}
+      onTagsPress={setTagPickerItemId}
     />
   );
 
   return (
     <View style={styles.panel}>
       <ImageBackground
-        source={require('../../../assets/search-top-drop-gradient.webp')}
+        source={require('@/assets/search-top-drop-gradient.webp')}
         style={{
           position: 'absolute',
           top: -insets.top,
@@ -121,6 +131,18 @@ export function FolderDetailScreen({
           resources.length === 0 ? styles.listEmptyContent : styles.listContent
         }
         keyboardShouldPersistTaps="handled"
+      />
+      <TagPickerModal
+        visible={Boolean(tagPickerItemId)}
+        itemId={tagPickerItemId}
+        onClose={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.folderDetail(userId!, folderId) });
+        }}
+        onSaved={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.folderDetail(userId!, folderId) });
+        }}
       />
     </View>
   );

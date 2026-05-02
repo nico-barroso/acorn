@@ -1,9 +1,10 @@
-import type { TagItem } from '../Home/Home.types';
+import type { TagItem } from '@/screens/Home/Home.types';
 export type { TagItem };
 
 export type SearchResult = {
   id: string;
   title: string;
+  rawDomain: string | null;
   domain: string;
   snippet: string;
   url: string;
@@ -13,6 +14,7 @@ export type SearchResult = {
   tags: TagItem[];
   thumbnailUri?: string;
   faviconUri?: string;
+  faviconFallbackUri?: string;
   isFile: boolean;
 };
 
@@ -39,6 +41,7 @@ export type SearchScreenProps = {
 
 export type DateFilterValue = 'all' | '7d' | '30d' | '365d';
 export type ReadFilterValue = 'all' | 'unread' | 'read';
+export type TypeFilterValue = 'all' | 'link' | 'file';
 
 export type FilterPanelProps = {
   domains: string[];
@@ -47,9 +50,11 @@ export type FilterPanelProps = {
   selectedTag: string | null;
   selectedDate: DateFilterValue;
   selectedRead: ReadFilterValue;
+  selectedType: TypeFilterValue;
   onSelectDomain: (domain: string | null) => void;
   onSelectTag: (tag: string | null) => void;
   onSelectDate: (date: DateFilterValue) => void;
   onSelectRead: (status: ReadFilterValue) => void;
+  onSelectType: (type: TypeFilterValue) => void;
   onClear: () => void;
 };

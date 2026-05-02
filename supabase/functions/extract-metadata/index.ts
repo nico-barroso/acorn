@@ -184,6 +184,9 @@ serve(async (req) => {
       );
     }
 
+    const prefetchedOgTitle = typeof body.og_title === "string" ? body.og_title : undefined;
+    const prefetchedOgImage = typeof body.og_image_url === "string" ? body.og_image_url : undefined;
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -192,8 +195,22 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const { metadata, extractionError } = await extractMetadata(url, requestId);
     const domain = extractDomain(url);
+
+    let metadata: MetadataResult;
+    let extractionError: string | undefined;
+
+    if (prefetchedOgTitle || prefetchedOgImage) {
+      metadata = {
+        ogTitle: prefetchedOgTitle,
+        ogImageUrl: prefetchedOgImage,
+        resolvedUrl: url,
+      };
+    } else {
+      const outcome = await extractMetadata(url, requestId);
+      metadata = outcome.metadata;
+      extractionError = outcome.extractionError;
+    }
 
     const status = metadata.ogTitle || metadata.ogDescription ? "completed" : "failed";
 

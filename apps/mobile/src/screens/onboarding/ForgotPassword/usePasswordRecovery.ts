@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-import { supabase } from '../lib/supabase';
+import { supabase } from '@mobile/lib/supabase';
+import { isValidEmail } from '@/lib/validators';
 
 const MOBILE_RESET_REDIRECT = 'acorn://reset-password';
 
@@ -15,11 +16,14 @@ type ResetErrors = {
   general?: string;
 };
 
+const COOLDOWN_MS = 3000;
+
 export function usePasswordRecoveryRequest() {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<RequestErrors>({});
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
   const validate = () => {
     const nextErrors: RequestErrors = {};
@@ -27,7 +31,7 @@ export function usePasswordRecoveryRequest() {
 
     if (!normalizedEmail) {
       nextErrors.email = 'El email es obligatorio';
-    } else if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
+    } else if (!isValidEmail(normalizedEmail)) {
       nextErrors.email = 'El email no es valido';
     }
 
@@ -50,6 +54,8 @@ export function usePasswordRecoveryRequest() {
 
     if (error) {
       setErrors({ general: 'No se pudo enviar el correo de recuperacion. Intentalo de nuevo.' });
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), COOLDOWN_MS);
       return;
     }
 
@@ -62,6 +68,7 @@ export function usePasswordRecoveryRequest() {
     errors,
     loading,
     sent,
+    cooldown,
     handleSendRecovery,
   };
 }

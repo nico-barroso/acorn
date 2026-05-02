@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './NavBar.styles';
-import HomeIcon from '../../../assets/icons/home.svg';
-import SearchIcon from '../../../assets/icons/search-icon.svg';
-import FolderIcon from '../../../assets/icons/folder-icon.svg';
-import FabIcon from '../../../assets/icons/fab-icon.svg';
-import ProfileIcon from '../../../assets/icons/profile-icon.svg';
-import NavbarBg from '../../../assets/svg/navbar-bg.svg';
+import HomeIcon from '@/assets/icons/home.svg';
+import SearchIcon from '@/assets/icons/search-icon.svg';
+import FolderIcon from '@/assets/icons/folder-icon.svg';
+import FabIcon from '@/assets/icons/fab-icon.svg';
+import ProfileIcon from '@/assets/icons/profile-icon.svg';
+import NavbarBg from '@/assets/svg/navbar-bg.svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 
 function ActivePill({ active }: { active: boolean }) {
   const anim = useRef(new Animated.Value(0)).current;

@@ -447,12 +447,15 @@ async function handleCreate(req: Request, context: AuthContext) {
     return jsonResponse(400, { error: toErrorMessage(itemError ?? "Failed to create item") });
   }
 
+  const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null;
+
   const { error: linkError } = await context.supabase
     .from("links")
     .insert({
       id: item.id,
       url,
       domain: domain || null,
+      favicon_url: faviconUrl,
     });
 
   if (linkError) {

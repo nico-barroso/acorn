@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { Modal, Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import { useSaveLinkFlow } from '../../../hooks/useSaveLinkFlow';
-import { Button } from '../Button/Button';
-import { Input } from '../Input/Input';
+import { useSaveLinkFlow } from '@/hooks/useSaveLinkFlow';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
 import { styles } from './SaveLinkFlow.styles';
 
 type SaveLinkFlowProps = {
