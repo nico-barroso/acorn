@@ -129,9 +129,17 @@ export function Home() {
   const sentinelRef = useRef<HTMLDivElement | null>(null)
   const tagColorMapRef = useRef<Map<string, string | null>>(new Map())
 
+  const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'read'>('all')
+
   const currentPage = useMemo(() => page, [page])
   const readCount = useMemo(() => resources.filter((resource) => resource.isRead).length, [resources])
   const unreadCount = resources.length - readCount
+
+  const filteredResources = useMemo(() => {
+    if (activeFilter === 'unread') return resources.filter((r) => !r.isRead)
+    if (activeFilter === 'read') return resources.filter((r) => r.isRead)
+    return resources
+  }, [resources, activeFilter])
 
   const fetchResourcesPage = async (currentCursor: Cursor | null) => {
     const supabase = getSupabaseBrowserClient()
@@ -380,6 +388,25 @@ export function Home() {
           ) : null}
         </div>
 
+        {resources.length > 0 ? (
+          <div style={homeStyles.filterRow}>
+            {([
+              { key: 'all',    label: `Todos (${resources.length})` },
+              { key: 'unread', label: `Sin leer (${unreadCount})` },
+              { key: 'read',   label: `Leídos (${readCount})` }
+            ] as const).map((btn) => (
+              <button
+                key={btn.key}
+                type="button"
+                onClick={() => setActiveFilter(btn.key)}
+                style={activeFilter === btn.key ? homeStyles.filterButtonActive : homeStyles.filterButton}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {resources.length === 0 && !error ? (
           <section style={homeStyles.emptyState}>
             <h2 style={homeStyles.emptyTitle}>Aún no tienes recursos</h2>
@@ -394,15 +421,16 @@ export function Home() {
 
         {error ? <p style={homeStyles.errorText}>{error}</p> : null}
 
-        {resources.length > 0 ? (
-          <div style={homeStyles.sectionHeader}>
-            <h2 style={homeStyles.sectionTitle}>Tus recursos</h2>
-            <p style={homeStyles.sectionSubtitle}>Aquí encontrarás los enlaces que aún no has visto.</p>
-          </div>
+        {filteredResources.length === 0 && resources.length > 0 ? (
+          <section style={homeStyles.emptyState}>
+            <p style={homeStyles.emptyText}>
+              {activeFilter === 'unread' ? 'No tienes recursos sin leer. ¡Buen trabajo!' : 'No tienes recursos leídos todavía.'}
+            </p>
+          </section>
         ) : null}
 
         <section style={homeStyles.list} className='home-resource-grid'>
-          {resources.map((resource) => (
+          {filteredResources.map((resource) => (
             <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <ResourceCard
                 id={resource.id}

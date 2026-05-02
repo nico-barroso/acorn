@@ -16,7 +16,7 @@ export const folderCardStyles = {
   left: {
     width: '164px',
     flexShrink: 0,
-    background: 'linear-gradient(160deg, #C96B50 0%, #7A2E1C 100%)',
+    background: 'linear-gradient(158deg, #D4A090 0%, #B06A54 52%, #8C4232 100%)',
     position: 'relative' as const,
     display: 'flex',
     alignItems: 'center',
@@ -26,7 +26,7 @@ export const folderCardStyles = {
     position: 'absolute' as const,
     inset: 0,
     backgroundImage:
-      'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.10) 0%, transparent 60%)',
+      'radial-gradient(ellipse 80% 60% at 28% 22%, rgba(255,255,255,0.22) 0%, transparent 58%), radial-gradient(ellipse 50% 40% at 75% 80%, rgba(0,0,0,0.18) 0%, transparent 65%)',
     pointerEvents: 'none' as const
   },
   leftFade: {

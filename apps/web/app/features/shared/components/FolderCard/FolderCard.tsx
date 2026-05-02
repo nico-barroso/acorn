@@ -48,7 +48,7 @@ export function FolderCard({
       onMouseLeave={() => setHovered(false)}
     >
       {/* Left gradient panel */}
-      <div style={s.left}>
+      <div style={s.left} className="folder-left">
         <div style={s.leftGlow} />
         <FolderIcon />
 

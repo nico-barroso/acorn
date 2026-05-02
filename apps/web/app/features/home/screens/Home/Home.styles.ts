@@ -129,6 +129,41 @@ export const homeStyles = {
     flexShrink: 0
   },
 
+  // ─── Filters ──────────────────────────────────────────────
+  filterRow: {
+    display: 'flex',
+    gap: '8px',
+    justifyContent: 'center',
+    flexWrap: 'wrap' as const
+  },
+  filterButton: {
+    padding: '7px 16px',
+    borderRadius: '999px',
+    border: `1px solid rgba(67,40,28,0.13)`,
+    backgroundColor: colors.white,
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    transition: 'all 0.15s ease',
+    flexShrink: 0
+  },
+  filterButtonActive: {
+    padding: '7px 16px',
+    borderRadius: '999px',
+    border: `1px solid rgba(161,77,54,0.27)`,
+    backgroundColor: `rgba(161,77,54,0.09)`,
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    flexShrink: 0
+  },
+
   // ─── Section ──────────────────────────────────────────────
   sectionHeader: {
     display: 'flex',
