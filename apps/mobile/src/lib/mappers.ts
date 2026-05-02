@@ -83,6 +83,7 @@ export function mapFolderResource(row: ResourceRow, tagColorMap: Map<string, str
     domain: row.domain ?? undefined,
     tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
     savedDate: formatSavedDate(row.created_at),
+    createdAt: row.created_at,
     status: row.is_read ? 'Visto' : 'No visto',
     isRead: Boolean(row.is_read),
     url: fileUrl,

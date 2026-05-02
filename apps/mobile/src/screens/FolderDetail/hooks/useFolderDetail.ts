@@ -15,6 +15,71 @@ type SmartRuleRow = {
   is_negated: boolean | null;
 };
 
+function slugify(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function evalStringOp(actual: string | null | undefined, op: string, expected: string | string[]): boolean {
+  const a = (actual ?? '').toLowerCase();
+  const e = Array.isArray(expected) ? expected.map((v) => v.toLowerCase()) : expected.toLowerCase();
+  switch (op) {
+    case 'equals': return a === e;
+    case 'not_equals': return a !== e;
+    case 'contains': return a.includes(e as string);
+    case 'starts_with': return a.startsWith(e as string);
+    case 'ends_with': return a.endsWith(e as string);
+    case 'in': return (e as string[]).includes(a);
+    case 'not_in': return !(e as string[]).includes(a);
+    default: return false;
+  }
+}
+
+function evalTagOp(tagNames: string[], op: string, expected: string | string[]): boolean {
+  const tagSlugs = tagNames.map(slugify);
+  const vals = (Array.isArray(expected) ? expected : [expected]).map((v) => v.toLowerCase());
+  switch (op) {
+    case 'equals':
+    case 'contains':
+    case 'in':
+      return vals.some((v) => tagNames.some((n) => n.toLowerCase() === v) || tagSlugs.includes(v));
+    case 'all_in':
+      return vals.every((v) => tagNames.some((n) => n.toLowerCase() === v) || tagSlugs.includes(v));
+    case 'not_equals':
+    case 'not_contains':
+    case 'not_in':
+      return !vals.some((v) => tagNames.some((n) => n.toLowerCase() === v) || tagSlugs.includes(v));
+    default:
+      return false;
+  }
+}
+
+function evalDateOp(isoDate: string, op: string, expected: unknown): boolean {
+  const actual = new Date(isoDate).getTime();
+  if (typeof expected === 'string' || typeof expected === 'number') {
+    const exp = new Date(expected as string).getTime();
+    switch (op) {
+      case 'equals': return actual === exp;
+      case 'gt': return actual > exp;
+      case 'gte': return actual >= exp;
+      case 'lt': return actual < exp;
+      case 'lte': return actual <= exp;
+    }
+  }
+  if (op === 'between' && Array.isArray(expected) && expected.length === 2) {
+    const [from, to] = (expected as string[]).map((d) => new Date(d).getTime());
+    return actual >= from && actual <= to;
+  }
+  return false;
+}
+
 function applySmartRules(
   items: FolderResource[],
   rules: SmartRuleRow[],
@@ -24,16 +89,23 @@ function applySmartRules(
 
   return items.filter((item) => {
     const results = rules.map((rule) => {
-      const ruleValue =
-        typeof rule.value === 'string' ? rule.value : String(rule.value ?? '');
+      const field = rule.field.toLowerCase();
+      const op = (rule.operator ?? 'equals').toLowerCase();
+      const val = rule.value;
+      const strVal = typeof val === 'string' ? val : String(val ?? '');
 
       let matches = false;
-      if (rule.field === 'tag') {
-        matches = item.tags.some((t) => t.name === ruleValue);
-      } else if (rule.field === 'domain') {
-        matches = Boolean(
-          item.domain && item.domain.toLowerCase() === ruleValue.toLowerCase(),
-        );
+
+      if (field === 'domain') {
+        matches = evalStringOp(item.domain, op, Array.isArray(val) ? (val as string[]) : strVal);
+      } else if (field === 'tag' || field === 'tag_slug' || field === 'tags' || field === 'tag_name') {
+        const tagNames = item.tags.map((t) => t.name);
+        matches = evalTagOp(tagNames, op, Array.isArray(val) ? (val as string[]) : strVal);
+      } else if (field === 'is_read' || field === 'status' || field === 'visto') {
+        const boolVal = typeof val === 'boolean' ? val : ['true', '1', 'yes', 'visto', 'read'].includes(strVal.toLowerCase());
+        matches = op === 'not_equals' ? item.isRead !== boolVal : item.isRead === boolVal;
+      } else if (field === 'created_at' || field === 'date') {
+        matches = evalDateOp(item.createdAt, op, val);
       }
 
       return rule.is_negated ? !matches : matches;

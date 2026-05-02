@@ -8,6 +8,7 @@ export type FolderResource = {
   domain?: string;
   tags: TagItem[];
   savedDate: string;
+  createdAt: string;
   status: 'Visto' | 'No visto';
   url?: string;
   thumbnailUri?: string;
