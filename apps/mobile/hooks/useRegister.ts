@@ -27,6 +27,8 @@ function getRegisterErrorMessage(message: string) {
   return 'No se pudo completar el registro. Intentalo de nuevo.';
 }
 
+const COOLDOWN_MS = 3000;
+
 export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -35,6 +37,7 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
   function validate(): boolean {
     const newErrors: FormErrors = {};
@@ -89,6 +92,8 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
     if (error) {
       setLoading(false);
       setErrors({ general: getRegisterErrorMessage(error.message) });
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), COOLDOWN_MS);
       return;
     }
 
@@ -112,6 +117,8 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
 
     setLoading(false);
     setRegistered(true);
+    setCooldown(true);
+    setTimeout(() => setCooldown(false), COOLDOWN_MS);
     setPassword('');
     setConfirmPassword('');
   }
@@ -127,6 +134,7 @@ export function useRegister({ onSuccess }: UseRegisterOptions = {}) {
     setConfirmPassword,
     errors,
     loading,
+    cooldown,
     registered,
     handleRegister,
   };

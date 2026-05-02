@@ -13,7 +13,7 @@ type ForgotPasswordScreenProps = {
 };
 
 export default function ForgotPasswordScreen({ onGoToLogin }: ForgotPasswordScreenProps) {
-  const { email, setEmail, errors, loading, sent, handleSendRecovery } =
+  const { email, setEmail, errors, loading, sent, cooldown, handleSendRecovery } =
     usePasswordRecoveryRequest();
 
   return (
@@ -42,7 +42,7 @@ export default function ForgotPasswordScreen({ onGoToLogin }: ForgotPasswordScre
         <Button
           label={loading ? 'Enviando enlace...' : 'Enviar enlace de recuperacion'}
           onPress={handleSendRecovery}
-          disabled={loading}
+          disabled={loading || cooldown}
         />
 
         <TouchableOpacity onPress={onGoToLogin} disabled={loading}>

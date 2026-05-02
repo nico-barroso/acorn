@@ -27,6 +27,7 @@ export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: Regis
     setConfirmPassword,
     errors,
     loading,
+    cooldown,
     registered,
     handleRegister,
   } = useRegister({ onSuccess: onRegisterSuccess });
@@ -36,7 +37,7 @@ export default function RegisterScreen({ onRegisterSuccess, onGoToLogin }: Regis
     handleGoogleSignIn,
   } = useGoogleOAuth();
 
-  const isSubmitting = loading || oauthLoading;
+  const isSubmitting = loading || oauthLoading || cooldown;
 
   return (
     <SafeAreaView style={styles.safeArea}>

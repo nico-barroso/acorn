@@ -8,11 +8,14 @@ type FormErrors = {
   general?: string;
 };
 
+const COOLDOWN_MS = 3000;
+
 export function useLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
   function validate(): boolean {
     const newErrors: FormErrors = {};
@@ -51,6 +54,8 @@ export function useLogin() {
       } else {
         setErrors({ general: 'Email o contraseña incorrectos' });
       }
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), COOLDOWN_MS);
       return;
     }
 
@@ -63,6 +68,7 @@ export function useLogin() {
     setPassword,
     errors,
     loading,
+    cooldown,
     handleLogin,
   };
 }

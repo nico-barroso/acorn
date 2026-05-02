@@ -18,10 +18,10 @@ type LoginScreenProps = {
 };
 
 export default function LoginScreen({ onGoToRegister, onGoToForgotPassword }: LoginScreenProps) {
-  const { email, setEmail, password, setPassword, errors, loading, handleLogin } = useLogin();
+  const { email, setEmail, password, setPassword, errors, loading, cooldown, handleLogin } = useLogin();
   const { loading: oauthLoading, error: oauthError, handleGoogleSignIn } = useGoogleOAuth();
 
-  const isSubmitting = loading || oauthLoading;
+  const isSubmitting = loading || oauthLoading || cooldown;
 
   return (
     <SafeAreaView style={styles.safeArea}>
