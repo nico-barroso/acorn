@@ -1,4 +1,0 @@
-node_modules
-.vercel
-.env*.local
-apps/mobile/.claude/settings.local.json

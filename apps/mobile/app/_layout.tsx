@@ -58,24 +58,6 @@ function AuthGate() {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
-    const exchangeSessionFromUrl = async (url: string) => {
-      if (!url.includes('reset-password')) return;
-      const { error } = await supabase.auth.exchangeCodeForSession(url);
-      if (error) console.warn('[AuthGate] exchangeCodeForSession error:', error);
-    };
-
-    Linking.getInitialURL().then((url) => {
-      if (url) void exchangeSessionFromUrl(url);
-    });
-
-    const sub = Linking.addEventListener('url', ({ url }) => {
-      void exchangeSessionFromUrl(url);
-    });
-
-    return () => sub.remove();
-  }, []);
-
-  useEffect(() => {
     let mounted = true;
 
     if (!supabase) {
@@ -83,11 +65,31 @@ function AuthGate() {
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setInitialized(true);
-    });
+    const exchangeSessionFromUrl = async (url: string) => {
+      const fragment = url.split('#')[1] ?? '';
+      const params = new URLSearchParams(fragment);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const type = params.get('type');
+
+      if (!accessToken || !refreshToken) return;
+
+      console.log('[AuthGate] deep link url:', url, 'type:', type);
+
+      // Marcar recovery ANTES de setSession para que cuando llegue SIGNED_IN
+      // la navegación vaya a reset-password en vez de al app
+      if (type === 'recovery') {
+        setIsPasswordRecovery(true);
+      }
+
+      const { data, error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      if (error) {
+        console.error('[AuthGate] setSession error:', error.message, 'status:', error.status);
+        if (type === 'recovery') setIsPasswordRecovery(false);
+      } else {
+        console.log('[AuthGate] setSession success, user:', data.session?.user?.id);
+      }
+    };
 
     const {
       data: { subscription },
@@ -111,9 +113,26 @@ function AuthGate() {
       setInitialized(true);
     });
 
+    // getSession primero para que Supabase cargue el code verifier PKCE de AsyncStorage
+    // antes de intentar exchangeCodeForSession con la URL inicial
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      setInitialized(true);
+
+      const url = await Linking.getInitialURL();
+      console.log('[AuthGate] initialURL:', url);
+      if (url) void exchangeSessionFromUrl(url);
+    });
+
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      void exchangeSessionFromUrl(url);
+    });
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      sub.remove();
     };
   }, []);
 
