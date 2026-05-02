@@ -47,3 +47,5 @@ yarn-error.*
 
 /components/
 /App.tsx
+.claude/
+AUDIT.md
