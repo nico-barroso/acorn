@@ -141,10 +141,6 @@ export const styles = StyleSheet.create({
     gap: 4,
     marginLeft: 'auto',
   },
-  copyUrlIcon: {
-    fontSize: 14,
-    color: colors.brown,
-  },
   copyUrlText: {
     fontFamily: 'Satoshi-Regular',
     fontSize: 14,

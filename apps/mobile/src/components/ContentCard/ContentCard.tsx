@@ -16,11 +16,13 @@ import {
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
+import * as Clipboard from 'expo-clipboard';
 import { supabase } from '../../../lib/supabase';
 import { styles } from './ContentCard.styles';
 import { Button } from '../Button/Button';
 import { Tag } from '../Tag/Tag';
 import FileIcon from '../../../assets/icons/file-icon.svg';
+import CopyUrlIcon from '../../../assets/icons/copy-url-icon.svg';
 
 type TagItem = { name: string; color_hex: string | null };
 
@@ -60,6 +62,7 @@ export function ContentCard({
   onTagsPress,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [tagsVisible, setTagsVisible] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);
   const [faviconStage, setFaviconStage] = useState<'primary' | 'fallback' | 'none'>('primary');
@@ -112,8 +115,11 @@ export function ContentCard({
     }
   };
 
-  const handleCopyUrl = () => {
-    console.log('Copiar URL:', url);
+  const handleCopyUrl = async () => {
+    if (!url) return;
+    await Clipboard.setStringAsync(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleOpenUrl = async () => {
@@ -230,8 +236,8 @@ export function ContentCard({
             <Text style={styles.metaLabel}>Guardado:</Text>
             <Text style={styles.metaValue}>{savedDate}</Text>
             <TouchableOpacity style={styles.copyUrlButton} onPress={handleCopyUrl} activeOpacity={0.7}>
-              <Text style={styles.copyUrlIcon}>⧉</Text>
-              <Text style={styles.copyUrlText}>Copiar URL</Text>
+              <CopyUrlIcon width={17} height={17} />
+              <Text style={styles.copyUrlText}>{copied ? '¡Enlace copiado!' : 'Copiar URL'}</Text>
             </TouchableOpacity>
           </View>
           <Button label="Abrir enlace original" onPress={handleOpenUrl} />
