@@ -35,6 +35,7 @@
 
   a {
     color: inherit;
+    cursor: pointer;
   }
 
   button:focus-visible,
