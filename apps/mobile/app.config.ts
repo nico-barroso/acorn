@@ -10,11 +10,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './assets/config/icon.png',
   userInterfaceStyle: 'light',
   scheme: 'acorn',
-  splash: {
-    image: './assets/config/splash.png',
-    resizeMode: 'cover',
-    backgroundColor: '#FFFCFB',
-  },
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.nicobarroso.acorn',
@@ -36,6 +31,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-dev-client',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#FFFCFB',
+        image: './assets/config/splash.png',
+        resizeMode: 'contain',
+      },
+    ],
     'expo-web-browser',
     [
       'expo-image-picker',
