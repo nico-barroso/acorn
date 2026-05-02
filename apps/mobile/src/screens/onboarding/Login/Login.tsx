@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
-import { useLogin } from '@/hooks/useLogin';
+import { useLogin } from './useLogin';
 import { Button } from '@/components/Button/Button';
 import { Input } from '@/components/Input/Input';
 import { styles } from './Login.styles';

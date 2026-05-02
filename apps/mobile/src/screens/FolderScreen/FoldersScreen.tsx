@@ -15,7 +15,7 @@ import { EditFolderModal } from './components/EditFolderModal/EditFolderModal';
 import { useNavBarHeight } from '@/context/NavBarHeightContext';
 import { SkeletonFolder } from '@/components/SkeletonFolder/SkeletonFolder';
 import type { FolderData } from './FoldersScreen.types';
-import FolderDecoration from '@/assets/svg/folder-decoration.svg';
+import FolderDecoration from './assets/folder-decoration.svg';
 
 type FoldersScreenProps = {
   folders: FolderData[];

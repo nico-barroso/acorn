@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, Vie
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
-import { useRegister } from '@/hooks/useRegister';
+import { useRegister } from './useRegister';
 import { Button } from '@/components/Button/Button';
 import { Input } from '@/components/Input/Input';
 import { styles } from './Register.styles';

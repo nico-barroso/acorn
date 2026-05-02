@@ -112,7 +112,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
         </Text>
         <View style={styles.emptyImageContainer}>
           <Image
-            source={require('@/assets/search-empty-drawing.png')}
+            source={require('./assets/search-empty-drawing.png')}
             style={styles.emptyImage}
           />
         </View>

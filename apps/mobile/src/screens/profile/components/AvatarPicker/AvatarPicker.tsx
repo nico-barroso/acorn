@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { styles } from './AvatarPicker.styles';
-import EditAvatarIcon from '@/assets/icons/change-avatar.svg';
+import EditAvatarIcon from '../../assets/change-avatar.svg';
 
 const defaultAvatar = require('@/assets/default-avatar.png');
 

@@ -21,7 +21,7 @@ import { ItemDetail } from '@/screens/ItemDetail/ItemDetail';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { styles } from './Home.styles';
-import AcornEmpty from '@/assets/svg/acorn-empty-state.svg';
+import AcornEmpty from './assets/acorn-empty-state.svg';
 import { ContentCardData } from './Home.types';
 import { HomeHeader } from './components/HomeHeader/HomeHeader';
 import { useNavBarHeight } from '@/context/NavBarHeightContext';
@@ -324,7 +324,7 @@ export default function HomeScreen({
         }
       />
       <ImageBackground
-        source={require('@/assets/bottom-home-noise-gradient.webp')}
+        source={require('./assets/bottom-home-noise-gradient.webp')}
         style={styles.bottomGradient}
         imageStyle={styles.bottomGradientImage}
       />
