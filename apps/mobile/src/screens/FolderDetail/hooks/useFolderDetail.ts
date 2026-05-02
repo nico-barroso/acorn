@@ -85,7 +85,7 @@ function applySmartRules(
   rules: SmartRuleRow[],
   logic: string,
 ): FolderResource[] {
-  if (rules.length === 0) return items;
+  if (rules.length === 0) return [];
 
   return items.filter((item) => {
     const results = rules.map((rule) => {

@@ -239,7 +239,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
 
       <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Animated.View
-          style={[styles.sheet, { transform: [{ translateY }] }]}
+          style={[styles.sheet, { transform: [{ translateY }], minHeight: managementOpen ? SCREEN_HEIGHT * 0.9 : '55%' }]}
           onStartShouldSetResponder={() => true}
         >
           <View style={styles.handleContainer} {...panResponder.panHandlers}>
