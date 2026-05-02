@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { authShellStyles } from './AuthShell.styles'
 
 type AuthShellProps = {
-  badge: string
+  badge?: string
   title: string
   subtitle: string
   footerLabel: string
@@ -26,9 +26,12 @@ export function AuthShell({
   return (
     <main style={authShellStyles.page}>
       <section style={authShellStyles.card}>
-        <span style={authShellStyles.badge}>{badge}</span>
-        <h1 style={authShellStyles.title}>{title}</h1>
-        <p style={authShellStyles.subtitle}>{subtitle}</p>
+        <div style={authShellStyles.header}>
+          <img src='/acorn-logo.svg' alt='Acorn' style={authShellStyles.logo} />
+          {badge ? <span style={authShellStyles.badge}>{badge}</span> : null}
+          <h1 style={authShellStyles.title}>{title}</h1>
+          <p style={authShellStyles.subtitle}>{subtitle}</p>
+        </div>
 
         <div style={authShellStyles.body}>{children}</div>
 

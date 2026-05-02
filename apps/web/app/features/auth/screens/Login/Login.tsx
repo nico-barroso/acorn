@@ -151,8 +151,7 @@ export function Login() {
   if (sessionLoading) {
     return (
       <AuthShell
-        badge='Acceso'
-        title='Bienvenida de nuevo'
+        title='¡Qué alegría verte!'
         subtitle='Comprobando tu sesión...'
         footerLabel='¿No tienes cuenta?'
         footerLinkHref='/register'
@@ -165,18 +164,17 @@ export function Login() {
 
   return (
     <AuthShell
-      badge='Acceso'
-      title='Bienvenida de nuevo'
-      subtitle='Inicia sesión con email y contraseña o continúa con Google.'
+      title='¡Qué alegría verte!'
+      subtitle='Inicia sesión con tu email o continúa con Google.'
       footerLabel='¿No tienes cuenta?'
       footerLinkHref='/register'
       footerLinkLabel='Regístrate'
       errorMessage={errorMessage}
     >
-      <form style={loginStyles.fieldGroup} onSubmit={handleSubmit}>
+      <form style={loginStyles.form} onSubmit={handleSubmit}>
         <div style={loginStyles.fieldGroup}>
           <label htmlFor='login-email' style={loginStyles.label}>
-            Email
+            Correo electrónico
           </label>
           <input
             id='login-email'
@@ -226,6 +224,10 @@ export function Login() {
           ) : null}
         </div>
 
+        <Link href='/forgot-password' style={loginStyles.forgotLink}>
+          He olvidado mi contraseña
+        </Link>
+
         <button
           type='submit'
           disabled={isAnyLoading}
@@ -240,21 +242,11 @@ export function Login() {
 
       <div style={loginStyles.dividerRow}>
         <span style={loginStyles.dividerLine} />
-        <p style={loginStyles.dividerText}>o</p>
+        <p style={loginStyles.dividerText}>o continúa con</p>
         <span style={loginStyles.dividerLine} />
       </div>
 
       <GoogleOAuthButton loading={googleLoginLoading} onClick={handleGoogleOAuth} />
-
-      {!isAnyLoading ? (
-        <Link href='/forgot-password' style={loginStyles.forgotLink}>
-          ¿Has olvidado tu contraseña?
-        </Link>
-      ) : null}
-
-      <p style={loginStyles.helperText}>
-        Gestionamos la sesión con Supabase Auth y redirigimos automáticamente al Home tras iniciar sesión.
-      </p>
     </AuthShell>
   )
 }

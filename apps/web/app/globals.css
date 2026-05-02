@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'CabinetGrotesk';
+  src: url('/fonts/CabinetGrotesk-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -15,7 +29,8 @@
 
   body {
     min-height: 100vh;
-    background: radial-gradient(circle at 15% 20%, #fff7f4 0%, #fffcfb 45%, #f8ede8 100%);
+    background-color: #FFFCFB;
+    background-image: radial-gradient(ellipse 140% 65% at 50% 100%, rgba(192, 110, 82, 0.55) 0%, rgba(248, 237, 232, 0.25) 55%, rgba(255, 252, 251, 0) 100%);
   }
 
   a {
