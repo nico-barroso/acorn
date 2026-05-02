@@ -2,6 +2,10 @@ import { colors } from '@/theme/colors'
 import { fonts } from '@/theme/fonts'
 
 export const forgotPasswordStyles = {
+  form: {
+    display: 'grid',
+    gap: '16px'
+  },
   fieldGroup: {
     display: 'grid',
     gap: '6px'
@@ -9,7 +13,7 @@ export const forgotPasswordStyles = {
   label: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold
   },
@@ -21,7 +25,7 @@ export const forgotPasswordStyles = {
     padding: '0 14px',
     color: colors.black,
     backgroundColor: colors.white,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md,
     lineHeight: fonts.lineHeight.normal
   },
@@ -31,7 +35,7 @@ export const forgotPasswordStyles = {
   fieldError: {
     margin: 0,
     color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm
   },
   submitButton: {
@@ -42,9 +46,10 @@ export const forgotPasswordStyles = {
     backgroundColor: colors.salmon,
     color: colors.white,
     cursor: 'pointer',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md,
-    fontWeight: fonts.weight.semibold
+    fontWeight: fonts.weight.semibold,
+    textAlign: 'center' as const
   },
   submitButtonDisabled: {
     opacity: 0.7,
@@ -57,14 +62,7 @@ export const forgotPasswordStyles = {
     border: '1px solid #b8e4c2',
     borderRadius: '12px',
     padding: '10px 12px',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
-  },
-  helperText: {
-    margin: 0,
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     lineHeight: fonts.lineHeight.normal
   }

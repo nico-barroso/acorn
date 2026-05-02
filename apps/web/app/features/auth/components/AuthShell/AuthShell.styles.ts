@@ -13,7 +13,7 @@ export const authShellStyles = {
     maxWidth: '460px',
     borderRadius: 'clamp(16px, 4vw, 24px)',
     padding: 'clamp(18px, 5vw, 36px) clamp(14px, 4vw, 28px)',
-    backgroundColor: colors.white,
+    background: `linear-gradient(to bottom, rgba(192, 110, 82, 0.18) 0%, ${colors.white} 50%)`,
     border: `1px solid ${colors.brown}22`,
     boxShadow: '0 18px 55px rgba(67, 40, 28, 0.12)'
   },

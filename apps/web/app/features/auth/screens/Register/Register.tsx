@@ -71,17 +71,17 @@ export function Register() {
       setEmailError('El email es obligatorio.')
       valid = false
     } else if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
-      setEmailError('Introduce un email valido.')
+      setEmailError('Introduce un email válido.')
       valid = false
     }
 
     if (password.length < 8) {
-      setPasswordError('La contrasena debe tener al menos 8 caracteres.')
+      setPasswordError('La contraseña debe tener al menos 8 caracteres.')
       valid = false
     }
 
     if (confirmPassword !== password) {
-      setConfirmPasswordError('Las contrasenas no coinciden.')
+      setConfirmPasswordError('Las contraseñas no coinciden.')
       valid = false
     }
 
@@ -109,7 +109,7 @@ export function Register() {
     setLoading(false)
 
     if (error) {
-      setErrorMessage('No se pudo completar el registro. Revisa los datos e intentalo de nuevo.')
+      setErrorMessage('No se pudo completar el registro. Revisa los datos e inténtalo de nuevo.')
       return
     }
 
@@ -118,7 +118,7 @@ export function Register() {
       return
     }
 
-    setSuccessMessage('Cuenta creada. Revisa tu correo para confirmar y despues inicia sesion.')
+    setSuccessMessage('Cuenta creada. Revisa tu correo para confirmar y después inicia sesión.')
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -141,39 +141,37 @@ export function Register() {
 
     if (error) {
       setLoading(false)
-      setErrorMessage('No se pudo completar el registro con Google. Intentalo otra vez.')
+      setErrorMessage('No se pudo completar el registro con Google. Inténtalo otra vez.')
     }
   }
 
   if (sessionLoading) {
     return (
       <AuthShell
-        badge='Registro'
-        title='Crea tu cuenta en segundos'
-        subtitle='Comprobando tu sesion...'
-        footerLabel='Ya tienes cuenta?'
+        title='Crea tu cuenta'
+        subtitle='Comprobando tu sesión...'
+        footerLabel='¿Ya tienes cuenta?'
         footerLinkHref='/login'
-        footerLinkLabel='Iniciar sesion'
+        footerLinkLabel='Iniciar sesión'
       >
-        <p style={registerStyles.helperText}>Un momento, estamos preparando el alta.</p>
+        <p>Un momento, estamos preparando el alta.</p>
       </AuthShell>
     )
   }
 
   return (
     <AuthShell
-      badge='Registro'
-      title='Crea tu cuenta en segundos'
-      subtitle='Registrate con email y contrasena o continua con Google.'
-      footerLabel='Ya tienes cuenta?'
+      title='Crea tu cuenta'
+      subtitle='Regístrate con email y contraseña o continúa con Google.'
+      footerLabel='¿Ya tienes cuenta?'
       footerLinkHref='/login'
-      footerLinkLabel='Iniciar sesion'
+      footerLinkLabel='Iniciar sesión'
       errorMessage={errorMessage}
     >
-      <form style={registerStyles.fieldGroup} onSubmit={handleSubmit}>
+      <form style={registerStyles.form} onSubmit={handleSubmit}>
         <div style={registerStyles.fieldGroup}>
           <label htmlFor='register-email' style={registerStyles.label}>
-            Email
+            Correo electrónico
           </label>
           <input
             id='register-email'
@@ -198,12 +196,12 @@ export function Register() {
 
         <div style={registerStyles.fieldGroup}>
           <label htmlFor='register-password' style={registerStyles.label}>
-            Contrasena
+            Contraseña
           </label>
           <input
             id='register-password'
             type='password'
-            placeholder='Minimo 8 caracteres'
+            placeholder='Mínimo 8 caracteres'
             value={password}
             autoComplete='new-password'
             onChange={(event) => setPassword(event.target.value)}
@@ -223,12 +221,12 @@ export function Register() {
 
         <div style={registerStyles.fieldGroup}>
           <label htmlFor='register-password-confirm' style={registerStyles.label}>
-            Confirmar contrasena
+            Confirmar contraseña
           </label>
           <input
             id='register-password-confirm'
             type='password'
-            placeholder='Repite tu contrasena'
+            placeholder='Repite tu contraseña'
             value={confirmPassword}
             autoComplete='new-password'
             onChange={(event) => setConfirmPassword(event.target.value)}
@@ -258,16 +256,17 @@ export function Register() {
         </button>
       </form>
 
-      {successMessage ? <p style={registerStyles.helperText}>{successMessage}</p> : null}
+      {successMessage ? (
+        <p style={registerStyles.successText}>{successMessage}</p>
+      ) : null}
 
       <div style={registerStyles.dividerRow}>
         <span style={registerStyles.dividerLine} />
-        <p style={registerStyles.dividerText}>o</p>
+        <p style={registerStyles.dividerText}>o continúa con</p>
         <span style={registerStyles.dividerLine} />
       </div>
 
       <GoogleOAuthButton loading={loading} onClick={handleGoogleOAuth} />
-      <p style={registerStyles.helperText}>Puedes usar tambien Google para registrarte en un solo paso.</p>
     </AuthShell>
   )
 }
