@@ -56,7 +56,7 @@ export default function ProfileScreen({
   });
 
   const { data: avatarUrl } = useQuery({
-    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryKey: [...queryKeys.avatarUrl(userId ?? ''), profileData?.avatar_url ?? ''],
     queryFn: async () => {
       if (!profileData?.avatar_url) return null;
       const { data: signed } = await supabase.storage

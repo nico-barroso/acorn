@@ -65,7 +65,7 @@ export function useEditProfile() {
 
   // Avatar signed URL query — separate key so it can be invalidated independently
   const { data: cachedAvatarUrl } = useQuery({
-    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryKey: [...queryKeys.avatarUrl(userId ?? ''), profileData?.avatar_url ?? ''],
     queryFn: () => getSignedAvatarUrl(profileData!.avatar_url!),
     enabled: Boolean(userId) && Boolean(profileData?.avatar_url),
     staleTime: 50 * 60 * 1000,
@@ -139,15 +139,9 @@ export function useEditProfile() {
 
       const trimmedEmail = email.trim();
       const emailChanged = trimmedEmail !== sessionEmail;
-      console.log('[handleSave] sessionEmail:', sessionEmail);
-      console.log('[handleSave] newEmail:', trimmedEmail);
-      console.log('[handleSave] emailChanged:', emailChanged);
 
       if (emailChanged) {
-        console.log('[handleSave] Llamando a supabase.auth.updateUser...');
-        const { data: updateData, error: emailError } = await supabase.auth.updateUser({ email: trimmedEmail });
-        console.log('[handleSave] updateUser data:', JSON.stringify(updateData));
-        console.log('[handleSave] updateUser error:', JSON.stringify(emailError));
+        const { error: emailError } = await supabase.auth.updateUser({ email: trimmedEmail });
         if (emailError) {
           setErrors({ email: 'No se pudo actualizar el correo. Inténtalo de nuevo.' });
           setLoading(false);
