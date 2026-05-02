@@ -9,6 +9,7 @@ import { useProfile } from '@/features/profile/hooks/useProfile'
 import { ResourceCard, type TagItem } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 
 type ResourceRow = {
   id: string
@@ -341,7 +342,7 @@ export function Home() {
   if (loading) {
     return (
       <main style={homeStyles.page}>
-        <p style={homeStyles.loading}>Cargando...</p>
+        <AcornLoader />
       </main>
     )
   }

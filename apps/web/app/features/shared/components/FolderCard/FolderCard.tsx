@@ -171,7 +171,7 @@ function FolderOptionsMenu({ onRename, onDelete, onDismiss }: FolderOptionsMenuP
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${colors.brown}08` }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
         >
-          Renombrar
+          Editar
         </button>
         <button
           type='button'

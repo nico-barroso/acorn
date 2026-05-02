@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FolderCard } from '@/features/shared/components/FolderCard/FolderCard'
 import { useFolders } from '../../hooks/useFolders'
-import { RenameFolderModal } from '../../components/RenameFolderModal/RenameFolderModal'
 import { SmartFolderBuilder } from '../../components/SmartFolderBuilder/SmartFolderBuilder'
 import { foldersScreenStyles as s } from './FoldersScreen.styles'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 
 export function FoldersScreen() {
   const router = useRouter()
@@ -14,15 +14,13 @@ export function FoldersScreen() {
     folders,
     loading,
     error,
-    renamingFolder,
-    setRenamingFolder,
     deletingFolderId,
-    renameFolder,
     deleteFolder,
     fetchFolders
   } = useFolders()
 
   const [showSmartBuilder, setShowSmartBuilder] = useState(false)
+  const [editingFolder, setEditingFolder] = useState<{ id: string; name: string; description: string | null } | null>(null)
 
   const handleFolderClick = (folderId: string) => {
     router.push(`/folders/${folderId}`)
@@ -67,7 +65,7 @@ export function FoldersScreen() {
 
       {/* ── Content ────────────────────────────────────────── */}
       {loading ? (
-        <p style={s.loading}>Cargando carpetas...</p>
+        <AcornLoader label="Cargando carpetas" />
       ) : error ? (
         <p style={s.errorText}>{error}</p>
       ) : folders.length === 0 ? (
@@ -97,21 +95,20 @@ export function FoldersScreen() {
               isDeleting={deletingFolderId === folder.id}
               ruleCount={folder.ruleCount}
               onClick={() => handleFolderClick(folder.id)}
-              onRename={() => setRenamingFolder(folder)}
+              onRename={() => setEditingFolder({ id: folder.id, name: folder.name, description: folder.description ?? null })}
               onDelete={() => handleDelete(folder.id)}
             />
           ))}
         </section>
       )}
 
-      {renamingFolder ? (
-        <RenameFolderModal
-          currentName={renamingFolder.name}
-          onClose={() => setRenamingFolder(null)}
-          onRename={async (newName) => {
-            const success = await renameFolder(renamingFolder.id, newName)
-            if (success) setRenamingFolder(null)
-            return success
+      {editingFolder ? (
+        <SmartFolderBuilder
+          editingFolder={editingFolder}
+          onClose={() => setEditingFolder(null)}
+          onSaved={() => {
+            setEditingFolder(null)
+            fetchFolders('silent')
           }}
         />
       ) : null}
@@ -119,7 +116,7 @@ export function FoldersScreen() {
       {showSmartBuilder ? (
         <SmartFolderBuilder
           onClose={() => setShowSmartBuilder(false)}
-          onCreated={() => {
+          onSaved={() => {
             setShowSmartBuilder(false)
             fetchFolders('silent')
           }}

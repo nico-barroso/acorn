@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import Link from 'next/link'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 import { useEditProfile } from '../../hooks/useEditProfile'
 import { editProfileStyles as s } from './EditProfile.styles'
 
@@ -60,7 +61,7 @@ export function EditProfileScreen() {
   if (loading) {
     return (
       <main style={s.page}>
-        <p style={s.loading}>Cargando perfil...</p>
+        <AcornLoader label="Cargando perfil" />
       </main>
     )
   }

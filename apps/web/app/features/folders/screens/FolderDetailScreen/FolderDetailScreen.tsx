@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 import { useFolderDetail } from '../../hooks/useFolderDetail'
 import { ResourceCard } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { useToggleRead } from '@/hooks/useToggleRead'
@@ -61,7 +62,7 @@ export function FolderDetailScreen({ folderId }: FolderDetailScreenProps) {
   if (loading) {
     return (
       <main style={s.page}>
-        <p style={s.loading}>Cargando carpeta...</p>
+        <AcornLoader label="Cargando carpeta" />
       </main>
     )
   }

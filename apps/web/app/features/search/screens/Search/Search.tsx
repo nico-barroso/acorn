@@ -9,6 +9,7 @@ import { highlightText, useSearch } from './hooks/useSearch'
 import type { DateFilterValue, ReadFilterValue, TypeFilterValue } from './hooks/useSearch'
 import { searchStyles } from './Search.styles'
 import { colors } from '@/theme/colors'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 
 // ─── Background gradient ─────────────────────────────────────────────────────
 
@@ -300,7 +301,7 @@ export function Search() {
     return (
       <main style={searchStyles.page}>
         <SearchGradient />
-        <p style={searchStyles.loading}>Cargando...</p>
+        <AcornLoader />
       </main>
     )
   }

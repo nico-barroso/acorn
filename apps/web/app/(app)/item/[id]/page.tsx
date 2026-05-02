@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ItemDetail } from '@/features/item/screens/ItemDetail/ItemDetail'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 
 export default function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   const [itemId, setItemId] = useState<string | null>(null)
@@ -13,7 +14,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
   if (!itemId) {
     return (
       <main style={{ padding: '20px 24px' }}>
-        <p style={{ color: '#48392A' }}>Cargando recurso...</p>
+        <AcornLoader label="Cargando recurso" />
       </main>
     )
   }

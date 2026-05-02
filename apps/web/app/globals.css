@@ -142,6 +142,25 @@
   background-size: 180px 180px;
 }
 
+/* ── AcornLoader animations ── */
+@keyframes acornSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes acornDot {
+  0%, 70%, 100% { opacity: 0.25; transform: translateY(0); }
+  35%            { opacity: 1;    transform: translateY(-3px); }
+}
+.acorn-loader-spin {
+  animation: acornSpin 1s linear infinite;
+  transform-origin: 50% 50%;
+}
+.acorn-loader-dot {
+  display: inline-block;
+  margin-left: 1px;
+  animation: acornDot 1.2s ease-in-out infinite;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
