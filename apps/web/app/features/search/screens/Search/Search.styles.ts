@@ -13,8 +13,8 @@ export const searchStyles = {
     zIndex: 1,
     maxWidth: '680px',
     margin: '0 auto',
-    paddingTop: '24px',
-    paddingBottom: '80px',
+    paddingTop: '36px',
+    paddingBottom: '96px',
   },
 
   // ─── Background gradient (fixed, viewport-wide) — idéntico al home ────────
@@ -48,8 +48,8 @@ export const searchStyles = {
     flexDirection: 'column' as const,
     alignItems: 'center',
     gap: '6px',
-    paddingTop: '40px',
-    paddingBottom: '36px',
+    paddingTop: '52px',
+    paddingBottom: '44px',
     textAlign: 'center' as const,
   },
   title: {
