@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { supabase } from '@lib/supabase';
 import { ShareIntentProvider } from 'expo-share-intent';
-import { Keyboard, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
+import { Keyboard, Linking, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
 import { SessionProvider } from '@context/SessionContext';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -55,6 +55,25 @@ function AuthGate() {
   const segments = useSegments();
   const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+
+  useEffect(() => {
+    const exchangeSessionFromUrl = async (url: string) => {
+      if (!url.includes('reset-password')) return;
+      const { error } = await supabase.auth.exchangeCodeForSession(url);
+      if (error) console.warn('[AuthGate] exchangeCodeForSession error:', error);
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (url) void exchangeSessionFromUrl(url);
+    });
+
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      void exchangeSessionFromUrl(url);
+    });
+
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +96,11 @@ function AuthGate() {
 
       if (event === 'SIGNED_OUT') {
         queryClient.clear();
+        setIsPasswordRecovery(false);
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
       }
 
       if (event === 'SIGNED_IN' && nextSession?.user) {
@@ -96,15 +120,21 @@ function AuthGate() {
   useEffect(() => {
     if (!initialized) return;
     const inAuthGroup = segments[0] === '(auth)';
+
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login');
       return;
     }
 
-    if (session && inAuthGroup) {
+    if (session && isPasswordRecovery) {
+      router.replace('/(auth)/reset-password');
+      return;
+    }
+
+    if (session && inAuthGroup && !isPasswordRecovery) {
       router.replace('/(app)/');
     }
-  }, [initialized, router, segments, session]);
+  }, [initialized, router, segments, session, isPasswordRecovery]);
 
   if (!initialized) {
     return null;
