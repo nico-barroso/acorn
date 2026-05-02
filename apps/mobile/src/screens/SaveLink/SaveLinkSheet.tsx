@@ -114,6 +114,7 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
   const [previewLoading, setPreviewLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [previewFaviconError, setPreviewFaviconError] = useState(false);
+  const [previewOgImageError, setPreviewOgImageError] = useState(false);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -142,6 +143,7 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
 
   useEffect(() => {
     setPreviewFaviconError(false);
+    setPreviewOgImageError(false);
     if (urlValid) {
       triggerPreviewFetch(url.trim());
     } else {
@@ -280,8 +282,8 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
               <View style={styles.previewCard}>
                 <View style={styles.previewRow}>
                   <View style={styles.previewThumbnail}>
-                    {ogImage ? (
-                      <Image source={{ uri: ogImage }} style={styles.previewThumbnailImage} resizeMode="cover" />
+                    {ogImage && !previewOgImageError ? (
+                      <Image source={{ uri: ogImage }} style={styles.previewThumbnailImage} resizeMode="cover" onError={() => setPreviewOgImageError(true)} />
                     ) : previewFaviconUrl && !previewFaviconError ? (
                       <Image source={{ uri: previewFaviconUrl }} style={styles.previewThumbnailIcon} resizeMode="contain" onError={() => setPreviewFaviconError(true)} />
                     ) : faviconUrl ? (

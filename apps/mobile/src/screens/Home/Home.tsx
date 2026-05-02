@@ -222,8 +222,8 @@ export default function HomeScreen({
 
   React.useEffect(() => {
     resources.forEach((item) => {
-      if (item.faviconUri) void Image.prefetch(item.faviconUri);
-      if (item.thumbnailUri) void Image.prefetch(item.thumbnailUri);
+      if (item.faviconUri) void Image.prefetch(item.faviconUri).catch(() => undefined);
+      if (item.thumbnailUri) void Image.prefetch(item.thumbnailUri).catch(() => undefined);
     });
   }, [resources]);
 

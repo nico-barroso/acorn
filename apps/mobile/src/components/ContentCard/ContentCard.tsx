@@ -152,14 +152,7 @@ export function ContentCard({
     >
       <View style={styles.row}>
         <View style={styles.thumbnail}>
-          {thumbnailUri && !thumbnailError ? (
-            <Image
-              source={{ uri: thumbnailUri }}
-              style={styles.thumbnailImage}
-              resizeMode="cover"
-              onError={() => setThumbnailError(true)}
-            />
-          ) : isFile ? (
+          {isFile ? (
             <FileIcon width={62} height={62} />
           ) : activeFaviconUri ? (
             <Image
@@ -174,6 +167,14 @@ export function ContentCard({
             />
           ) : iconSource ? (
             <Image source={iconSource} style={styles.thumbnailIcon} resizeMode="contain" />
+          ) : null}
+          {thumbnailUri && !thumbnailError ? (
+            <Image
+              source={{ uri: thumbnailUri }}
+              style={styles.thumbnailImage}
+              resizeMode="cover"
+              onError={() => setThumbnailError(true)}
+            />
           ) : null}
         </View>
         <View style={styles.textLayout}>
