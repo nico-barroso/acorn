@@ -1,5 +1,5 @@
 import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -25,6 +25,7 @@ export default function EditProfileScreen({ onGoBack }: EditProfileScreenProps) 
     setAvatarUri,
     errors,
     loading,
+    emailConfirmationSent,
     handleSave,
   } = useEditProfile();
 
@@ -78,6 +79,12 @@ export default function EditProfileScreen({ onGoBack }: EditProfileScreenProps) 
               autoCapitalize="none"
             />
           </View>
+
+          {emailConfirmationSent && (
+            <Text style={styles.emailConfirmation}>
+              Te hemos enviado un correo de confirmación a {email}. Revisa tu bandeja de entrada para completar el cambio.
+            </Text>
+          )}
 
           <Button
             label={loading ? 'Guardando...' : 'Guardar cambios'}

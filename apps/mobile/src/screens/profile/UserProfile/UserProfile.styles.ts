@@ -21,4 +21,10 @@ export const styles = StyleSheet.create({
   form: {
     gap: 24,
   },
+  emailConfirmation: {
+    fontSize: 13,
+    color: '#6B6059',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });
