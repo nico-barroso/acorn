@@ -53,11 +53,14 @@ export function usePasswordRecoveryRequest() {
     setLoading(false);
 
     if (error) {
+      console.error('[ForgotPassword] resetPasswordForEmail error:', error.message, 'status:', error.status, 'code:', error.code);
       setErrors({ general: 'No se pudo enviar el correo de recuperacion. Intentalo de nuevo.' });
       setCooldown(true);
       setTimeout(() => setCooldown(false), COOLDOWN_MS);
       return;
     }
+
+    console.log('[ForgotPassword] resetPasswordForEmail success');
 
     setSent(true);
   };
