@@ -12,7 +12,11 @@ import { styles } from './FolderDetail.styles';
 import { useFolderDetail } from './hooks/useFolderDetail';
 import { QuickFilters } from '../Search/components/QuickFilters/QuickFilters';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
 import { colors } from '../../theme/colors';
+import { queryClient } from '../../lib/queryClient';
+import { queryKeys } from '../../lib/queryKeys';
+import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 import type { FolderDetailScreenProps, FolderResource } from './FolderDetail.types';
 
 export function FolderDetailScreen({
@@ -20,6 +24,9 @@ export function FolderDetailScreen({
   onBack,
   onOpenDetail,
 }: FolderDetailScreenProps) {
+  const userId = useCurrentUserId();
+  const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
+
   const {
     folderName,
     folderDescription,
@@ -68,6 +75,7 @@ export function FolderDetailScreen({
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
       onToggleRead={handleToggleRead}
+      onTagsPress={setTagPickerItemId}
     />
   );
 
@@ -123,6 +131,18 @@ export function FolderDetailScreen({
           resources.length === 0 ? styles.listEmptyContent : styles.listContent
         }
         keyboardShouldPersistTaps="handled"
+      />
+      <TagPickerModal
+        visible={Boolean(tagPickerItemId)}
+        itemId={tagPickerItemId}
+        onClose={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.folderDetail(userId!, folderId) });
+        }}
+        onSaved={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: queryKeys.folderDetail(userId!, folderId) });
+        }}
       />
     </View>
   );

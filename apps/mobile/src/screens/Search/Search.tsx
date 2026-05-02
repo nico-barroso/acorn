@@ -15,8 +15,14 @@ import SearchIcon from '../../../assets/icons/search-icon.svg';
 import { colors } from '../../theme/colors';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
 import { SkeletonContentCard } from '../../components/SkeletonContentCard/SkeletonContentCard';
+import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
+import { queryClient } from '../../lib/queryClient';
+import { useCurrentUserId } from '../../hooks/useCurrentUserId';
 
 export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchScreenExtendedProps) {
+  const userId = useCurrentUserId();
+  const [tagPickerItemId, setTagPickerItemId] = React.useState<string | null>(null);
+
   const {
     query,
     setQuery,
@@ -131,6 +137,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
       onToggleRead={handleToggleRead}
+      onTagsPress={setTagPickerItemId}
     />
   );
 
@@ -253,6 +260,18 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
           ) : null
         }
         keyboardShouldPersistTaps="handled"
+      />
+      <TagPickerModal
+        visible={Boolean(tagPickerItemId)}
+        itemId={tagPickerItemId}
+        onClose={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: ['search', userId] });
+        }}
+        onSaved={() => {
+          setTagPickerItemId(null);
+          void queryClient.invalidateQueries({ queryKey: ['search', userId] });
+        }}
       />
     </View>
   );
