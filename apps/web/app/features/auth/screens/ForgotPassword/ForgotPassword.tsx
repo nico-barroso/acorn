@@ -19,7 +19,7 @@ export function ForgotPassword() {
       return false
     }
     if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
-      setEmailError('Introduce un email valido.')
+      setEmailError('Introduce un email válido.')
       return false
     }
 
@@ -44,7 +44,7 @@ export function ForgotPassword() {
     setLoading(false)
 
     if (error) {
-      setErrorMessage('No se pudo enviar el enlace. Intentalo de nuevo.')
+      setErrorMessage('No se pudo enviar el enlace. Inténtalo de nuevo.')
       return
     }
 
@@ -58,18 +58,17 @@ export function ForgotPassword() {
 
   return (
     <AuthShell
-      badge='Recuperacion'
-      title='Has olvidado tu contrasena?'
-      subtitle='Te enviaremos un enlace para crear una nueva contrasena.'
-      footerLabel='Quieres volver?'
+      title='¿Has olvidado tu contraseña?'
+      subtitle='Te enviaremos un enlace para crear una nueva contraseña.'
+      footerLabel='¿Quieres volver?'
       footerLinkHref='/login'
-      footerLinkLabel='Iniciar sesion'
+      footerLinkLabel='Iniciar sesión'
       errorMessage={errorMessage}
     >
-      <form style={forgotPasswordStyles.fieldGroup} onSubmit={handleSubmit}>
+      <form style={forgotPasswordStyles.form} onSubmit={handleSubmit}>
         <div style={forgotPasswordStyles.fieldGroup}>
           <label htmlFor='forgot-email' style={forgotPasswordStyles.label}>
-            Email
+            Correo electrónico
           </label>
           <input
             id='forgot-email'
@@ -101,19 +100,15 @@ export function ForgotPassword() {
             ...(loading ? forgotPasswordStyles.submitButtonDisabled : {})
           }}
         >
-          {loading ? 'Enviando enlace...' : 'Enviar enlace de recuperacion'}
+          {loading ? 'Enviando enlace...' : 'Enviar enlace de recuperación'}
         </button>
       </form>
 
       {sent ? (
         <p style={forgotPasswordStyles.successText}>
-          Revisa tu correo: hemos enviado el enlace para restablecer la contrasena.
+          Revisa tu correo: hemos enviado el enlace para restablecer la contraseña.
         </p>
       ) : null}
-
-      <p style={forgotPasswordStyles.helperText}>
-        El enlace te llevara de vuelta a esta app para definir una nueva contrasena.
-      </p>
     </AuthShell>
   )
 }

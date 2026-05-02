@@ -3,49 +3,67 @@ import { fonts } from '@/theme/fonts'
 
 export const folderCardStyles = {
   card: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
+    borderRadius: '16px',
     backgroundColor: colors.white,
-    boxShadow: '0 10px 24px rgba(67, 40, 28, 0.08)',
-    padding: '16px',
+    border: `1px solid ${colors.brown}12`,
     cursor: 'pointer',
-    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-    display: 'grid',
-    gap: '8px'
-  },
-  cardHover: {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 14px 32px rgba(67, 40, 28, 0.12)'
-  },
-  header: {
+    transition: 'box-shadow 0.18s ease, transform 0.18s ease',
+    padding: '16px 18px 14px',
     display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: '12px'
+    flexDirection: 'column' as const,
+    gap: '6px'
   },
-  iconAndName: {
+
+  topRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    flex: 1,
-    minWidth: 0
+    justifyContent: 'space-between',
+    gap: '8px'
   },
-  icon: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '12px',
-    backgroundColor: `${colors.salmon}14`,
-    border: `1px solid ${colors.salmon}35`,
-    display: 'grid',
-    placeItems: 'center',
+  typeGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
+  },
+  typeDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '999px',
+    backgroundColor: colors.salmon,
+    flexShrink: 0,
+    opacity: 0.7
+  },
+  typeLabel: {
     color: colors.salmon,
-    fontSize: '20px',
+    fontFamily: fonts.family.primary,
+    fontSize: '11px',
+    fontWeight: fonts.weight.semibold,
+    letterSpacing: '0.07em',
+    textTransform: 'uppercase' as const,
+    opacity: 0.85
+  },
+
+  menuWrap: {
+    position: 'relative' as const,
     flexShrink: 0
   },
-  nameSection: {
-    flex: 1,
-    minWidth: 0
+  menuButton: {
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    lineHeight: 1,
+    fontFamily: fonts.family.primary,
+    background: 'transparent',
+    color: `${colors.brownMid}60`,
+    transition: 'background-color 0.15s ease, color 0.15s ease'
   },
+
   name: {
     margin: 0,
     color: colors.brown,
@@ -53,28 +71,7 @@ export const folderCardStyles = {
     fontSize: fonts.size.md,
     fontWeight: fonts.weight.semibold,
     lineHeight: fonts.lineHeight.tight,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const
-  },
-  subtitle: {
-    margin: '2px 0 0',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    lineHeight: fonts.lineHeight.normal
-  },
-  menuButton: {
-    background: 'none',
-    border: 'none',
-    padding: '6px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: '18px',
-    lineHeight: 1,
-    transition: 'background-color 0.15s ease'
+    letterSpacing: '-0.01em'
   },
   description: {
     margin: 0,
@@ -85,28 +82,26 @@ export const folderCardStyles = {
     display: '-webkit-box' as const,
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical' as const,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    opacity: 0.65
   },
+
   footer: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '8px',
     marginTop: '4px'
   },
-  meta: {
+  footerMeta: {
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
+    fontSize: fonts.size.xs,
+    opacity: 0.45
   },
-  badge: {
-    display: 'inline-flex',
-    padding: '2px 8px',
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}14`,
-    color: colors.salmon,
+  footerDate: {
+    color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium
+    opacity: 0.35
   }
 }

@@ -4,10 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FolderCard } from '@/features/shared/components/FolderCard/FolderCard'
 import { useFolders } from '../../hooks/useFolders'
-import { NewFolderModal } from '../../components/NewFolderModal/NewFolderModal'
-import { RenameFolderModal } from '../../components/RenameFolderModal/RenameFolderModal'
 import { SmartFolderBuilder } from '../../components/SmartFolderBuilder/SmartFolderBuilder'
-import { foldersScreenStyles } from './FoldersScreen.styles'
+import { foldersScreenStyles as s } from './FoldersScreen.styles'
+import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 
 export function FoldersScreen() {
   const router = useRouter()
@@ -15,18 +14,13 @@ export function FoldersScreen() {
     folders,
     loading,
     error,
-    showNewModal,
-    setShowNewModal,
-    renamingFolder,
-    setRenamingFolder,
     deletingFolderId,
-    createFolder,
-    renameFolder,
     deleteFolder,
     fetchFolders
   } = useFolders()
 
   const [showSmartBuilder, setShowSmartBuilder] = useState(false)
+  const [editingFolder, setEditingFolder] = useState<{ id: string; name: string; description: string | null } | null>(null)
 
   const handleFolderClick = (folderId: string) => {
     router.push(`/folders/${folderId}`)
@@ -39,51 +33,58 @@ export function FoldersScreen() {
   }
 
   return (
-    <main style={foldersScreenStyles.page}>
-      <header style={foldersScreenStyles.header}>
-        <h1 style={foldersScreenStyles.title}>Carpetas</h1>
-        <p style={foldersScreenStyles.subtitle}>
-          Organiza tus recursos en carpetas. Las carpetas inteligentes filtran automaticamente segun reglas que definas.
-        </p>
+    <main style={s.page}>
 
-        <div style={foldersScreenStyles.actionsRow}>
+      {/* ── Header ─────────────────────────────────────────── */}
+      <header style={s.header}>
+        <div style={s.titleRow}>
+          <h1 style={s.title}>
+            Tus<br />carpetas.
+          </h1>
           <button
             type='button'
-            style={foldersScreenStyles.newButton}
-            onClick={() => setShowNewModal(true)}
-          >
-            + Nueva carpeta
-          </button>
-          <button
-            type='button'
-            style={foldersScreenStyles.smartButton}
+            style={s.newButton}
             onClick={() => setShowSmartBuilder(true)}
           >
-            Crear inteligente
+            + Nueva carpeta
           </button>
         </div>
       </header>
 
+      {/* ── Divider ────────────────────────────────────────── */}
+      {!loading && !error && (
+        <div style={s.divider}>
+          <span style={s.dividerCount}>
+            {folders.length === 0
+              ? 'sin carpetas'
+              : `${folders.length} carpeta${folders.length === 1 ? '' : 's'}`}
+          </span>
+          <div style={s.dividerLine} />
+        </div>
+      )}
+
+      {/* ── Content ────────────────────────────────────────── */}
       {loading ? (
-        <p style={foldersScreenStyles.loading}>Cargando carpetas...</p>
+        <AcornLoader label="Cargando carpetas" />
       ) : error ? (
-        <p style={foldersScreenStyles.errorText}>{error}</p>
+        <p style={s.errorText}>{error}</p>
       ) : folders.length === 0 ? (
-        <section style={foldersScreenStyles.emptyState}>
-          <h2 style={foldersScreenStyles.emptyTitle}>Aun no tienes carpetas</h2>
-          <p style={foldersScreenStyles.emptyText}>
-            Crea tu primera carpeta para organizar tus recursos.
+        <section style={s.emptyState}>
+          <p style={s.emptyEyebrow}>Por aquí todo está tranquilo</p>
+          <h2 style={s.emptyTitle}>Tu primera carpeta<br />te espera.</h2>
+          <p style={s.emptyText}>
+            Crea una carpeta inteligente y empieza a<br />organizar tu biblioteca.
           </p>
           <button
             type='button'
-            style={foldersScreenStyles.emptyCtaButton}
-            onClick={() => setShowNewModal(true)}
+            style={s.emptyCtaButton}
+            onClick={() => setShowSmartBuilder(true)}
           >
-            Crear carpeta
+            Crear carpeta →
           </button>
         </section>
       ) : (
-        <section style={foldersScreenStyles.list}>
+        <section style={s.list}>
           {folders.map((folder) => (
             <FolderCard
               key={folder.id}
@@ -94,32 +95,20 @@ export function FoldersScreen() {
               isDeleting={deletingFolderId === folder.id}
               ruleCount={folder.ruleCount}
               onClick={() => handleFolderClick(folder.id)}
-              onRename={() => setRenamingFolder(folder)}
+              onRename={() => setEditingFolder({ id: folder.id, name: folder.name, description: folder.description ?? null })}
               onDelete={() => handleDelete(folder.id)}
             />
           ))}
         </section>
       )}
 
-      {showNewModal ? (
-        <NewFolderModal
-          onClose={() => setShowNewModal(false)}
-          onCreate={async (data) => {
-            const success = await createFolder(data)
-            if (success) setShowNewModal(false)
-            return success
-          }}
-        />
-      ) : null}
-
-      {renamingFolder ? (
-        <RenameFolderModal
-          currentName={renamingFolder.name}
-          onClose={() => setRenamingFolder(null)}
-          onRename={async (newName) => {
-            const success = await renameFolder(renamingFolder.id, newName)
-            if (success) setRenamingFolder(null)
-            return success
+      {editingFolder ? (
+        <SmartFolderBuilder
+          editingFolder={editingFolder}
+          onClose={() => setEditingFolder(null)}
+          onSaved={() => {
+            setEditingFolder(null)
+            fetchFolders('silent')
           }}
         />
       ) : null}
@@ -127,9 +116,13 @@ export function FoldersScreen() {
       {showSmartBuilder ? (
         <SmartFolderBuilder
           onClose={() => setShowSmartBuilder(false)}
-          onCreated={() => { setShowSmartBuilder(false); fetchFolders('silent') }}
+          onSaved={() => {
+            setShowSmartBuilder(false)
+            fetchFolders('silent')
+          }}
         />
       ) : null}
     </main>
   )
 }
+

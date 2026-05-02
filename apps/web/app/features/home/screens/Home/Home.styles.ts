@@ -3,222 +3,198 @@ import { fonts } from '@/theme/fonts'
 
 export const homeStyles = {
   page: {
+    position: 'relative' as const,
     minHeight: '100%',
-    width: '100%',
+    width: '100%'
+  },
+  heroGradient: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '260px',
+    background: 'radial-gradient(ellipse 100% 100% at 50% 0%, rgba(192, 110, 82, 0.45) 0%, rgba(248, 237, 232, 0.18) 60%, transparent 100%)',
+    overflow: 'hidden',
+    pointerEvents: 'none' as const,
+    zIndex: 0
+  },
+  inner: {
+    position: 'relative' as const,
+    zIndex: 1,
     maxWidth: '1080px',
     margin: '0 auto',
-    padding: 'clamp(10px, 2vw, 18px)'
-  },
-  saveButton: {
-    marginTop: '14px',
-    width: '100%',
-    minHeight: '44px',
-    padding: '0 18px',
-    borderRadius: '12px',
-    border: 'none',
-    backgroundColor: colors.salmon,
-    color: colors.white,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.md,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer',
-    transition: 'opacity 0.15s ease'
-  },
-  hero: {
-    borderRadius: '20px',
-    border: `1px solid ${colors.brown}20`,
-    background: 'linear-gradient(135deg, #fff7f1 0%, #fffdfc 56%, #f8efe9 100%)',
-    boxShadow: '0 16px 38px rgba(67, 40, 28, 0.12)',
-    padding: 'clamp(18px, 4vw, 28px)'
-  },
-  heroTopRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '10px'
-  },
-  userPill: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}16`,
-    border: `1px solid ${colors.salmon}35`,
-    padding: '6px 10px'
-  },
-  userPillAvatar: {
-    width: '24px',
-    height: '24px',
-    borderRadius: '999px',
     display: 'grid',
-    placeItems: 'center',
-    color: colors.white,
-    backgroundColor: colors.salmon,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.bold,
-    textTransform: 'uppercase' as const
+    gap: '36px',
+    paddingTop: '140px'
   },
-  userPillText: {
+
+  // ─── Header ───────────────────────────────────────────────
+  header: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'flex-start'
+  },
+  greeting: {
+    display: 'grid',
+    gap: '4px',
+    textAlign: 'center' as const
+  },
+  greetingTitle: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium
-  },
-  signOutButton: {
-    minHeight: '40px',
-    padding: '0 14px',
-    border: `1px solid ${colors.brown}35`,
-    borderRadius: '10px',
-    backgroundColor: colors.white,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontWeight: fonts.weight.semibold,
-    fontSize: fonts.size.sm,
-    cursor: 'pointer'
-  },
-  heroTitle: {
-    margin: '12px 0 0',
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: 'clamp(26px, 5vw, 34px)',
+    fontFamily: fonts.family.heading,
+    fontSize: 'clamp(36px, 5.5vw, 52px)',
     fontWeight: fonts.weight.bold,
-    lineHeight: fonts.lineHeight.tight
+    lineHeight: fonts.lineHeight.tight,
+    textAlign: 'center' as const
   },
-  heroSubtitle: {
-    margin: '10px 0 0',
-    maxWidth: '650px',
+  greetingWelcome: {
+    margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
+    fontSize: fonts.size.md,
+    lineHeight: fonts.lineHeight.normal,
+    textAlign: 'center' as const
+  },
+  greetingSubtitle: {
+    margin: 0,
+    color: colors.brownMid,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.comfortable
+    lineHeight: fonts.lineHeight.normal,
+    textAlign: 'center' as const,
+    opacity: 0.75
   },
-  metricsRow: {
-    marginTop: '16px',
+  avatar: {
+    position: 'absolute' as const,
+    top: '20px',
+    right: 0,
+    width: '48px',
+    height: '48px',
+    borderRadius: '999px',
+    backgroundColor: colors.salmon,
+    color: colors.white,
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-    gap: '10px'
+    placeItems: 'center',
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+    letterSpacing: '0.02em',
+    overflow: 'hidden',
+    border: `2px solid ${colors.brownMid}`,
+    boxShadow: '0 4px 14px rgba(72, 57, 42, 0.25), 0 1px 4px rgba(192, 110, 82, 0.2)'
   },
-  metricCard: {
-    borderRadius: '12px',
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover' as const,
+    borderRadius: '999px'
+  },
+
+  // ─── Metrics ──────────────────────────────────────────────
+  metricsRow: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap' as const,
+    justifyContent: 'center'
+  },
+  metricPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '8px 14px',
+    borderRadius: '999px',
     border: `1px solid ${colors.brown}20`,
     backgroundColor: colors.white,
-    padding: '10px'
+    boxShadow: '0 2px 8px rgba(67, 40, 28, 0.06)'
+  },
+  metricValue: {
+    margin: 0,
+    color: colors.brown,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold
   },
   metricLabel: {
     margin: 0,
     color: colors.brownMid,
+    fontFamily: fonts.family.body,
+    fontSize: fonts.size.sm
+  },
+  metricDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '999px',
+    backgroundColor: colors.salmon,
+    flexShrink: 0
+  },
+
+  // ─── Filters ──────────────────────────────────────────────
+  filterRow: {
+    display: 'flex',
+    gap: '8px',
+    justifyContent: 'center',
+    flexWrap: 'wrap' as const
+  },
+  filterButton: {
+    padding: '7px 16px',
+    borderRadius: '999px',
+    border: `1px solid rgba(67,40,28,0.13)`,
+    backgroundColor: colors.white,
+    color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.04em'
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    transition: 'all 0.15s ease',
+    flexShrink: 0
   },
-  metricValue: {
-    margin: '6px 0 0',
+  filterButtonActive: {
+    padding: '7px 16px',
+    borderRadius: '999px',
+    border: `1px solid rgba(161,77,54,0.27)`,
+    backgroundColor: `rgba(161,77,54,0.09)`,
     color: colors.brown,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.lg,
-    fontWeight: fonts.weight.bold
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    flexShrink: 0
   },
+
+  // ─── Section ──────────────────────────────────────────────
   sectionHeader: {
-    marginTop: '16px',
-    marginBottom: '8px',
     display: 'flex',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    gap: '10px'
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '4px'
   },
   sectionTitle: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.lg,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.xl,
     fontWeight: fonts.weight.bold
   },
-  sectionMeta: {
+  sectionSubtitle: {
     margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
+    fontFamily: fonts.family.body,
+    fontSize: fonts.size.sm,
+    textAlign: 'center' as const,
+    lineHeight: fonts.lineHeight.normal
   },
+
+  // ─── Grid ─────────────────────────────────────────────────
   list: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: '12px'
   },
-  resourceCard: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
-    backgroundColor: colors.white,
-    boxShadow: '0 10px 24px rgba(67, 40, 28, 0.08)',
-    padding: '14px'
-  },
-  cardTopRow: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: '8px'
-  },
-  resourceTitle: {
-    margin: 0,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.md,
-    fontWeight: fonts.weight.semibold,
-    lineHeight: fonts.lineHeight.tight
-  },
-  domainPill: {
-    borderRadius: '999px',
-    border: `1px solid ${colors.brown}26`,
-    backgroundColor: '#faf2ee',
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    padding: '4px 7px',
-    whiteSpace: 'nowrap' as const
-  },
-  resourceMeta: {
-    margin: '8px 0 0',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
-  },
-  resourceSnippet: {
-    margin: '10px 0 0',
-    color: colors.black,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal,
-    wordBreak: 'break-word' as const
-  },
-  statusBadge: {
-    display: 'inline-flex',
-    marginTop: '10px',
-    padding: '4px 8px',
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}20`,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    cursor: 'pointer',
-    border: 'none'
-  },
-  statusBadgeRead: {
-    display: 'inline-flex',
-    marginTop: '10px',
-    padding: '4px 8px',
-    borderRadius: '999px',
-    backgroundColor: '#e8f5e9',
-    color: '#2e7d32',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    cursor: 'pointer',
-    border: 'none'
-  },
+
+  // ─── Skeleton ─────────────────────────────────────────────
   skeletonCard: {
     borderRadius: '14px',
     border: `1px solid ${colors.brown}18`,
@@ -234,17 +210,12 @@ export const homeStyles = {
     backgroundSize: '200% 100%',
     animation: 'skeletonPulse 1.2s ease-in-out infinite'
   },
-  skeletonLineShort: {
-    width: '45%'
-  },
-  skeletonLineLong: {
-    width: '85%'
-  },
-  skeletonLineMedium: {
-    width: '65%'
-  },
+  skeletonLineShort: { width: '45%' },
+  skeletonLineLong: { width: '85%' },
+  skeletonLineMedium: { width: '65%' },
+
+  // ─── Bottom ───────────────────────────────────────────────
   bottomArea: {
-    marginTop: '12px',
     display: 'grid',
     gap: '8px'
   },
@@ -252,10 +223,10 @@ export const homeStyles = {
     width: '100%',
     minHeight: '44px',
     borderRadius: '12px',
-    border: `1px solid ${colors.brown}32`,
+    border: `1px solid ${colors.brown}26`,
     backgroundColor: colors.white,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold,
     cursor: 'pointer'
@@ -268,51 +239,56 @@ export const homeStyles = {
     margin: 0,
     color: colors.brownMid,
     textAlign: 'center' as const,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.xs
   },
+
+  // ─── Empty ────────────────────────────────────────────────
   emptyState: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
-    backgroundColor: colors.white,
-    padding: '16px'
+    display: 'grid',
+    gap: '12px',
+    justifyItems: 'center',
+    textAlign: 'center' as const,
+    padding: '48px 24px'
   },
   emptyTitle: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.lg,
-    fontWeight: fonts.weight.semibold
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.xl,
+    fontWeight: fonts.weight.bold
   },
   emptyText: {
-    margin: '8px 0 0',
+    margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
+    fontFamily: fonts.family.body,
+    fontSize: fonts.size.md,
+    lineHeight: fonts.lineHeight.comfortable,
+    maxWidth: '360px'
   },
   emptyCtaButton: {
-    marginTop: '14px',
-    minHeight: '40px',
-    padding: '0 18px',
-    borderRadius: '12px',
+    minHeight: '44px',
+    padding: '0 24px',
+    borderRadius: '999px',
     border: 'none',
     backgroundColor: colors.salmon,
     color: colors.white,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
+    fontFamily: fonts.family.body,
+    fontSize: fonts.size.md,
     fontWeight: fonts.weight.semibold,
     cursor: 'pointer'
   },
+
+  // ─── Error / Loading ──────────────────────────────────────
   errorText: {
     margin: 0,
     color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm
   },
   loading: {
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
+    color: colors.brownMid,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md
   }
 }
