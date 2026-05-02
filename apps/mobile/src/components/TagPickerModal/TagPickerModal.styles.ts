@@ -123,6 +123,7 @@ export const styles = StyleSheet.create({
   // Management section
   managementSection: {
     paddingBottom: 8,
+    paddingVertical: 16,
     marginTop: 30,
   },
   divider: {
@@ -195,7 +196,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: `${colors.brown}18`,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 22,
     marginTop: 8,
     gap: 10,
   },
