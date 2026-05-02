@@ -3,25 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@lib/supabase';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import { formatSavedDate } from '../../../lib/formatSavedDate';
 import type { FolderResource } from '../FolderDetail.types';
-
-const FILE_ICON = require('../../../../assets/config/favicon.png');
-
-type ItemRow = {
-  id: string;
-  type: string | null;
-  title: string | null;
-  is_read: boolean;
-  created_at: string;
-  url: string | null;
-  domain: string | null;
-  tags: string[] | null;
-  og_image_url: string | null;
-  preview_image_url: string | null;
-  favicon_url: string | null;
-  metadata: { og_title: string | null }[] | null;
-};
+import { createTagColorMap, mapFolderResource, type ResourceRow } from '../../../lib/mappers';
 
 type SmartRuleRow = {
   field: string;
@@ -98,35 +81,10 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
 
   if (itemError) throw new Error('No se pudieron cargar los recursos.');
 
-  const tagColorMap = new Map<string, string | null>();
-  ((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]).forEach((t) => {
-    tagColorMap.set(t.name, t.color_hex);
-    if (t.slug) tagColorMap.set(t.slug, t.color_hex);
-    tagColorMap.set(t.name.toLowerCase(), t.color_hex);
-  });
+  const tagColorMap = createTagColorMap((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]);
 
-  const rows = (itemData ?? []) as unknown as ItemRow[];
-  const mapped: FolderResource[] = rows.map((row): FolderResource => {
-    const isFile = row.type === 'file';
-    const fileUrl = row.url ?? undefined;
-    return {
-      id: row.id,
-      title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin título',
-      source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-      domain: row.domain ?? undefined,
-      tags: (row.tags ?? []).map((name) => ({
-        name,
-        color_hex: tagColorMap.get(name) ?? null,
-      })),
-      savedDate: formatSavedDate(row.created_at),
-      status: row.is_read ? 'Visto' : 'No visto',
-      isRead: Boolean(row.is_read),
-      url: fileUrl,
-      thumbnailUri: isFile ? undefined : (row.og_image_url ?? row.preview_image_url ?? undefined),
-      faviconUri: row.favicon_url ?? (row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : undefined),
-      isFile,
-    };
-  });
+  const rows = (itemData ?? []) as unknown as ResourceRow[];
+  const mapped: FolderResource[] = rows.map((row) => mapFolderResource(row, tagColorMap));
 
   const folderLogic = (folderData.logic as string) ?? 'ALL';
   const smartRules = (rulesData ?? []) as SmartRuleRow[];

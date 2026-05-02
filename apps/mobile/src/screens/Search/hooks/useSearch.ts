@@ -4,7 +4,7 @@ import { supabase } from '../../../../lib/supabase';
 import { queryKeys } from '../../../lib/queryKeys';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import { useDebounce } from '../../../hooks/useDebounce';
-import { formatSavedDate } from '../../../lib/formatSavedDate';
+import { createTagColorMap, mapSearchResult } from '../../../lib/mappers';
 import type { DateFilterValue, ReadFilterValue, TypeFilterValue, SearchResult, SearchRow } from '../types';
 
 const PAGE_SIZE = 10;
@@ -16,26 +16,6 @@ type SearchFilters = {
   type: TypeFilterValue;
 };
 
-function mapSearchResult(row: SearchRow, tagColorMap: Map<string, string | null>): SearchResult {
-  const isFile = row.type === 'file';
-  const fileUrl = row.url || '';
-  return {
-    id: row.id,
-    title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
-    rawDomain: isFile ? null : row.domain ?? null,
-    domain: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-    snippet: row.description?.trim() || row.url || 'Sin descripcion',
-    url: fileUrl,
-    createdAt: row.created_at,
-    savedDate: formatSavedDate(row.created_at),
-    isRead: Boolean(row.is_read),
-    tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
-    thumbnailUri: isFile ? undefined : (row.og_image_url ?? row.preview_image_url ?? undefined),
-    faviconUri: row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : (row.favicon_url ?? undefined),
-    faviconFallbackUri: row.favicon_url ?? undefined,
-    isFile,
-  };
-}
 
 function dateThreshold(filter: DateFilterValue): string | null {
   if (filter === 'all') return null;
@@ -43,41 +23,21 @@ function dateThreshold(filter: DateFilterValue): string | null {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
-function buildQuery(
-  base: ReturnType<typeof supabase.from<'items_with_links', any>>,
-  term: string,
-  filters: SearchFilters,
-  isTagQuery: boolean,
-) {
-  let q = base;
+function buildQuery<T>(base: T, term: string, filters: SearchFilters, isTagQuery: boolean): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q: any = base;
 
-  // Text search via ilike (view doesn't expose search_vector)
   if (!isTagQuery && term.trim()) {
     const pat = `%${term.trim().replace(/[%_]/g, '')}%`;
-    q = (q as any).or(
-      `title.ilike.${pat},description.ilike.${pat},domain.ilike.${pat},url.ilike.${pat}`,
-    );
+    q = q.or(`title.ilike.${pat},description.ilike.${pat},domain.ilike.${pat},url.ilike.${pat}`);
   }
 
-  // Type filter server-side (type column is on items, exposed by view)
-  if (filters.type !== 'all') {
-    q = (q as any).eq('type', filters.type);
-  }
-
-  // Domain filter server-side
-  if (filters.domain) {
-    q = (q as any).eq('domain', filters.domain);
-  }
-
-  // Date filter server-side
+  if (filters.type !== 'all') q = q.eq('type', filters.type);
+  if (filters.domain) q = q.eq('domain', filters.domain);
   const threshold = dateThreshold(filters.date);
-  if (threshold) {
-    q = (q as any).gte('created_at', threshold);
-  }
-
-  // Read/unread filter server-side
-  if (filters.read === 'read') q = (q as any).eq('is_read', true);
-  else if (filters.read === 'unread') q = (q as any).eq('is_read', false);
+  if (threshold) q = q.gte('created_at', threshold);
+  if (filters.read === 'read') q = q.eq('is_read', true);
+  else if (filters.read === 'unread') q = q.eq('is_read', false);
 
   return q;
 }
@@ -93,9 +53,9 @@ async function fetchSearchCount(
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId);
 
-  q = buildQuery(q as any, term, filters, isTagQuery);
+  q = buildQuery(q, term, filters, isTagQuery);
 
-  const { count, error } = await (q as any);
+  const { count, error } = await q;
   if (error) {
     console.error('[search-count]', error);
     throw new Error('Error al contar resultados');
@@ -117,10 +77,10 @@ async function fetchSearchPage(
     .order('created_at', { ascending: false })
     .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
 
-  q = buildQuery(q as any, term, filters, isTagQuery);
+  q = buildQuery(q, term, filters, isTagQuery);
 
   const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
-    (q as any),
+    q,
     supabase.from('tags').select('name,slug,color_hex').eq('user_id', userId),
   ]);
 
@@ -129,12 +89,7 @@ async function fetchSearchPage(
     throw new Error('No se pudieron cargar los recursos.');
   }
 
-  const tagColorMap = new Map<string, string | null>();
-  ((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]).forEach((t) => {
-    tagColorMap.set(t.name, t.color_hex);
-    if (t.slug) tagColorMap.set(t.slug, t.color_hex);
-    tagColorMap.set(t.name.toLowerCase(), t.color_hex);
-  });
+  const tagColorMap = createTagColorMap((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]);
 
   return ((data ?? []) as SearchRow[]).map((row) => mapSearchResult(row, tagColorMap));
 }

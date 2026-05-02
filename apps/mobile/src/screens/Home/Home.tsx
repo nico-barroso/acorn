@@ -29,22 +29,8 @@ import { useSession } from '@context/SessionContext';
 import { queryClient } from '../../lib/queryClient';
 import { queryKeys } from '../../lib/queryKeys';
 import { useCurrentUserId } from '../../hooks/useCurrentUserId';
-import { formatSavedDate } from '../../lib/formatSavedDate';
+import { createTagColorMap, mapResource, type ResourceRow } from '../../lib/mappers';
 
-type ResourceRow = {
-  id: string;
-  type: string | null;
-  title: string | null;
-  is_read: boolean;
-  created_at: string;
-  url: string | null;
-  domain: string | null;
-  favicon_url: string | null;
-  preview_image_url: string | null;
-  og_image_url: string | null;
-  tags: string[] | null;
-  metadata: { og_title: string | null }[] | null;
-};
 
 type HomeScreenProps = {
   userName?: string;
@@ -54,30 +40,6 @@ type HomeScreenProps = {
 };
 
 const PAGE_SIZE = 5;
-
-
-const FILE_ICON = require('../../../assets/config/favicon.png');
-
-function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>): ContentCardData {
-  const isFile = row.type === 'file';
-  const fileUrl = row.url ?? undefined;
-
-  return {
-    id: row.id,
-    title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin titulo',
-    source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-    tags: (row.tags ?? []).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? null })),
-    savedDate: formatSavedDate(row.created_at),
-    status: row.is_read ? 'Visto' : 'No visto',
-    isRead: Boolean(row.is_read),
-    url: fileUrl,
-    thumbnailUri: isFile ? undefined : (row.og_image_url ?? row.preview_image_url ?? undefined),
-    faviconUri: row.domain ? `https://www.google.com/s2/favicons?domain=${row.domain}&sz=64` : (row.favicon_url ?? undefined),
-    faviconFallbackUri: row.favicon_url ?? undefined,
-    iconSource: isFile ? FILE_ICON : undefined,
-    isFile,
-  };
-}
 
 type ItemsPage = {
   items: ContentCardData[];
@@ -112,12 +74,7 @@ async function fetchItemsPage(
   if (error) throw new Error('No se pudieron cargar los recursos.');
 
   const tagRows = (tagFetchResult.data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
-  const tagColorMap = new Map<string, string | null>();
-  tagRows.forEach((t) => {
-    tagColorMap.set(t.name, t.color_hex);
-    if (t.slug) tagColorMap.set(t.slug, t.color_hex);
-    tagColorMap.set(t.name.toLowerCase(), t.color_hex);
-  });
+  const tagColorMap = createTagColorMap(tagRows);
 
   const rows = (data ?? []) as ResourceRow[];
   const items = rows.map((row) => mapResource(row, tagColorMap));

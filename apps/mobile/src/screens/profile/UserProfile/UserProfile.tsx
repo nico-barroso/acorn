@@ -36,9 +36,7 @@ export default function EditProfileScreen({ onGoBack }: EditProfileScreenProps) 
       aspect: [1, 1],
       quality: 0.8,
     });
-    console.log('[Avatar] ImagePicker result:', JSON.stringify(result));
     if (!result.canceled) {
-      console.log('[Avatar] Selected URI:', result.assets[0].uri);
       setAvatarUri(result.assets[0].uri);
     }
   };

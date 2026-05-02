@@ -95,8 +95,6 @@ export default function ProfileScreen({
               source={{ uri: avatarUrl }}
               style={styles.avatar}
               resizeMode="cover"
-              onError={(e) => console.log('[ProfileScreen] image error:', e.nativeEvent.error)}
-              onLoad={() => console.log('[ProfileScreen] image loaded ok')}
             />
           ) : (
             <Image source={require('@assets/default-avatar.png')} style={styles.avatar} />

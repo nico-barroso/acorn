@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { useSession } from '@context/SessionContext';
 import { queryKeys } from '../../lib/queryKeys';
+import { createTagColorMap } from '../../lib/mappers';
 import { Tag } from '../../components/Tag/Tag';
 import { styles } from './ItemDetail.styles';
 
@@ -114,12 +115,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     }
 
     const tagRows = (tagFetchResult.data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
-    const colorMap = new Map<string, string | null>();
-    tagRows.forEach((t) => {
-      colorMap.set(t.name, t.color_hex);
-      if (t.slug) colorMap.set(t.slug, t.color_hex);
-      colorMap.set(t.name.toLowerCase(), t.color_hex);
-    });
+    const colorMap = createTagColorMap(tagRows);
 
     const tagNames: string[] = ((data.tags ?? []) as string[]).filter(Boolean);
     const tagDetails: TagDetail[] = tagNames.map((name) => ({ name, color_hex: colorMap.get(name) ?? null }));
