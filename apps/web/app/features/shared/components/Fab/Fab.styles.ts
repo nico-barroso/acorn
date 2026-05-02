@@ -4,7 +4,7 @@ import { fonts } from '@/theme/fonts'
 export const fabStyles = {
   button: {
     position: 'fixed' as const,
-    bottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
+    bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
     right: '20px',
     width: '56px',
     height: '56px',
@@ -13,7 +13,6 @@ export const fabStyles = {
     backgroundColor: colors.salmon,
     color: colors.white,
     fontFamily: fonts.family.primary,
-    fontSize: '28px',
     fontWeight: fonts.weight.bold,
     cursor: 'pointer',
     display: 'grid',

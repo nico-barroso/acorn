@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useToggleRead } from '@/hooks/useToggleRead'
+import { useProfile } from '@/features/profile/hooks/useProfile'
 import { ResourceCard } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
@@ -60,22 +61,58 @@ function mapResource(row: ResourceRow): ResourceCardData {
 
 function getInitials(email: string) {
   const clean = email.trim()
-
-  if (!clean) {
-    return 'AC'
-  }
-
+  if (!clean) return 'AC'
   const parts = clean.split('@')[0]?.split(/[._-]/).filter(Boolean) ?? []
-
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-  }
-
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
   return clean.slice(0, 2).toUpperCase()
+}
+
+function HeroDecoration() {
+  return (
+    <div style={homeStyles.heroGradient} aria-hidden>
+      <svg
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+        viewBox="0 0 800 220"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        aria-hidden
+      >
+        <path d="M-100 10 C 150 130, 650 130, 900 10" stroke="rgba(192,110,82,0.22)" strokeWidth="1.5"/>
+        <path d="M-100 55 C 150 175, 650 175, 900 55" stroke="rgba(192,110,82,0.14)" strokeWidth="1.2"/>
+        <path d="M-100 100 C 150 210, 650 210, 900 100" stroke="rgba(192,110,82,0.09)" strokeWidth="1"/>
+        <path d="M 60 -10 C 280 90, 520 90, 740 -10" stroke="rgba(161,77,54,0.16)" strokeWidth="1"/>
+        <path d="M-50 165 C 200 70, 600 70, 850 165" stroke="rgba(192,110,82,0.08)" strokeWidth="1"/>
+      </svg>
+    </div>
+  )
+}
+
+function HomeGradient() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        pointerEvents: 'none',
+        backgroundImage: [
+          'radial-gradient(ellipse 140% 45% at 50% 0%, rgba(192, 110, 82, 0.45) 0%, rgba(248, 237, 232, 0.18) 50%, rgba(255, 252, 251, 0) 100%)',
+          'radial-gradient(ellipse 140% 65% at 50% 100%, rgba(192, 110, 82, 0.55) 0%, rgba(248, 237, 232, 0.25) 55%, rgba(255, 252, 251, 0) 100%)'
+        ].join(', ')
+      }}
+    />
+  )
+}
+
+function getFirstName(email: string) {
+  const part = email.split('@')[0]?.split(/[._-]/)[0] ?? ''
+  return part.charAt(0).toUpperCase() + part.slice(1)
 }
 
 export function Home() {
   const router = useRouter()
+  const { profile } = useProfile()
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
@@ -132,6 +169,7 @@ export function Home() {
       hasMore: rows.length === PAGE_SIZE
     }
   }
+
 
   useEffect(() => {
     let active = true
@@ -282,116 +320,120 @@ export function Home() {
   if (loading) {
     return (
       <main style={homeStyles.page}>
-        <p style={homeStyles.loading}>Cargando tu espacio privado...</p>
+        <p style={homeStyles.loading}>Cargando...</p>
       </main>
     )
   }
 
   return (
     <main style={homeStyles.page}>
-      <header style={homeStyles.hero}>
-        <div style={homeStyles.heroTopRow}>
-          <div style={homeStyles.userPill}>
-            <span style={homeStyles.userPillAvatar}>{getInitials(email)}</span>
-            <p style={homeStyles.userPillText}>Sesion activa</p>
-          </div>
 
-          <button type='button' style={homeStyles.signOutButton} onClick={handleSignOut}>
-            Cerrar sesion
-          </button>
-        </div>
+      <HomeGradient />
+      <HeroDecoration />
 
-        <button
-          type='button'
-          onClick={() => setShowSaveModal(true)}
-          style={homeStyles.saveButton}
-        >
-          + Guardar enlace
-        </button>
-
-        <h1 style={homeStyles.heroTitle}>Tu biblioteca de recursos</h1>
-        <p style={homeStyles.heroSubtitle}>
-          Bienvenida, {email}. Explora tus enlaces guardados, continua donde lo dejaste y carga mas contenido sin
-          recargar la pagina.
-        </p>
-
-        <div style={homeStyles.metricsRow}>
-          <article style={homeStyles.metricCard}>
-            <p style={homeStyles.metricLabel}>Total</p>
-            <p style={homeStyles.metricValue}>{resources.length}</p>
-          </article>
-          <article style={homeStyles.metricCard}>
-            <p style={homeStyles.metricLabel}>No vistos</p>
-            <p style={homeStyles.metricValue}>{unreadCount}</p>
-          </article>
-          <article style={homeStyles.metricCard}>
-            <p style={homeStyles.metricLabel}>Pagina</p>
-            <p style={homeStyles.metricValue}>{currentPage}</p>
-          </article>
-        </div>
-      </header>
-
-      <div style={homeStyles.sectionHeader}>
-        <h2 style={homeStyles.sectionTitle}>Listado</h2>
-        <p style={homeStyles.sectionMeta}>Leidos: {readCount}</p>
+      <div style={homeStyles.avatar}>
+        {profile?.avatarUrl ? (
+          <img src={profile.avatarUrl} alt={getInitials(email)} style={homeStyles.avatarImg} />
+        ) : (
+          getInitials(email)
+        )}
       </div>
 
-      {resources.length === 0 && !error ? (
-        <section style={homeStyles.emptyState}>
-          <h2 style={homeStyles.emptyTitle}>Aun no tienes recursos</h2>
-          <p style={homeStyles.emptyText}>Guarda tu primer enlace para empezar a construir tu biblioteca.</p>
-          <button type='button' onClick={() => setShowSaveModal(true)} style={homeStyles.emptyCtaButton}>
-            + Guardar enlace
-          </button>
-        </section>
-      ) : null}
+      <div style={homeStyles.inner}>
 
-      {error ? <p style={homeStyles.errorText}>{error}</p> : null}
+        <header style={homeStyles.header}>
+          <div style={homeStyles.greeting}>
+            <h1 style={homeStyles.greetingTitle}>Hola, {getFirstName(email)}</h1>
+            <p style={homeStyles.greetingWelcome}>¡Qué alegría verte!</p>
+            <p style={homeStyles.greetingSubtitle}>
+              {unreadCount > 0
+                ? `Tienes ${unreadCount} recurso${unreadCount !== 1 ? 's' : ''} sin leer`
+                : 'Estás al día con todos tus recursos'}
+            </p>
+          </div>
+        </header>
 
-      <section style={homeStyles.list} className='home-resource-grid'>
-        {resources.map((resource) => (
-          <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <ResourceCard
-              id={resource.id}
-              title={resource.title}
-              description={resource.description}
-              domain={resource.domain}
-              url={resource.url}
-              thumbnailUrl={resource.thumbnailUrl}
-              createdAtLabel={resource.createdAtLabel}
-              isRead={resource.isRead}
-              tags={resource.tags}
-              siteName={resource.siteName}
-              onToggleRead={(id, current) => void handleToggleRead(id, current)}
-              onCopyUrl={(url) => { navigator.clipboard.writeText(url) }}
-            />
-          </Link>
-        ))}
-      </section>
+        <div style={homeStyles.metricsRow}>
+          <div style={homeStyles.metricPill}>
+            <p style={homeStyles.metricValue}>{resources.length}</p>
+            <p style={homeStyles.metricLabel}>guardados</p>
+          </div>
+          {unreadCount > 0 ? (
+            <div style={homeStyles.metricPill}>
+              <span style={homeStyles.metricDot} />
+              <p style={homeStyles.metricValue}>{unreadCount}</p>
+              <p style={homeStyles.metricLabel}>sin leer</p>
+            </div>
+          ) : null}
+        </div>
 
-      {loadingMore ? (
-        <section style={homeStyles.list} className='home-resource-grid' aria-label='Cargando siguiente pagina'>
-          {Array.from({ length: 3 }).map((_, index) => (
-            <article key={`skeleton-${index}`} style={homeStyles.skeletonCard}>
-              <div style={{ ...homeStyles.skeletonLine, ...homeStyles.skeletonLineLong }} />
-              <div style={{ ...homeStyles.skeletonLine, ...homeStyles.skeletonLineMedium }} />
-              <div style={{ ...homeStyles.skeletonLine, ...homeStyles.skeletonLineShort }} />
-            </article>
-          ))}
-        </section>
-      ) : null}
-
-      <section style={homeStyles.bottomArea}>
-        {hasMore ? (
-          <button type='button' style={homeStyles.loadMoreButton} onClick={() => void handleLoadMore()}>
-            Cargar mas
-          </button>
+        {resources.length === 0 && !error ? (
+          <section style={homeStyles.emptyState}>
+            <h2 style={homeStyles.emptyTitle}>Aún no tienes recursos</h2>
+            <p style={homeStyles.emptyText}>
+              Guarda tu primer enlace para empezar a construir tu biblioteca personal.
+            </p>
+            <button type='button' onClick={() => setShowSaveModal(true)} style={homeStyles.emptyCtaButton}>
+              Guardar mi primer enlace
+            </button>
+          </section>
         ) : null}
 
-        <div ref={sentinelRef} style={homeStyles.observerSentinel} aria-hidden />
+        {error ? <p style={homeStyles.errorText}>{error}</p> : null}
 
-        {!hasMore && resources.length > 0 ? <p style={homeStyles.endText}>Has llegado al final del listado.</p> : null}
-      </section>
+        {resources.length > 0 ? (
+          <div style={homeStyles.sectionHeader}>
+            <h2 style={homeStyles.sectionTitle}>Tus recursos</h2>
+            <p style={homeStyles.sectionSubtitle}>Aquí encontrarás los enlaces que aún no has visto.</p>
+          </div>
+        ) : null}
+
+        <section style={homeStyles.list} className='home-resource-grid'>
+          {resources.map((resource) => (
+            <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ResourceCard
+                id={resource.id}
+                title={resource.title}
+                description={resource.description}
+                domain={resource.domain}
+                url={resource.url}
+                thumbnailUrl={resource.thumbnailUrl}
+                createdAtLabel={resource.createdAtLabel}
+                isRead={resource.isRead}
+                tags={resource.tags}
+                siteName={resource.siteName}
+                onToggleRead={(id, current) => void handleToggleRead(id, current)}
+                onCopyUrl={(url) => { navigator.clipboard.writeText(url) }}
+              />
+            </Link>
+          ))}
+        </section>
+
+        {loadingMore ? (
+          <section style={homeStyles.list} className='home-resource-grid' aria-label='Cargando más recursos'>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <article key={`skeleton-${index}`} style={homeStyles.skeletonCard}>
+                <div style={{ ...homeStyles.skeletonLine, ...homeStyles.skeletonLineLong }} />
+                <div style={{ ...homeStyles.skeletonLine, ...homeStyles.skeletonLineMedium }} />
+                <div style={{ ...homeStyles.skeletonLine, ...homeStyles.skeletonLineShort }} />
+              </article>
+            ))}
+          </section>
+        ) : null}
+
+        <section style={homeStyles.bottomArea}>
+          {hasMore ? (
+            <button type='button' style={homeStyles.loadMoreButton} onClick={() => void handleLoadMore()}>
+              Cargar más
+            </button>
+          ) : null}
+          <div ref={sentinelRef} style={homeStyles.observerSentinel} aria-hidden />
+          {!hasMore && resources.length > 0 ? (
+            <p style={homeStyles.endText}>Has visto todos tus recursos.</p>
+          ) : null}
+        </section>
+
+      </div>
 
       {showSaveModal && userId ? (
         <SaveUrlModal userId={userId} onClose={() => setShowSaveModal(false)} onSaved={handleSaved} />
@@ -405,12 +447,8 @@ export function Home() {
         }
 
         @keyframes skeletonPulse {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
       `}</style>
     </main>
