@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@lib/supabase';
 import { queryKeys } from '../../../lib/queryKeys';
+import { queryClient } from '../../../lib/queryClient';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import type { FolderResource } from '../FolderDetail.types';
 import { createTagColorMap, mapFolderResource, type ResourceRow } from '../../../lib/mappers';
@@ -124,6 +125,37 @@ export function useFolderDetail(folderId: string) {
     return resources;
   }, [data?.resources, activeQuickFilter]);
 
+  const handleToggleRead = useCallback(async (itemId: string, nextRead: boolean) => {
+    const queryKey = queryKeys.folderDetail(userId!, folderId);
+
+    queryClient.setQueryData<{ folderName: string; folderDescription: string; resources: FolderResource[] }>(queryKey, (old) => {
+      if (!old) return old;
+      return {
+        ...old,
+        resources: old.resources.map((r) =>
+          r.id === itemId ? { ...r, isRead: nextRead, status: nextRead ? 'Visto' : 'No visto' } : r,
+        ),
+      };
+    });
+
+    const { error: updateError } = await supabase
+      .from('items')
+      .update({ is_read: nextRead, updated_at: new Date().toISOString() })
+      .eq('id', itemId);
+
+    if (updateError) {
+      queryClient.setQueryData<{ folderName: string; folderDescription: string; resources: FolderResource[] }>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          resources: old.resources.map((r) =>
+            r.id === itemId ? { ...r, isRead: !nextRead, status: !nextRead ? 'Visto' : 'No visto' } : r,
+          ),
+        };
+      });
+    }
+  }, [userId, folderId]);
+
   return {
     folderName: data?.folderName ?? '',
     folderDescription: data?.folderDescription ?? '',
@@ -133,5 +165,6 @@ export function useFolderDetail(folderId: string) {
     activeQuickFilter,
     hasActiveFilters: activeQuickFilter !== 'all',
     onQuickFilter: setActiveQuickFilter,
+    handleToggleRead,
   };
 }

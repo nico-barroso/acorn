@@ -42,6 +42,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
     hasActiveFilters,
     tagFromQuery,
     clearFilters,
+    handleToggleRead,
   } = useSearch();
 
   const insets = useSafeAreaInsets();
@@ -129,6 +130,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       faviconFallbackUri={item.faviconFallbackUri}
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
+      onToggleRead={handleToggleRead}
     />
   );
 

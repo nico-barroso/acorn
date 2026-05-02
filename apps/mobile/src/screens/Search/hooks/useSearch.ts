@@ -1,7 +1,8 @@
 import React from 'react';
-import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, keepPreviousData, type InfiniteData } from '@tanstack/react-query';
 import { supabase } from '../../../../lib/supabase';
 import { queryKeys } from '../../../lib/queryKeys';
+import { queryClient } from '../../../lib/queryClient';
 import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { createTagColorMap, mapSearchResult } from '../../../lib/mappers';
@@ -219,6 +220,37 @@ export function useSearch() {
     if (!loadingMore && hasNextPage) void fetchNextPage();
   }, [loadingMore, hasNextPage, fetchNextPage]);
 
+  const handleToggleRead = React.useCallback(async (itemId: string, nextRead: boolean) => {
+    const queryKey = ['search', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType];
+
+    queryClient.setQueryData<InfiniteData<SearchResult[]>>(queryKey, (old) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page) =>
+          page.map((item) => item.id === itemId ? { ...item, isRead: nextRead } : item),
+        ),
+      };
+    });
+
+    const { error } = await supabase
+      .from('items')
+      .update({ is_read: nextRead, updated_at: new Date().toISOString() })
+      .eq('id', itemId);
+
+    if (error) {
+      queryClient.setQueryData<InfiniteData<SearchResult[]>>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) =>
+            page.map((item) => item.id === itemId ? { ...item, isRead: !nextRead } : item),
+          ),
+        };
+      });
+    }
+  }, [userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType]);
+
   const clearFilters = React.useCallback(() => {
     setSelectedDomain(null);
     setSelectedTag(null);
@@ -264,6 +296,7 @@ export function useSearch() {
     hasActiveFilters,
     tagFromQuery,
     clearFilters,
+    handleToggleRead,
   };
 }
 

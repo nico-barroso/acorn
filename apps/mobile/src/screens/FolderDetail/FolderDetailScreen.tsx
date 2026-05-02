@@ -29,6 +29,7 @@ export function FolderDetailScreen({
     hasActiveFilters,
     onQuickFilter,
     error,
+    handleToggleRead,
   } = useFolderDetail(folderId);
 
   const insets = useSafeAreaInsets();
@@ -66,6 +67,7 @@ export function FolderDetailScreen({
       faviconUri={item.faviconUri}
       isFile={item.isFile}
       onOpenDetail={onOpenDetail}
+      onToggleRead={handleToggleRead}
     />
   );
 
