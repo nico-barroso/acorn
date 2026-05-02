@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useToggleRead } from '@/hooks/useToggleRead'
 import { useProfile } from '@/features/profile/hooks/useProfile'
-import { ResourceCard } from '@/features/shared/components/ResourceCard/ResourceCard'
+import { ResourceCard, type TagItem } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
 
@@ -33,7 +33,7 @@ type ResourceCardData = {
   thumbnailUrl: string | null
   createdAtLabel: string
   isRead: boolean
-  tags: string[]
+  tags: TagItem[]
   siteName: string | null
 }
 
@@ -44,7 +44,7 @@ type Cursor = {
 
 const PAGE_SIZE = 12
 
-function mapResource(row: ResourceRow): ResourceCardData {
+function mapResource(row: ResourceRow, tagColorMap: Map<string, string | null>): ResourceCardData {
   return {
     id: row.id,
     title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
@@ -54,7 +54,7 @@ function mapResource(row: ResourceRow): ResourceCardData {
     thumbnailUrl: row.og_image_url || row.preview_image_url || null,
     createdAtLabel: new Date(row.created_at).toLocaleDateString(),
     isRead: Boolean(row.is_read),
-    tags: row.tags?.filter(Boolean) ?? [],
+    tags: (row.tags ?? []).filter(Boolean).map((name) => ({ name, color_hex: tagColorMap.get(name) ?? tagColorMap.get(name.toLowerCase()) ?? null })),
     siteName: row.site_name || null
   }
 }
@@ -127,6 +127,7 @@ export function Home() {
 
   const initialPageRef = useRef<number | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const tagColorMapRef = useRef<Map<string, string | null>>(new Map())
 
   const currentPage = useMemo(() => page, [page])
   const readCount = useMemo(() => resources.filter((resource) => resource.isRead).length, [resources])
@@ -155,7 +156,7 @@ export function Home() {
     }
 
     const rows = (data ?? []) as ResourceRow[]
-    const mapped = rows.map(mapResource)
+    const mapped = rows.map((row) => mapResource(row, tagColorMapRef.current))
     const lastRow = rows[rows.length - 1]
 
     return {
@@ -190,6 +191,18 @@ export function Home() {
       setEmail(data.user.email ?? 'usuario')
       setUserId(data.user.id)
       setError('')
+
+      const { data: tagData } = await supabase
+        .from('tags')
+        .select('name,slug,color_hex')
+        .eq('user_id', data.user.id)
+      const map = new Map<string, string | null>()
+      ;(tagData ?? []).forEach((t: { name: string; slug: string | null; color_hex: string | null }) => {
+        map.set(t.name, t.color_hex)
+        if (t.slug) map.set(t.slug, t.color_hex)
+        map.set(t.name.toLowerCase(), t.color_hex)
+      })
+      tagColorMapRef.current = map
 
       if (initialPageRef.current === null) {
         const rawPage = Number(new URLSearchParams(window.location.search).get('page') || '1')
@@ -339,7 +352,7 @@ export function Home() {
         )}
       </div>
 
-      <div style={homeStyles.inner}>
+      <div style={homeStyles.inner} className='home-inner'>
 
         <header style={homeStyles.header}>
           <div style={homeStyles.greeting}>
@@ -443,6 +456,10 @@ export function Home() {
         @media (max-width: 900px) {
           .home-resource-grid {
             grid-template-columns: 1fr;
+          }
+
+          .home-inner {
+            padding-top: 20px !important;
           }
         }
 

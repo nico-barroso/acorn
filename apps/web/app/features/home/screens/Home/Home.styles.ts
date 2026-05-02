@@ -8,23 +8,24 @@ export const homeStyles = {
     width: '100%'
   },
   heroGradient: {
-    position: 'relative' as const,
-    marginLeft: '-24px',
-    marginRight: '-24px',
-    marginTop: '-20px',
-    width: 'calc(100% + 48px)',
-    height: '220px',
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '260px',
     background: 'radial-gradient(ellipse 100% 100% at 50% 0%, rgba(192, 110, 82, 0.45) 0%, rgba(248, 237, 232, 0.18) 60%, transparent 100%)',
     overflow: 'hidden',
-    flexShrink: 0
+    pointerEvents: 'none' as const,
+    zIndex: 0
   },
   inner: {
+    position: 'relative' as const,
+    zIndex: 1,
     maxWidth: '1080px',
     margin: '0 auto',
     display: 'grid',
     gap: '36px',
-    paddingTop: '0px',
-    marginTop: '-16px'
+    paddingTop: '140px'
   },
 
   // ─── Header ───────────────────────────────────────────────

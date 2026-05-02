@@ -26,7 +26,7 @@ function isActiveRoute(pathname: string, href: string) {
 
 function HomeIcon() {
   return (
-    <svg width='20' height='20' viewBox='0 0 27 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+    <svg width='20' height='20' viewBox='4 2 20 21' fill='none' xmlns='http://www.w3.org/2000/svg'>
       <path d='M10.126 14.3665C10.5701 16.0917 12.1362 17.3665 14 17.3665C15.8638 17.3665 17.4299 16.0917 17.874 14.3665M13.0177 3.13046L6.23539 8.40558C5.78202 8.75821 5.55534 8.93452 5.39203 9.15532C5.24737 9.3509 5.1396 9.57124 5.07403 9.80551C5 10.07 5 10.3572 5 10.9316V18.1665C5 19.2866 5 19.8466 5.21799 20.2745C5.40973 20.6508 5.71569 20.9568 6.09202 21.1485C6.51984 21.3665 7.07989 21.3665 8.2 21.3665H19.8C20.9201 21.3665 21.4802 21.3665 21.908 21.1485C22.2843 20.9568 22.5903 20.6508 22.782 20.2745C23 19.8466 23 19.2866 23 18.1665V10.9316C23 10.3572 23 10.07 22.926 9.80551C22.8604 9.57124 22.7526 9.3509 22.608 9.15532C22.4447 8.93452 22.218 8.75821 21.7646 8.40559L14.9823 3.13046C14.631 2.85721 14.4553 2.72058 14.2613 2.66806C14.0902 2.62172 13.9098 2.62172 13.7387 2.66806C13.5447 2.72058 13.369 2.85721 13.0177 3.13046Z' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' />
     </svg>
   )
@@ -34,7 +34,7 @@ function HomeIcon() {
 
 function SearchIcon() {
   return (
-    <svg width='20' height='20' viewBox='0 0 27 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+    <svg width='20' height='20' viewBox='4 2 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
       <path d='M23 21L18.65 16.65M21 11C21 15.4183 17.4183 19 13 19C8.58172 19 5 15.4183 5 11C5 6.58172 8.58172 3 13 3C17.4183 3 21 6.58172 21 11Z' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' />
     </svg>
   )
@@ -157,7 +157,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         />
       ) : null}
 
-      <style jsx>{`
+      <style jsx global>{`
         .app-shell {
           display: block;
         }
@@ -166,21 +166,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
           display: none;
         }
 
-
-        .nav-item {
-          color: #7B5B4C;
+        .app-sidebar .nav-item {
+          color: #48392A;
+          cursor: pointer;
           transition: color 0.2s ease;
         }
 
-        .nav-item.active {
-          color: #43281C;
-        }
-
-        .nav-item:hover {
+        .app-sidebar .nav-item.active {
           color: #A14D36;
         }
 
-        .nav-item-content::after {
+        .app-sidebar .nav-item:hover {
+          color: #A14D36;
+        }
+
+        .app-sidebar .nav-item-content::after {
           content: '';
           position: absolute;
           bottom: 0;
@@ -192,11 +192,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
           transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .nav-item:hover .nav-item-content::after {
+        .app-sidebar .nav-item:hover .nav-item-content::after {
           width: 60%;
         }
 
-        .nav-item.active .nav-item-content::after {
+        .app-sidebar .nav-item.active .nav-item-content::after {
           width: 100%;
         }
 
@@ -207,25 +207,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
           .app-sidebar {
             position: fixed !important;
-            top: 0;
-            left: 0;
-            height: 100dvh;
-            width: 280px;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100dvh !important;
+            width: 280px !important;
+            border-radius: 0 !important;
             transform: translateX(-100%);
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
-            box-shadow: none;
+            box-shadow: none !important;
           }
 
           .app-sidebar.sidebar-open {
             transform: translateX(0);
-            box-shadow: 4px 0 32px rgba(67, 40, 28, 0.18);
+            box-shadow: 4px 0 32px rgba(67, 40, 28, 0.18) !important;
           }
 
           .sidebar-logo {
             display: none;
           }
-
 
           .mobile-topbar {
             display: flex !important;
@@ -252,18 +252,22 @@ const styles: Record<string, CSSProperties> = {
   },
   sidebar: {
     position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    width: '280px',
-    height: '100dvh',
+    top: '16px',
+    left: '12px',
+    width: '256px',
+    height: 'calc(100dvh - 48px)',
     overflowY: 'auto' as const,
-    borderRight: `1px solid ${colors.brown}26`,
-    background: 'radial-gradient(ellipse 140% 55% at 50% 100%, rgba(192, 110, 82, 0.5) 0%, rgba(248, 237, 232, 0.2) 55%, rgba(255, 252, 251, 0) 100%), #fff8f3',
+    borderRadius: '20px',
+    border: `1px solid ${colors.brown}22`,
+    background: 'radial-gradient(ellipse 140% 55% at 50% 100%, rgba(192, 110, 82, 0.35) 0%, rgba(248, 237, 232, 0.12) 55%, rgba(255, 252, 251, 0) 100%), rgba(255, 248, 243, 0.72)',
+    backdropFilter: 'blur(18px) saturate(1.4)',
+    WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
+    boxShadow: '0 8px 32px rgba(67, 40, 28, 0.12), 0 2px 8px rgba(67, 40, 28, 0.06)',
     padding: '24px 18px',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
-    zIndex: 40
+    zIndex: 50
   },
   sidebarHeader: {
     display: 'flex',
@@ -315,7 +319,7 @@ const styles: Record<string, CSSProperties> = {
   },
   navItemActive: {},
   content: {
-    marginLeft: '280px',
+    marginLeft: '284px',
     padding: '20px 24px 96px'
   },
   mobileTopbar: {
