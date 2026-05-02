@@ -100,7 +100,7 @@ export const searchStyles = {
     opacity: 0.9,
     outline: 'none',
     boxSizing: 'border-box' as const,
-    transition: 'border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease',
+    transition: 'border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
     boxShadow: '0 2px 12px rgba(67, 40, 28, 0.06)',
   },
 

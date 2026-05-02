@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
+import { usePageLoader } from '@/hooks/usePageLoader'
 import { useFolderDetail } from '../../hooks/useFolderDetail'
 import { ResourceCard } from '@/features/shared/components/ResourceCard/ResourceCard'
 import { useToggleRead } from '@/hooks/useToggleRead'
@@ -59,12 +60,10 @@ export function FolderDetailScreen({ folderId }: FolderDetailScreenProps) {
     await toggleRead(itemId, currentIsRead)
   }, [toggleRead])
 
-  if (loading) {
-    return (
-      <main style={s.page}>
-        <AcornLoader label="Cargando carpeta" />
-      </main>
-    )
+  const { showLoader, exiting: loaderExiting } = usePageLoader(loading)
+
+  if (showLoader) {
+    return <AcornLoader label="Cargando carpeta" fullScreen exiting={loaderExiting} />
   }
 
   if (error || !folder) {
@@ -84,7 +83,7 @@ export function FolderDetailScreen({ folderId }: FolderDetailScreenProps) {
   ]
 
   return (
-    <main style={s.page}>
+    <main style={s.page} className="page-enter">
       {/* ── Hero ── */}
       <div style={s.hero}>
         <div style={s.heroGlow} />

@@ -3,37 +3,55 @@
 interface AcornLoaderProps {
   label?: string
   size?: number
+  fullScreen?: boolean
+  exiting?: boolean
 }
 
-export function AcornLoader({ label = 'Cargando', size = 52 }: AcornLoaderProps) {
-  const r = size / 2 - 3
+export function AcornLoader({ label = 'Cargando', size, fullScreen = false, exiting = false }: AcornLoaderProps) {
+  const actualSize = size ?? (fullScreen ? 80 : 52)
+  const r = actualSize / 2 - 3
   const C = 2 * Math.PI * r
   const dash = C * 0.72
   const gap = C * 0.28
 
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 14,
-        padding: `${size < 44 ? 20 : 40}px 0`,
-      }}
+      className={exiting ? 'acorn-loader-exiting' : undefined}
+      style={
+        fullScreen
+          ? {
+              position: 'fixed' as const,
+              inset: 0,
+              zIndex: 9999,
+              backgroundColor: '#FFFCFB',
+              display: 'flex',
+              flexDirection: 'column' as const,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 18,
+            }
+          : {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 14,
+              padding: `${actualSize < 44 ? 20 : 40}px 0`,
+            }
+      }
     >
-      <div style={{ position: 'relative', width: size, height: size }}>
+      <div style={{ position: 'relative', width: actualSize, height: actualSize }}>
         <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
+          width={actualSize}
+          height={actualSize}
+          viewBox={`0 0 ${actualSize} ${actualSize}`}
           className="acorn-loader-spin"
           aria-hidden
           style={{ position: 'absolute', inset: 0 }}
         >
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={actualSize / 2}
+            cy={actualSize / 2}
             r={r}
             fill="none"
             stroke="#C06E52"
@@ -43,8 +61,8 @@ export function AcornLoader({ label = 'Cargando', size = 52 }: AcornLoaderProps)
           />
         </svg>
         <svg
-          width={size * 0.45}
-          height={size * 0.45}
+          width={actualSize * 0.45}
+          height={actualSize * 0.45}
           viewBox="0 0 26 28"
           fill="none"
           aria-hidden
@@ -75,7 +93,7 @@ export function AcornLoader({ label = 'Cargando', size = 52 }: AcornLoaderProps)
           display: 'flex',
           alignItems: 'baseline',
           fontFamily: 'Satoshi, sans-serif',
-          fontSize: 14,
+          fontSize: fullScreen ? 16 : 14,
           fontWeight: 500,
           color: '#48392A',
           letterSpacing: '0.01em',

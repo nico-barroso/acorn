@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
 import { useEditProfile } from '../../hooks/useEditProfile'
+import { usePageLoader } from '@/hooks/usePageLoader'
 import { editProfileStyles as s } from './EditProfile.styles'
 
 function getInitials(name: string, email: string): string {
@@ -58,12 +59,10 @@ export function EditProfileScreen() {
     window.history.back()
   }
 
-  if (loading) {
-    return (
-      <main style={s.page}>
-        <AcornLoader label="Cargando perfil" />
-      </main>
-    )
+  const { showLoader, exiting: loaderExiting } = usePageLoader(loading)
+
+  if (showLoader) {
+    return <AcornLoader label="Cargando perfil" fullScreen exiting={loaderExiting} />
   }
 
   if (!profile) {
@@ -77,7 +76,7 @@ export function EditProfileScreen() {
   const hasChanges = (displayName.trim() !== profile.displayName && displayName.trim() !== '') || selectedFile !== null
 
   return (
-    <main style={s.page}>
+    <main style={s.page} className="page-enter">
       <Link href='/profile' style={s.backLink}>← Volver al perfil</Link>
 
       <h1 style={s.title}>Editar perfil</h1>

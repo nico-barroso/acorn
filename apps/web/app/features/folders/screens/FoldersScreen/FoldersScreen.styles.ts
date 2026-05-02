@@ -74,8 +74,8 @@ export const foldersScreenStyles = {
   // ── Grid ────────────────────────────────────────────────
   list: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: '14px'
+    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+    gap: '10px'
   },
 
   // ── States ──────────────────────────────────────────────

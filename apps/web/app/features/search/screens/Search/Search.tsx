@@ -10,6 +10,7 @@ import type { DateFilterValue, ReadFilterValue, TypeFilterValue } from './hooks/
 import { searchStyles } from './Search.styles'
 import { colors } from '@/theme/colors'
 import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
+import { usePageLoader } from '@/hooks/usePageLoader'
 
 // ─── Background gradient ─────────────────────────────────────────────────────
 
@@ -247,6 +248,7 @@ export function Search() {
   const [userId, setUserId] = useState('')
   const [authLoading, setAuthLoading] = useState(true)
   const [showFilterPanel, setShowFilterPanel] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
 
   const {
     query, setQuery,
@@ -297,13 +299,10 @@ export function Search() {
     }
   }
 
-  if (authLoading) {
-    return (
-      <main style={searchStyles.page}>
-        <SearchGradient />
-        <AcornLoader />
-      </main>
-    )
+  const { showLoader: authLoader, exiting: authLoaderExiting } = usePageLoader(authLoading)
+
+  if (authLoader) {
+    return <AcornLoader fullScreen exiting={authLoaderExiting} />
   }
 
   const hasQuery = query.trim().length > 0
@@ -311,18 +310,26 @@ export function Search() {
   const showEmpty = !loading && !error && results.length === 0 && !showInitial
 
   return (
-    <main style={searchStyles.page}>
+    <main style={searchStyles.page} className="page-enter">
       <SearchGradient />
       <SearchHeroDecoration />
 
       <div style={searchStyles.inner}>
-      <div style={searchStyles.heroContent}>
+      <div className="heroContent" style={searchStyles.heroContent}>
         <h1 style={searchStyles.title}>De vuelta a lo que importa</h1>
         <p style={searchStyles.subtitle}>Encuentra lo que guardaste cuando lo necesites</p>
       </div>
 
       <div style={searchStyles.inputWrapper}>
-        <span style={searchStyles.searchIcon} aria-hidden>
+        <span
+          style={{
+            ...searchStyles.searchIcon,
+            transform: isFocused ? 'translateY(-50%) scale(1.22)' : 'translateY(-50%) scale(1)',
+            opacity: isFocused ? 1 : 0.7,
+            transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease',
+          }}
+          aria-hidden
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke={colors.brownMid} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -335,6 +342,8 @@ export function Search() {
           style={searchStyles.searchInput}
           aria-label="Buscar recursos"
           autoComplete="off"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       </div>
 
@@ -371,7 +380,7 @@ export function Search() {
 
       {!showInitial && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <p style={searchStyles.resultsMeta}>
+          <p className="metaFadeIn" style={searchStyles.resultsMeta}>
             <span style={searchStyles.resultsMetaDot} />
             {totalCount === 1 ? `${totalCount} resultado` : `${totalCount} resultados`}
           </p>
@@ -387,7 +396,7 @@ export function Search() {
 
       {showInitial ? (
         <div style={searchStyles.initialState}>
-          <img src="/search-ardilla.svg" alt="" style={searchStyles.squirrelImg} />
+          <img src="/search-ardilla.svg" alt="" className="squirrelAnim" style={searchStyles.squirrelImg} />
           <p style={searchStyles.initialTitle}>¿Qué tal si nos ponemos a buscar?</p>
           <p style={searchStyles.initialSubtitle}>Escribe algo arriba o usa los filtros para encontrar tus recursos.</p>
         </div>
@@ -399,7 +408,7 @@ export function Search() {
         </div>
       ) : showEmpty ? (
         <div style={searchStyles.emptyState}>
-          <img src="/search-ardilla.svg" alt="" style={searchStyles.squirrelImg} />
+          <img src="/search-ardilla.svg" alt="" className="squirrelAnim" style={searchStyles.squirrelImg} />
           <p style={searchStyles.emptyTitle}>Aquí no hay nada...</p>
           <p style={searchStyles.emptySubtitle}>
             {hasActiveFilters
@@ -409,8 +418,18 @@ export function Search() {
         </div>
       ) : (
         <div style={searchStyles.resultsList}>
-          {results.map((result) => (
-            <Link key={result.id} href={`/item/${result.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          {results.map((result, index) => (
+            <Link
+              key={result.id}
+              href={`/item/${result.id}`}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'block',
+                animation: 'resultFadeIn 0.28s ease both',
+                animationDelay: `${Math.min(index * 40, 240)}ms`,
+              }}
+            >
               <ResourceCard
                 id={result.id}
                 title={result.title}
@@ -448,13 +467,44 @@ export function Search() {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
+        @keyframes heroFadeIn {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes resultFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes squirrelBounce {
+          0%   { opacity: 0; transform: scale(0.72) translateY(8px); }
+          65%  { transform: scale(1.06) translateY(-3px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes metaFadeIn {
+          from { opacity: 0; transform: scale(0.88) translateY(4px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .heroContent {
+          animation: heroFadeIn 0.48s ease both;
+        }
+        .squirrelAnim {
+          animation: squirrelBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .metaFadeIn {
+          animation: metaFadeIn 0.22s ease both;
+        }
         input:focus {
           border-color: #A14D36 !important;
           opacity: 1 !important;
           box-shadow: 0 0 0 3px rgba(161, 77, 54, 0.12), 0 2px 12px rgba(67, 40, 28, 0.08) !important;
+          transform: translateY(-1px) !important;
         }
         button:hover {
           opacity: 0.88;
+        }
+        button:active {
+          transform: scale(0.95) !important;
+          transition: transform 0.08s ease !important;
         }
       `}</style>
     </main>

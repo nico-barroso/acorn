@@ -10,6 +10,7 @@ import { ResourceCard, type TagItem } from '@/features/shared/components/Resourc
 import { SaveUrlModal } from './components/SaveUrlModal/SaveUrlModal'
 import { homeStyles } from './Home.styles'
 import { AcornLoader } from '@/features/shared/components/AcornLoader/AcornLoader'
+import { usePageLoader } from '@/hooks/usePageLoader'
 
 type ResourceRow = {
   id: string
@@ -339,21 +340,19 @@ export function Home() {
     }
   }, [toggleRead])
 
-  if (loading) {
-    return (
-      <main style={homeStyles.page}>
-        <AcornLoader />
-      </main>
-    )
+  const { showLoader, exiting: loaderExiting } = usePageLoader(loading)
+
+  if (showLoader) {
+    return <AcornLoader fullScreen exiting={loaderExiting} />
   }
 
   return (
-    <main style={homeStyles.page}>
+    <main style={homeStyles.page} className="page-enter">
 
       <HomeGradient />
       <HeroDecoration />
 
-      <div style={homeStyles.avatar}>
+      <div style={{ ...homeStyles.avatar, animation: 'fadeInScale 0.4s cubic-bezier(0.34,1.56,0.64,1) both' }}>
         {profile?.avatarUrl ? (
           <img src={profile.avatarUrl} alt={getInitials(email)} style={homeStyles.avatarImg} />
         ) : (
@@ -364,7 +363,7 @@ export function Home() {
       <div style={homeStyles.inner} className='home-inner'>
 
         <header style={homeStyles.header}>
-          <div style={homeStyles.greeting}>
+          <div style={{ ...homeStyles.greeting, animation: 'fadeInUp 0.45s ease both' }}>
             <h1 style={homeStyles.greetingTitle}>Hola, {getFirstName(email)}</h1>
             <p style={homeStyles.greetingWelcome}>¡Qué alegría verte!</p>
             <p style={homeStyles.greetingSubtitle}>
@@ -375,14 +374,14 @@ export function Home() {
           </div>
         </header>
 
-        <div style={homeStyles.metricsRow}>
+        <div style={{ ...homeStyles.metricsRow, animation: 'fadeInUp 0.45s 100ms ease both' }}>
           <div style={homeStyles.metricPill}>
             <p style={homeStyles.metricValue}>{resources.length}</p>
             <p style={homeStyles.metricLabel}>guardados</p>
           </div>
           {unreadCount > 0 ? (
             <div style={homeStyles.metricPill}>
-              <span style={homeStyles.metricDot} />
+              <span style={{ ...homeStyles.metricDot, animation: 'microPulse 2.5s ease-in-out infinite' }} />
               <p style={homeStyles.metricValue}>{unreadCount}</p>
               <p style={homeStyles.metricLabel}>sin leer</p>
             </div>
@@ -390,7 +389,7 @@ export function Home() {
         </div>
 
         {resources.length > 0 ? (
-          <div style={homeStyles.filterRow}>
+          <div style={{ ...homeStyles.filterRow, animation: 'fadeInUp 0.45s 180ms ease both' }}>
             {([
               { key: 'all',    label: `Todos (${resources.length})` },
               { key: 'unread', label: `Sin leer (${unreadCount})` },
@@ -400,6 +399,7 @@ export function Home() {
                 key={btn.key}
                 type="button"
                 onClick={() => setActiveFilter(btn.key)}
+                className='home-filter-btn'
                 style={activeFilter === btn.key ? homeStyles.filterButtonActive : homeStyles.filterButton}
               >
                 {btn.label}
@@ -409,12 +409,12 @@ export function Home() {
         ) : null}
 
         {resources.length === 0 && !error ? (
-          <section style={homeStyles.emptyState}>
+          <section style={{ ...homeStyles.emptyState, animation: 'fadeInUp 0.4s ease both' }}>
             <h2 style={homeStyles.emptyTitle}>Aún no tienes recursos</h2>
             <p style={homeStyles.emptyText}>
               Guarda tu primer enlace para empezar a construir tu biblioteca personal.
             </p>
-            <button type='button' onClick={() => setShowSaveModal(true)} style={homeStyles.emptyCtaButton}>
+            <button type='button' onClick={() => setShowSaveModal(true)} className='home-empty-cta' style={homeStyles.emptyCtaButton}>
               Guardar mi primer enlace
             </button>
           </section>
@@ -423,16 +423,16 @@ export function Home() {
         {error ? <p style={homeStyles.errorText}>{error}</p> : null}
 
         {filteredResources.length === 0 && resources.length > 0 ? (
-          <section style={homeStyles.emptyState}>
+          <section style={{ ...homeStyles.emptyState, animation: 'fadeInUp 0.4s ease both' }}>
             <p style={homeStyles.emptyText}>
               {activeFilter === 'unread' ? 'No tienes recursos sin leer. ¡Buen trabajo!' : 'No tienes recursos leídos todavía.'}
             </p>
           </section>
         ) : null}
 
-        <section style={homeStyles.list} className='home-resource-grid'>
-          {filteredResources.map((resource) => (
-            <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+        <section key={activeFilter} style={homeStyles.list} className='home-resource-grid'>
+          {filteredResources.map((resource, index) => (
+            <Link key={resource.id} href={`/item/${resource.id}`} style={{ textDecoration: 'none', color: 'inherit', animation: `fadeInUp 0.4s ease ${Math.min(index, 8) * 40}ms both` }}>
               <ResourceCard
                 id={resource.id}
                 title={resource.title}
@@ -465,7 +465,7 @@ export function Home() {
 
         <section style={homeStyles.bottomArea}>
           {hasMore ? (
-            <button type='button' style={homeStyles.loadMoreButton} onClick={() => void handleLoadMore()}>
+            <button type='button' className='home-load-more' style={homeStyles.loadMoreButton} onClick={() => void handleLoadMore()}>
               Cargar más
             </button>
           ) : null}
@@ -495,6 +495,64 @@ export function Home() {
         @keyframes skeletonPulse {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInScale {
+          from { opacity: 0; transform: scale(0.82); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes microPulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.45; }
+        }
+
+        .home-filter-btn {
+          transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .home-filter-btn:hover {
+          background-color: rgba(161,77,54,0.06) !important;
+          border-color: rgba(161,77,54,0.22) !important;
+          transform: translateY(-1px);
+        }
+        .home-filter-btn:active {
+          transform: translateY(0) scale(0.96);
+        }
+
+        .home-load-more {
+          transition: background-color 0.15s ease, transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .home-load-more:hover {
+          background-color: rgba(161,77,54,0.04) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(72,57,42,0.1);
+        }
+        .home-load-more:active {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .home-empty-cta {
+          transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+        }
+        .home-empty-cta:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 22px rgba(161,77,54,0.32);
+        }
+        .home-empty-cta:active {
+          transform: translateY(0) scale(0.97);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-delay: 0ms !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
     </main>
