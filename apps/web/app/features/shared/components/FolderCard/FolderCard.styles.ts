@@ -3,48 +3,55 @@ import { fonts } from '@/theme/fonts'
 
 export const folderCardStyles = {
   card: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
+    borderRadius: '20px',
+    overflow: 'hidden',
     backgroundColor: colors.white,
-    boxShadow: '0 10px 24px rgba(67, 40, 28, 0.08)',
-    padding: '16px',
+    border: '1px solid rgba(201, 107, 80, 0.22)',
     cursor: 'pointer',
-    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-    display: 'grid',
-    gap: '8px'
+    transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+    display: 'flex',
+    gridColumn: 'span 2',
+    minHeight: '148px'
   },
-  cardHover: {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 14px 32px rgba(67, 40, 28, 0.12)'
+  left: {
+    width: '164px',
+    flexShrink: 0,
+    background: 'linear-gradient(160deg, #C96B50 0%, #7A2E1C 100%)',
+    position: 'relative' as const,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  header: {
+  leftGlow: {
+    position: 'absolute' as const,
+    inset: 0,
+    backgroundImage:
+      'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.10) 0%, transparent 60%)',
+    pointerEvents: 'none' as const
+  },
+  leftFade: {
+    position: 'absolute' as const,
+    top: 0,
+    right: 0,
+    width: '32px',
+    height: '100%',
+    background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.55))',
+    pointerEvents: 'none' as const,
+    zIndex: 1
+  },
+  right: {
+    flex: 1,
+    padding: '16px 18px 16px 20px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    justifyContent: 'space-between',
+    minWidth: 0
+  },
+  top: {
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: '12px'
-  },
-  iconAndName: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    flex: 1,
-    minWidth: 0
-  },
-  icon: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '12px',
-    backgroundColor: `${colors.salmon}14`,
-    border: `1px solid ${colors.salmon}35`,
-    display: 'grid',
-    placeItems: 'center',
-    color: colors.salmon,
-    fontSize: '20px',
-    flexShrink: 0
-  },
-  nameSection: {
-    flex: 1,
-    minWidth: 0
+    gap: '8px'
   },
   name: {
     margin: 0,
@@ -55,29 +62,12 @@ export const folderCardStyles = {
     lineHeight: fonts.lineHeight.tight,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const
-  },
-  subtitle: {
-    margin: '2px 0 0',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    lineHeight: fonts.lineHeight.normal
-  },
-  menuButton: {
-    background: 'none',
-    border: 'none',
-    padding: '6px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: '18px',
-    lineHeight: 1,
-    transition: 'background-color 0.15s ease'
+    whiteSpace: 'nowrap' as const,
+    flex: 1,
+    minWidth: 0
   },
   description: {
-    margin: 0,
+    margin: '6px 0 0',
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
@@ -85,28 +75,44 @@ export const folderCardStyles = {
     display: '-webkit-box' as const,
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical' as const,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    opacity: 0.8
+  },
+  menuWrap: {
+    position: 'relative' as const,
+    flexShrink: 0
+  },
+  menuButton: {
+    width: '30px',
+    height: '30px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    borderRadius: '9px',
+    cursor: 'pointer',
+    fontSize: '17px',
+    lineHeight: 1,
+    fontFamily: fonts.family.primary,
+    background: `${colors.brown}0C`,
+    color: colors.brownMid,
+    transition: 'background-color 0.15s ease'
   },
   footer: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '8px',
-    marginTop: '4px'
+    marginTop: '10px'
   },
-  meta: {
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
-  },
-  badge: {
-    display: 'inline-flex',
-    padding: '2px 8px',
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}14`,
+  footerMeta: {
     color: colors.salmon,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
     fontWeight: fonts.weight.medium
+  },
+  footerDate: {
+    color: `${colors.brownMid}70`,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs
   }
 }

@@ -118,7 +118,7 @@ export const resourceCardStyles = {
   chevron: {
     fontSize: '22px',
     color: colors.brownMid,
-    transform: 'rotate(180deg)',
+    transform: 'rotate(0deg)',
     flexShrink: 0,
     alignSelf: 'flex-end',
     marginBottom: '6px',

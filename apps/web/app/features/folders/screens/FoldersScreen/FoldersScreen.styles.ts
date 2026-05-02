@@ -9,72 +9,83 @@ export const foldersScreenStyles = {
     margin: '0 auto',
     padding: 'clamp(10px, 2vw, 18px)'
   },
+
+  // ── Header ──────────────────────────────────────────────
   header: {
-    borderRadius: '20px',
-    border: `1px solid ${colors.brown}20`,
-    background: 'linear-gradient(135deg, #fff7f1 0%, #fffdfc 56%, #f8efe9 100%)',
-    boxShadow: '0 16px 38px rgba(67, 40, 28, 0.12)',
-    padding: 'clamp(18px, 4vw, 28px)'
+    position: 'relative' as const,
+    overflow: 'hidden',
+    paddingTop: '24px',
+    paddingBottom: '32px'
+  },
+  titleRow: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: '24px',
+    flexWrap: 'wrap' as const
   },
   title: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: 'clamp(26px, 5vw, 34px)',
+    fontFamily: fonts.family.heading,
+    fontSize: 'clamp(44px, 6.5vw, 64px)',
     fontWeight: fonts.weight.bold,
-    lineHeight: fonts.lineHeight.tight
+    lineHeight: 1.02,
+    letterSpacing: '-0.02em'
   },
-  subtitle: {
-    margin: '10px 0 0',
-    maxWidth: '650px',
+  newButton: {
+    minHeight: '36px',
+    padding: '0 18px',
+    borderRadius: '10px',
+    border: `1.5px solid ${colors.salmon}`,
+    backgroundColor: 'transparent',
+    color: colors.salmon,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    transition: 'background-color 0.15s ease, color 0.15s ease',
+    whiteSpace: 'nowrap' as const,
+    alignSelf: 'flex-end' as const
+  },
+
+  // ── Divider ─────────────────────────────────────────────
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    marginBottom: '20px'
+  },
+  dividerCount: {
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+    whiteSpace: 'nowrap' as const,
+    opacity: 0.5,
+    letterSpacing: '0.06em'
+  },
+  dividerLine: {
+    flex: 1,
+    height: '0.5px',
+    background: `linear-gradient(to right, ${colors.brown}20, ${colors.brown}06)`
+  },
+
+  // ── Grid ────────────────────────────────────────────────
+  list: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    gap: '14px'
+  },
+
+  // ── States ──────────────────────────────────────────────
+  loading: {
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.comfortable
-  },
-  actionsRow: {
-    marginTop: '16px',
-    display: 'flex',
-    gap: '10px',
-    flexWrap: 'wrap' as const
-  },
-  newButton: {
-    minHeight: '40px',
-    padding: '0 18px',
-    borderRadius: '12px',
-    border: 'none',
-    backgroundColor: colors.salmon,
-    color: colors.white,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer',
-    transition: 'opacity 0.15s ease'
-  },
-  smartButton: {
-    minHeight: '40px',
-    padding: '0 18px',
-    borderRadius: '12px',
-    border: `1px solid ${colors.brown}35`,
-    backgroundColor: colors.white,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer'
-  },
-  list: {
-    marginTop: '16px',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '12px'
-  },
-  loading: {
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.md,
     textAlign: 'center' as const,
-    padding: '40px'
+    padding: '60px 24px',
+    opacity: 0.7
   },
   errorText: {
     margin: 0,
@@ -84,31 +95,42 @@ export const foldersScreenStyles = {
     textAlign: 'center' as const,
     padding: '20px'
   },
+
+  // ── Empty ───────────────────────────────────────────────
   emptyState: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
-    backgroundColor: colors.white,
-    padding: '40px 24px',
-    textAlign: 'center' as const
+    paddingTop: '32px',
+    paddingBottom: '40px'
+  },
+  emptyEyebrow: {
+    margin: '0 0 12px',
+    color: colors.salmon,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+    opacity: 0.75
   },
   emptyTitle: {
-    margin: 0,
+    margin: '0 0 16px',
     color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.lg,
-    fontWeight: fonts.weight.semibold
+    fontFamily: fonts.family.heading,
+    fontSize: 'clamp(28px, 4vw, 40px)',
+    fontWeight: fonts.weight.bold,
+    lineHeight: 1.1,
+    letterSpacing: '-0.02em'
   },
   emptyText: {
-    margin: '8px 0 0',
+    margin: '0 0 28px',
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
+    lineHeight: fonts.lineHeight.comfortable,
+    opacity: 0.75
   },
   emptyCtaButton: {
-    marginTop: '16px',
     minHeight: '40px',
-    padding: '0 18px',
+    padding: '0 20px',
     borderRadius: '12px',
     border: 'none',
     backgroundColor: colors.salmon,
@@ -116,6 +138,7 @@ export const foldersScreenStyles = {
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold,
-    cursor: 'pointer'
+    cursor: 'pointer',
+    letterSpacing: '0.01em'
   }
 }

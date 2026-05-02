@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { resourceCardStyles } from './ResourceCard.styles'
+import { colors } from '@/theme/colors'
+
+export type TagItem = { name: string; color_hex: string | null }
 
 type ResourceCardProps = {
   id: string
@@ -12,7 +15,7 @@ type ResourceCardProps = {
   thumbnailUrl?: string | null
   createdAtLabel: string
   isRead: boolean
-  tags?: string[]
+  tags?: TagItem[]
   siteName?: string | null
   onToggleRead?: (id: string, currentIsRead: boolean) => void
   onCopyUrl?: (url: string) => void
@@ -92,7 +95,13 @@ export function ResourceCard({
           {tags && tags.length > 0 ? (
             <div style={resourceCardStyles.tagsRow}>
               {tags.map((tag) => (
-                <span key={tag} style={resourceCardStyles.tagPill}>{tag}</span>
+                <span key={tag.name} style={{
+                  ...resourceCardStyles.tagPill,
+                  backgroundColor: tag.color_hex ? `${tag.color_hex}20` : `${colors.salmon}14`,
+                  border: `1px solid ${tag.color_hex ? `${tag.color_hex}40` : `${colors.salmon}30`}`
+                }}>
+                  #{tag.name}
+                </span>
               ))}
             </div>
           ) : null}
@@ -133,7 +142,13 @@ export function ResourceCard({
             <div style={resourceCardStyles.tagsSection}>
               <span style={resourceCardStyles.metaLabel}>Etiquetas</span>
               {tags.map((tag) => (
-                <span key={tag} style={resourceCardStyles.tagPill}>{tag}</span>
+                <span key={tag.name} style={{
+                  ...resourceCardStyles.tagPill,
+                  backgroundColor: tag.color_hex ? `${tag.color_hex}20` : `${colors.salmon}14`,
+                  border: `1px solid ${tag.color_hex ? `${tag.color_hex}40` : `${colors.salmon}30`}`
+                }}>
+                  #{tag.name}
+                </span>
               ))}
             </div>
           ) : null}
