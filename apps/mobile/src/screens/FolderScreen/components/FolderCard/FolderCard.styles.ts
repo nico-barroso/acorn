@@ -24,8 +24,8 @@ export const styles = StyleSheet.create({
   },
   textBlock: {
     flex: 1,
-    justifyContent: 'space-between',
-    height: 41,
+    justifyContent: 'center',
+    gap: 2,
   },
   name: {
     fontFamily: 'CabinetGrotesk-Medium',
@@ -33,13 +33,14 @@ export const styles = StyleSheet.create({
     color: colors.brown,
     lineHeight: 20,
   },
-  subtitle: {
+  description: {
     fontFamily: 'Satoshi-Regular',
     fontSize: 12,
-    color: colors.brown,
+    color: colors.brownMid,
     letterSpacing: -0.12,
-    lineHeight: 18,
+    lineHeight: 16,
   },
+
   menuButton: {
     paddingHorizontal: 8,
     paddingVertical: 4,

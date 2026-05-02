@@ -32,9 +32,9 @@ export async function createSupabaseServerClient() {
             cookieStore.set(name, value, options)
           } catch (error) {}
         },
-        remove(name, options) {
+        remove(name, _options) {
           try {
-            cookieStore.delete(name, options)
+            cookieStore.delete(name)
           } catch (error) {}
         },
         setAll(cookiesToSet) {

@@ -3,20 +3,70 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { supabase } from '@lib/supabase';
-import { Keyboard, TouchableWithoutFeedback, View } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback, View, Alert, Platform } from 'react-native';
 import { NavBarHeightProvider } from '@context/NavBarHeightContext';
+import { SessionProvider } from '@context/SessionContext';
+import { useNotificationChannel } from '@hooks/useNotificationChannel';
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync } from '@lib/notificationService';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { queryClient } from '../src/lib/queryClient';
+import * as NavigationBar from 'expo-navigation-bar';
 
 SplashScreen.preventAutoHideAsync();
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: 'ACORN_QUERY_CACHE',
+  throttleTime: 1000,
+});
+
+function handleNotificationResponse(response: Notifications.NotificationResponse) {
+  const data = response.notification.request.content.data;
+  console.log('Notification tapped:', data);
+  // Aquí puedes navegar según los datos de la notificación
+}
+
+async function syncProfileDisplayName(user: Session['user']) {
+  const metadataName =
+    typeof user.user_metadata?.display_name === 'string'
+      ? user.user_metadata.display_name.trim()
+      : '';
+  if (!metadataName) return;
+
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (existing?.display_name && existing.display_name.trim().length > 0) return;
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ display_name: metadataName })
+    .eq('id', user.id);
+
+  if (error) {
+    console.warn('[AuthGate] syncProfileDisplayName error:', error);
+  }
+}
 
 function AuthGate() {
   const router = useRouter();
   const segments = useSegments();
   const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(false);
+
+  useNotificationChannel({
+    userId: session?.user?.id,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -34,16 +84,27 @@ function AuthGate() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession: Session | null) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession: Session | null) => {
       if (!mounted) return;
+
+      if (event === 'SIGNED_OUT') {
+        queryClient.clear();
+      }
+
+      if (event === 'SIGNED_IN' && nextSession?.user) {
+        void syncProfileDisplayName(nextSession.user);
+      }
 
       setSession(nextSession);
       setInitialized(true);
     });
 
+    const notificationSubscription = Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      notificationSubscription.remove();
     };
   }, []);
 
@@ -65,11 +126,13 @@ function AuthGate() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>
-        <Slot />
-      </View>
-    </TouchableWithoutFeedback>
+    <SessionProvider session={session}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
+          <Slot />
+        </View>
+      </TouchableWithoutFeedback>
+    </SessionProvider>
   );
 }
 
@@ -87,14 +150,32 @@ export default function RootLayout() {
     if (loaded || error) void SplashScreen.hideAsync();
   }, [loaded, error]);
 
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync('transparent');
+      NavigationBar.setBehaviorAsync('overlay-swipe');
+    }
+  }, []);
+
   if (!loaded && !error) return null;
 
   return (
-    <SafeAreaProvider>
-      <NavBarHeightProvider>
-        <AuthGate />
-        <StatusBar style="dark" translucent backgroundColor="transparent" />
-      </NavBarHeightProvider>
-    </SafeAreaProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: asyncStoragePersister,
+        maxAge: 1000 * 60 * 60 * 24,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => query.queryKey[0] !== 'search',
+        },
+      }}
+    >
+      <SafeAreaProvider>
+        <NavBarHeightProvider>
+          <AuthGate />
+          <StatusBar style="dark" translucent backgroundColor="transparent" />
+        </NavBarHeightProvider>
+      </SafeAreaProvider>
+    </PersistQueryClientProvider>
   );
 }

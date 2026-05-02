@@ -44,4 +44,10 @@ export const styles = StyleSheet.create({
   pillFilterLabelActive: {
     color: '#FFFFFF',
   },
+  chevron: {
+    marginLeft: 2,
+  },
+  chevronUp: {
+    transform: [{ rotate: '90deg' }],
+  },
 });

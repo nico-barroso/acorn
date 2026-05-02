@@ -5,4 +5,5 @@ export const colors = {
   salmon: '#C06E52',
   black: '#1B1B1B',
   white: '#FFFFFF',
+  skeletonBackground: '#EDE9E6',
 };

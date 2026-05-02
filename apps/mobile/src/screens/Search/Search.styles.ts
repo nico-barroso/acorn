@@ -23,15 +23,20 @@ export const styles = StyleSheet.create({
     fontSize: fonts.size.xxl,
     color: colors.brown,
   },
-  filterPanel: {
+  filterPanelContainer: {
+    marginTop: 8,
     marginHorizontal: 20,
-    borderRadius: 16,
+  },
+  filterPanel: {
+    borderRadius: 20,
     backgroundColor: colors.white,
-    shadowColor: colors.salmon,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: colors.brown,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 16,
+    borderWidth: 1,
+    borderColor: `${colors.brown}15`,
   },
 
   error: {
@@ -43,6 +48,7 @@ export const styles = StyleSheet.create({
   resultsCounter: {
     marginTop: 20,
     marginBottom: 10,
+    paddingVertical: 8,
     color: colors.brownMid,
     fontFamily: fonts.family.primary.regular,
     fontSize: fonts.size.md,
@@ -88,5 +94,20 @@ export const styles = StyleSheet.create({
     fontSize: fonts.size.lg,
     color: colors.brownMid,
     textAlign: 'center',
+  },
+  tagQueryHint: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 13,
+    color: colors.brownMid,
+    marginTop: -10,
+  },
+  tagQueryBadge: {
+    fontFamily: 'Satoshi-Bold',
+    color: colors.salmon,
+  },
+  skeletonContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    gap: 12,
   },
 });

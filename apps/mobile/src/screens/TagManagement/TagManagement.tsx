@@ -1,24 +1,44 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Dimensions,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  PanResponder,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../components/Button/Button';
+import { useSession } from '@context/SessionContext';
 import { styles } from './TagManagement.styles';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+const PRESET_COLORS = [
+  '#C06E52',
+  '#8B6914',
+  '#2D6A4F',
+  '#1D3557',
+  '#9B2226',
+  '#457B9D',
+  '#6A4C93',
+  '#43281C',
+];
 
 type TagRecord = {
   id: string;
   name: string;
   slug: string;
+  color_hex: string | null;
   created_at: string;
 };
 
@@ -40,7 +60,7 @@ function slugifyTag(input: string) {
   return input
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
@@ -48,44 +68,74 @@ function slugifyTag(input: string) {
 }
 
 export function TagManagement({ visible, onClose, onUpdated }: TagManagementProps) {
+  const insets = useSafeAreaInsets();
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState('');
   const [tags, setTags] = React.useState<TagWithCount[]>([]);
-
   const [newTagName, setNewTagName] = React.useState('');
+  const [newTagColor, setNewTagColor] = React.useState<string>(PRESET_COLORS[0]);
   const [editingTagId, setEditingTagId] = React.useState<string | null>(null);
   const [editingTagName, setEditingTagName] = React.useState('');
+  const [editingTagColor, setEditingTagColor] = React.useState<string>(PRESET_COLORS[0]);
+
+  const { session } = useSession();
+  const user = session?.user;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  const dismiss = (callback?: () => void) => {
+    Animated.timing(translateY, {
+      toValue: SCREEN_HEIGHT,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      translateY.setValue(SCREEN_HEIGHT);
+      callback?.();
+    });
+  };
+
+  const handleClose = () => dismiss(onClose);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 0,
+      onPanResponderMove: (_, g) => {
+        if (g.dy > 0) translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 100) {
+          dismiss(onClose);
+        } else {
+          Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
+        }
+      },
+    }),
+  ).current;
 
   const loadTags = React.useCallback(async () => {
-    if (!visible) {
-      return;
-    }
-
+    if (!visible) return;
     setLoading(true);
     setError('');
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setLoading(false);
-      setError('Debes iniciar sesion para gestionar etiquetas.');
-      return;
-    }
+    if (!user) { setLoading(false); setError('Debes iniciar sesion para gestionar etiquetas.'); return; }
 
     const { data: tagRows, error: tagsError } = await supabase
       .from('tags')
-      .select('id,name,slug,created_at')
+      .select('id,name,slug,color_hex,created_at')
       .eq('user_id', user.id)
       .order('name', { ascending: true });
 
-    if (tagsError) {
-      setLoading(false);
-      setError('No se pudieron cargar tus etiquetas.');
-      return;
-    }
+    if (tagsError) { setLoading(false); setError('No se pudieron cargar tus etiquetas.'); return; }
 
     const safeTagRows = ((tagRows ?? []) as TagRecord[]).map((tag) => ({
       ...tag,
@@ -93,48 +143,33 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
       slug: tag.slug?.trim() || slugifyTag(tag.name),
     }));
 
-    if (safeTagRows.length === 0) {
-      setTags([]);
-      setLoading(false);
-      return;
-    }
+    if (safeTagRows.length === 0) { setTags([]); setLoading(false); return; }
 
     const tagIds = safeTagRows.map((tag) => tag.id);
     const { data: relationRows, error: relationError } = await supabase
-      .from('item_tags')
-      .select('tag_id')
-      .in('tag_id', tagIds);
+      .from('item_tags').select('tag_id').in('tag_id', tagIds);
 
-    if (relationError) {
-      setLoading(false);
-      setError('No se pudo calcular el uso de etiquetas.');
-      return;
-    }
+    if (relationError) { setLoading(false); setError('No se pudo calcular el uso de etiquetas.'); return; }
 
     const countByTagId = new Map<string, number>();
     ((relationRows ?? []) as ItemTagRow[]).forEach((row) => {
       countByTagId.set(row.tag_id, (countByTagId.get(row.tag_id) ?? 0) + 1);
     });
 
-    setTags(
-      safeTagRows.map((tag) => ({
-        ...tag,
-        usageCount: countByTagId.get(tag.id) ?? 0,
-      })),
-    );
+    setTags(safeTagRows.map((tag) => ({ ...tag, usageCount: countByTagId.get(tag.id) ?? 0 })));
     setLoading(false);
   }, [visible]);
 
-  React.useEffect(() => {
-    void loadTags();
-  }, [loadTags]);
+  React.useEffect(() => { void loadTags(); }, [loadTags]);
 
   React.useEffect(() => {
     if (!visible) {
       setError('');
       setNewTagName('');
+      setNewTagColor(PRESET_COLORS[0]);
       setEditingTagId(null);
       setEditingTagName('');
+      setEditingTagColor(PRESET_COLORS[0]);
       setSaving(false);
     }
   }, [visible]);
@@ -142,44 +177,16 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
   const createTag = async () => {
     const normalized = newTagName.trim();
     const slug = slugifyTag(normalized);
+    if (!normalized || !slug) { setError('Introduce un nombre de etiqueta valido.'); return; }
+    if (tags.some((tag) => tag.slug.toLowerCase() === slug.toLowerCase())) { setError('Ya existe una etiqueta con ese nombre.'); return; }
 
-    if (!normalized || !slug) {
-      setError('Introduce un nombre de etiqueta valido.');
-      return;
-    }
+    setSaving(true); setError('');
+    if (!user) { setSaving(false); setError('Debes iniciar sesion para crear etiquetas.'); return; }
 
-    if (tags.some((tag) => tag.slug.toLowerCase() === slug.toLowerCase())) {
-      setError('Ya existe una etiqueta con ese nombre.');
-      return;
-    }
+    const { error: insertError } = await supabase.from('tags').insert({ user_id: user.id, name: normalized, slug, color_hex: newTagColor });
+    if (insertError) { setSaving(false); setError('No se pudo crear la etiqueta.'); return; }
 
-    setSaving(true);
-    setError('');
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setSaving(false);
-      setError('Debes iniciar sesion para crear etiquetas.');
-      return;
-    }
-
-    const { error: insertError } = await supabase.from('tags').insert({
-      user_id: user.id,
-      name: normalized,
-      slug,
-    });
-
-    if (insertError) {
-      setSaving(false);
-      setError('No se pudo crear la etiqueta.');
-      return;
-    }
-
-    setNewTagName('');
-    setSaving(false);
+    setNewTagName(''); setNewTagColor(PRESET_COLORS[0]); setSaving(false);
     onUpdated?.();
     await loadTags();
   };
@@ -187,98 +194,37 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
   const saveTagEdition = async (tagId: string) => {
     const normalized = editingTagName.trim();
     const slug = slugifyTag(normalized);
+    if (!normalized || !slug) { setError('El nombre editado no es valido.'); return; }
+    if (tags.some((tag) => tag.id !== tagId && tag.slug.toLowerCase() === slug.toLowerCase())) { setError('Ya existe una etiqueta con ese nombre.'); return; }
 
-    if (!normalized || !slug) {
-      setError('El nombre editado no es valido.');
-      return;
-    }
+    setSaving(true); setError('');
+    if (!user) { setSaving(false); setError('Debes iniciar sesion para editar etiquetas.'); return; }
 
-    if (tags.some((tag) => tag.id !== tagId && tag.slug.toLowerCase() === slug.toLowerCase())) {
-      setError('Ya existe una etiqueta con ese nombre.');
-      return;
-    }
+    const { error: updateError } = await supabase.from('tags').update({ name: normalized, slug, color_hex: editingTagColor }).eq('id', tagId).eq('user_id', user.id);
+    if (updateError) { setSaving(false); setError('No se pudo actualizar la etiqueta.'); return; }
 
-    setSaving(true);
-    setError('');
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setSaving(false);
-      setError('Debes iniciar sesion para editar etiquetas.');
-      return;
-    }
-
-    const { error: updateError } = await supabase
-      .from('tags')
-      .update({ name: normalized, slug })
-      .eq('id', tagId)
-      .eq('user_id', user.id);
-
-    if (updateError) {
-      setSaving(false);
-      setError('No se pudo actualizar la etiqueta.');
-      return;
-    }
-
-    setEditingTagId(null);
-    setEditingTagName('');
-    setSaving(false);
+    setEditingTagId(null); setEditingTagName(''); setSaving(false);
     onUpdated?.();
     await loadTags();
   };
 
   const deleteTag = (tag: TagWithCount) => {
     Alert.alert('Eliminar etiqueta', `Se eliminara la etiqueta "${tag.name}" de tus recursos.`, [
+      { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Cancelar',
-        style: 'cancel',
-      },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
+        text: 'Eliminar', style: 'destructive',
         onPress: () => {
           void (async () => {
-            setSaving(true);
-            setError('');
+            setSaving(true); setError('');
+            if (!user) { setSaving(false); setError('Debes iniciar sesion para eliminar etiquetas.'); return; }
 
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
+            const { error: deleteRelationsError } = await supabase.from('item_tags').delete().eq('tag_id', tag.id);
+            if (deleteRelationsError) { setSaving(false); setError('No se pudieron desvincular los recursos de esta etiqueta.'); return; }
 
-            if (!user) {
-              setSaving(false);
-              setError('Debes iniciar sesion para eliminar etiquetas.');
-              return;
-            }
+            const { error: deleteTagError } = await supabase.from('tags').delete().eq('id', tag.id).eq('user_id', user.id);
+            if (deleteTagError) { setSaving(false); setError('No se pudo eliminar la etiqueta.'); return; }
 
-            const { error: deleteRelationsError } = await supabase
-              .from('item_tags')
-              .delete()
-              .eq('tag_id', tag.id);
-
-            if (deleteRelationsError) {
-              setSaving(false);
-              setError('No se pudieron desvincular los recursos de esta etiqueta.');
-              return;
-            }
-
-            const { error: deleteTagError } = await supabase
-              .from('tags')
-              .delete()
-              .eq('id', tag.id)
-              .eq('user_id', user.id);
-
-            if (deleteTagError) {
-              setSaving(false);
-              setError('No se pudo eliminar la etiqueta.');
-              return;
-            }
-
-            setSaving(false);
-            onUpdated?.();
+            setSaving(false); onUpdated?.();
             await loadTags();
           })();
         },
@@ -295,7 +241,6 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
         </View>
       );
     }
-
     return (
       <View style={styles.emptyState}>
         <Text style={styles.emptyTitle}>Todavia no tienes etiquetas</Text>
@@ -305,121 +250,119 @@ export function TagManagement({ visible, onClose, onUpdated }: TagManagementProp
   };
 
   return (
-    <Modal visible={visible} transparent animationType='slide' onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.backdrop}>
-          <TouchableWithoutFeedback>
-            <View style={styles.panel}>
-              <View style={styles.headerRow}>
-                <Text style={styles.title}>Etiquetas</Text>
-                <TouchableOpacity onPress={onClose} activeOpacity={0.8}>
-                  <Text style={styles.closeLabel}>Cerrar</Text>
-                </TouchableOpacity>
-              </View>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
+      <>
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
-              <Text style={styles.subtitle}>Crea, edita, elimina y revisa todas tus etiquetas.</Text>
+        <Animated.View
+          style={[styles.sheet, { transform: [{ translateY }], paddingBottom: insets.bottom + 16 }]}
+        >
+          <View style={styles.handleContainer} {...panResponder.panHandlers}>
+            <View style={styles.handle} />
+          </View>
 
-              <View style={styles.createRow}>
-                <TextInput
-                  value={newTagName}
-                  onChangeText={setNewTagName}
-                  style={styles.input}
-                  placeholder='Nueva etiqueta'
-                  placeholderTextColor='#8B8179'
-                  editable={!saving}
-                />
-                <View style={styles.inputAction}>
-                  <Button label={saving ? 'Guardando...' : 'Crear'} onPress={() => void createTag()} disabled={saving} />
-                </View>
-              </View>
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>Gestionar etiquetas</Text>
+          </View>
+          <Text style={styles.subtitle}>Crea, edita, elimina y revisa todas tus etiquetas.</Text>
 
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-
-              <FlatList
-                data={tags}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => {
-                  const isEditing = editingTagId === item.id;
-
-                  return (
-                    <View style={styles.tagCard}>
-                      {isEditing ? (
-                        <TextInput
-                          value={editingTagName}
-                          onChangeText={setEditingTagName}
-                          style={styles.input}
-                          placeholder='Nombre de etiqueta'
-                          placeholderTextColor='#8B8179'
-                          editable={!saving}
-                        />
-                      ) : (
-                        <>
-                          <Text style={styles.tagName}>#{item.name}</Text>
-                          <Text style={styles.tagMeta}>
-                            slug: {item.slug} · {item.usageCount} recursos
-                          </Text>
-                        </>
-                      )}
-
-                      <View style={styles.actionsRow}>
-                        {isEditing ? (
-                          <>
-                            <View style={styles.actionButton}>
-                              <Button
-                                label='Guardar'
-                                onPress={() => void saveTagEdition(item.id)}
-                                disabled={saving}
-                              />
-                            </View>
-                            <View style={styles.actionButton}>
-                              <Button
-                                label='Cancelar'
-                                variant='secondary'
-                                onPress={() => {
-                                  setEditingTagId(null);
-                                  setEditingTagName('');
-                                  setError('');
-                                }}
-                                disabled={saving}
-                              />
-                            </View>
-                          </>
-                        ) : (
-                          <>
-                            <View style={styles.actionButton}>
-                              <Button
-                                label='Editar'
-                                variant='secondary'
-                                onPress={() => {
-                                  setEditingTagId(item.id);
-                                  setEditingTagName(item.name);
-                                  setError('');
-                                }}
-                                disabled={saving}
-                              />
-                            </View>
-                            <View style={styles.actionButton}>
-                              <Button
-                                label='Eliminar'
-                                variant='secondary'
-                                onPress={() => deleteTag(item)}
-                                disabled={saving}
-                              />
-                            </View>
-                          </>
-                        )}
-                      </View>
-                    </View>
-                  );
-                }}
-                ListEmptyComponent={renderEmpty}
-                contentContainerStyle={tags.length === 0 ? styles.listEmptyContent : styles.listContent}
-                keyboardShouldPersistTaps='handled'
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View style={styles.createRow}>
+              <TextInput
+                value={newTagName}
+                onChangeText={setNewTagName}
+                style={styles.input}
+                placeholder="Nueva etiqueta"
+                placeholderTextColor="#8B8179"
+                editable={!saving}
               />
+              <View style={styles.inputAction}>
+                <Button label={saving ? 'Guardando...' : 'Crear'} onPress={() => void createTag()} disabled={saving} />
+              </View>
             </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+            <View style={styles.colorRow}>
+              {PRESET_COLORS.map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  style={[styles.colorSwatch, { backgroundColor: c }, newTagColor === c && styles.colorSwatchSelected]}
+                  onPress={() => setNewTagColor(c)}
+                  activeOpacity={0.8}
+                />
+              ))}
+            </View>
+          </KeyboardAvoidingView>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <FlatList
+            data={tags}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              const isEditing = editingTagId === item.id;
+              return (
+                <View style={styles.tagCard}>
+                  {isEditing ? (
+                    <>
+                      <TextInput
+                        value={editingTagName}
+                        onChangeText={setEditingTagName}
+                        style={styles.input}
+                        placeholder="Nombre de etiqueta"
+                        placeholderTextColor="#8B8179"
+                        editable={!saving}
+                      />
+                      <View style={styles.colorRow}>
+                        {PRESET_COLORS.map((c) => (
+                          <TouchableOpacity
+                            key={c}
+                            style={[styles.colorSwatch, { backgroundColor: c }, editingTagColor === c && styles.colorSwatchSelected]}
+                            onPress={() => setEditingTagColor(c)}
+                            activeOpacity={0.8}
+                          />
+                        ))}
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <View style={styles.tagNameRow}>
+                        <View style={[styles.tagColorDot, { backgroundColor: item.color_hex ?? '#43281C' }]} />
+                        <Text style={styles.tagName}>#{item.name}</Text>
+                      </View>
+                      <Text style={styles.tagMeta}>{item.usageCount} {item.usageCount === 1 ? 'recurso' : 'recursos'}</Text>
+                    </>
+                  )}
+                  <View style={styles.actionsRow}>
+                    {isEditing ? (
+                      <>
+                        <View style={styles.actionButton}>
+                          <Button label="Guardar" onPress={() => void saveTagEdition(item.id)} disabled={saving} />
+                        </View>
+                        <View style={styles.actionButton}>
+                          <Button label="Cancelar" variant="secondary" onPress={() => { setEditingTagId(null); setEditingTagName(''); setError(''); }} disabled={saving} />
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <View style={styles.actionButton}>
+                          <Button label="Editar" variant="secondary" onPress={() => { setEditingTagId(item.id); setEditingTagName(item.name); setEditingTagColor(item.color_hex ?? PRESET_COLORS[0]); setError(''); }} disabled={saving} />
+                        </View>
+                        <View style={styles.actionButton}>
+                          <Button label="Eliminar" variant="secondary" onPress={() => deleteTag(item)} disabled={saving} />
+                        </View>
+                      </>
+                    )}
+                  </View>
+                </View>
+              );
+            }}
+            ListEmptyComponent={renderEmpty}
+            contentContainerStyle={tags.length === 0 ? styles.listEmptyContent : styles.listContent}
+            keyboardShouldPersistTaps="handled"
+          />
+        </Animated.View>
+      </>
     </Modal>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '../../../../lib/supabase'
+import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { oauthCallbackStyles } from './OAuthCallback.styles'
 
 export function OAuthCallback() {

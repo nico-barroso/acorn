@@ -5,9 +5,11 @@ export const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(192, 110, 82, 0.2)',
     shadowColor: colors.salmon,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25, // ← esto faltaba
+    shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -17,8 +19,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    paddingHorizontal: 30,
-    minHeight: 120,
+    paddingHorizontal: 20,
+    minHeight: 125,
   },
 
   // Thumbnail
@@ -28,17 +30,19 @@ export const styles = StyleSheet.create({
     borderRadius: 13,
     overflow: 'hidden',
     marginRight: 12,
-    backgroundColor: colors.black,
+    backgroundColor: 'transparent',
     flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
   },
   thumbnailImage: {
     width: '100%',
     height: '100%',
   },
-  thumbnailPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.black,
+  thumbnailIcon: {
+    width: 44,
+    height: 44,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -61,7 +65,7 @@ export const styles = StyleSheet.create({
   // Texto principal
   textLayout: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     minHeight: 60,
     gap: 2,
   },
@@ -72,12 +76,20 @@ export const styles = StyleSheet.create({
     color: colors.black,
     lineHeight: 20,
   },
+  sourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  sourceEmoji: {
+    fontSize: 11,
+  },
   source: {
     fontFamily: 'Satoshi-Regular',
     fontWeight: 400,
     fontSize: 12,
     color: colors.black,
-    marginTop: 4,
     letterSpacing: -0.12,
   },
 
@@ -97,26 +109,26 @@ export const styles = StyleSheet.create({
   // Sección expandida
   expandedSection: {
     paddingHorizontal: 26,
-    paddingBottom: 16,
-    gap: 8,
+    paddingBottom: 24,
+    paddingTop: 4,
+    gap: 22,
   },
 
   // Meta info
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
     gap: 6,
   },
   metaLabel: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     letterSpacing: -0.12,
   },
   metaValue: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     letterSpacing: -0.12,
   },
@@ -134,7 +146,7 @@ export const styles = StyleSheet.create({
   },
   copyUrlText: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.brown,
     textDecorationLine: 'underline',
   },
@@ -143,8 +155,61 @@ export const styles = StyleSheet.create({
   },
   readToggleText: {
     fontFamily: 'Satoshi-Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: colors.salmon,
+    textDecorationLine: 'underline',
+  },
+  tagsRowCollapsed: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 6,
+  },
+  tagsSection: {
+    marginBottom: 4,
+  },
+  tagsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  addTagButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: colors.salmon,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addTagIcon: {
+    color: colors.salmon,
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: 'Satoshi-Bold',
+    marginTop: -2,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 2,
+  },
+  noTagsHint: {
+    marginTop: 4,
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 12,
+    color: colors.brownMid,
+  },
+  detailLink: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  detailLinkText: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 14,
+    color: colors.brownMid,
     textDecorationLine: 'underline',
   },
 });

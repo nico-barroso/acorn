@@ -26,7 +26,7 @@ export default function LoginScreen({ onGoToRegister, onGoToForgotPassword }: Lo
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <AuthHeader subtitle="¡Qué alegría verte" />
+        <AuthHeader subtitle="¡Qué alegría verte!" />
 
         <EmailInput
           label="Correo electronico"

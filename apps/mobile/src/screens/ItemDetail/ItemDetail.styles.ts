@@ -1,141 +1,179 @@
 import { StyleSheet } from 'react-native';
-
 import { colors } from '../../theme/colors';
 import { fonts } from '../../theme/fonts';
 
 export const styles = StyleSheet.create({
   backdrop: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(27, 27, 27, 0.45)',
+  },
+  keyboardView: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
-  panel: {
+  sheet: {
     maxHeight: '92%',
     backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 28,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(66, 36, 25, 0.1)',
+  },
+  handleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  handle: {
+    width: 81,
+    height: 5,
+    borderRadius: 100,
+    backgroundColor: colors.brownMid,
   },
   loading: {
-    paddingVertical: 30,
+    paddingVertical: 40,
     alignItems: 'center',
-    gap: 12,
-  },
-  title: {
-    fontFamily: fonts.family.title.bold,
-    fontSize: fonts.size.lg,
-    color: colors.brown,
-  },
-  subtitle: {
-    marginTop: 4,
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.sm,
-    color: colors.brownMid,
-  },
-  image: {
-    width: '100%',
-    height: 170,
-    borderRadius: 14,
-    marginTop: 12,
-    backgroundColor: colors.white,
-  },
-  row: {
-    marginTop: 14,
-    gap: 8,
-  },
-  rowTitle: {
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.sm,
-    color: colors.brownMid,
-  },
-  paragraph: {
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.md,
-    color: colors.black,
-    lineHeight: 20,
-  },
-  tagList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  tagChip: {
-    backgroundColor: colors.brownMid,
-    borderRadius: 24,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  tagChipText: {
-    color: colors.white,
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.sm,
-  },
-  input: {
-    width: '100%',
-    minHeight: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${colors.brown}30`,
-    backgroundColor: colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.md,
-    color: colors.black,
-  },
-  textarea: {
-    minHeight: 96,
-    textAlignVertical: 'top',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  switchLabel: {
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.md,
-    color: colors.black,
-  },
-  error: {
-    marginTop: 10,
-    color: '#8b2a1b',
-    fontFamily: fonts.family.primary.regular,
-    fontSize: fonts.size.sm,
-  },
-  footerRow: {
-    marginTop: 16,
     gap: 10,
   },
-  linkButton: {
-    marginTop: 12,
-  },
-  addTagRow: {
+
+  // Header
+  headerRow: {
     flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 6,
   },
-  addTagInput: {
+  title: {
     flex: 1,
+    fontFamily: fonts.family.title.bold,
+    fontSize: 22,
+    color: colors.brown,
+    lineHeight: 28,
   },
-  addTagButton: {
-    minWidth: 92,
+  titleInput: {
+    flex: 1,
+    fontFamily: fonts.family.title.bold,
+    fontSize: 22,
+    color: colors.brown,
+    lineHeight: 28,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.salmon,
+    paddingBottom: 4,
+    paddingTop: 0,
   },
-  tagEditableChip: {
+  editLink: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.md,
+    color: colors.salmon,
+    textDecorationLine: 'underline',
+    marginTop: 4,
+  },
+  sourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.brownMid,
-    borderRadius: 24,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    gap: 5,
+    marginBottom: 14,
   },
-  removeTagText: {
-    color: colors.white,
+  sourceEmoji: {
+    fontSize: 11,
+  },
+  metaText: {
     fontFamily: fonts.family.primary.regular,
     fontSize: fonts.size.sm,
+    color: colors.brownMid,
+  },
+  dot: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.sm,
+    color: colors.brownMid,
+  },
+
+  // Sections
+  sectionTitle: {
+    fontFamily: fonts.family.title.bold,
+    fontSize: 15,
+    color: colors.brown,
+    marginBottom: 8,
+    marginTop: 16,
+  },
+
+  // Notes
+  notesText: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.md,
+    color: colors.black,
+    lineHeight: 22,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: `${colors.brown}18`,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 72,
+  },
+  notesPlaceholder: {
+    color: '#8B8179',
+  },
+  textarea: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.md,
+    color: colors.black,
+    lineHeight: 22,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.salmon,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 100,
+  },
+
+  // Tags
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+
+  // Error
+  error: {
+    marginTop: 10,
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.sm,
+    color: '#8b2a1b',
+  },
+
+  // Actions
+  actions: {
+    marginTop: 24,
+    gap: 12,
+    marginBottom: 8,
+  },
+  primaryButton: {
+    backgroundColor: colors.salmon,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  primaryButtonDisabled: {
+    opacity: 0.6,
+  },
+  primaryButtonLabel: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.lg,
+    color: colors.white,
+    letterSpacing: 0.32,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  deleteButtonText: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.md,
+    color: '#8b2a1b',
+    textDecorationLine: 'underline',
   },
 });

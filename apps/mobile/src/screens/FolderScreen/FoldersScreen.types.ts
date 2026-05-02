@@ -1,6 +1,7 @@
 export type FolderData = {
   id: string;
   name: string;
-  subtitle: string;
+
+  description?: string;
   iconSource?: number;
 };

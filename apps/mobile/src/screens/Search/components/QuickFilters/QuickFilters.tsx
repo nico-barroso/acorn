@@ -11,12 +11,13 @@ const QUICK_FILTERS = [
 ];
 
 type QuickFiltersProps = {
-  activeQuickFilter: string;
+  activeQuickFilter: string | null;
   hasActiveFilters: boolean;
   showFilterPanel: boolean;
   onQuickFilter: (id: string) => void;
   onToggleFilterPanel: () => void;
   onLayout: (y: number, height: number) => void;
+  hideFilterButton?: boolean;
 };
 
 export function QuickFilters({
@@ -26,7 +27,17 @@ export function QuickFilters({
   onQuickFilter,
   onToggleFilterPanel,
   onLayout,
+  hideFilterButton = false,
 }: QuickFiltersProps) {
+  const pills = QUICK_FILTERS.map((f) => (
+    <Pill
+      key={f.id}
+      label={f.label}
+      active={activeQuickFilter === f.id}
+      onPress={() => onQuickFilter(f.id)}
+    />
+  ));
+
   return (
     <View
       style={{ height: 40, marginTop: 8 }}
@@ -35,27 +46,26 @@ export function QuickFilters({
         onLayout(y, height);
       }}
     >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.pillsRow}
-      >
-        <Pill
-          icon={FilterIcon}
-          label="Filtros"
-          active={hasActiveFilters || showFilterPanel}
-          onPress={onToggleFilterPanel}
-          variant="filter"
-        />
-        {QUICK_FILTERS.map((f) => (
+      {hideFilterButton ? (
+        <View style={[styles.pillsRow, { justifyContent: 'center' }]}>
+          {pills}
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pillsRow}
+        >
           <Pill
-            key={f.id}
-            label={f.label}
-            active={activeQuickFilter === f.id}
-            onPress={() => onQuickFilter(f.id)}
+            icon={FilterIcon}
+            label="Filtros"
+            active={hasActiveFilters || showFilterPanel}
+            onPress={onToggleFilterPanel}
+            variant="filter"
           />
-        ))}
-      </ScrollView>
+          {pills}
+        </ScrollView>
+      )}
     </View>
   );
 }

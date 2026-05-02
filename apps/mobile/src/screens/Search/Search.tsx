@@ -1,17 +1,22 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, ImageBackground, Image, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, FlatList, ImageBackground, Image, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FilterPanel } from './components/FilterPanel/FilterPanel';
 import { QuickFilters } from './components/QuickFilters/QuickFilters';
 import { styles } from './Search.styles';
 import { useSearch } from './hooks/useSearch';
 import type { SearchResult, SearchScreenProps } from './types';
+
+export interface SearchScreenExtendedProps extends SearchScreenProps {
+  navBarHeight?: number;
+}
 import { Input as SearchInput } from '../../components/Input/Input';
 import SearchIcon from '../../../assets/icons/search-icon.svg';
 import { colors } from '../../theme/colors';
 import { ContentCard } from '../../components/ContentCard/ContentCard';
+import { SkeletonContentCard } from '../../components/SkeletonContentCard/SkeletonContentCard';
 
-export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
+export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchScreenExtendedProps) {
   const {
     query,
     setQuery,
@@ -21,8 +26,9 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
     error,
     filteredResults,
     results,
+    totalCount,
     domainOptions,
-    tagOptions,
+    allUserTags,
     selectedDomain,
     setSelectedDomain,
     selectedTag,
@@ -32,39 +38,61 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
     selectedRead,
     setSelectedRead,
     hasActiveFilters,
+    tagFromQuery,
     clearFilters,
   } = useSearch();
 
   const insets = useSafeAreaInsets();
   const [showFilterPanel, setShowFilterPanel] = React.useState(false);
+  const filterPanelAnim = React.useRef(new Animated.Value(0)).current;
 
-  const activeData = query.trim() ? filteredResults : results;
+  React.useEffect(() => {
+    Animated.timing(filterPanelAnim, {
+      toValue: showFilterPanel ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [showFilterPanel]);
+
+  const activeData = filteredResults;
 
   const handleQuickFilter = (id: string) => {
     if (id === 'all') {
+      // Si ya estamos en 'all', no hacemos nada (o limpiamos todo)
       setSelectedRead('all');
       setSelectedDate('all');
     } else if (id === 'unread') {
-      setSelectedRead('unread');
-      setSelectedDate('all');
+      // Toggle: si ya está activo, volver a 'all'; si no, activar 'unread'
+      if (activeQuickFilter === 'unread') {
+        setSelectedRead('all');
+        setSelectedDate('all');
+      } else {
+        setSelectedRead('unread');
+        setSelectedDate('all');
+      }
     } else if (id === 'new') {
-      setSelectedRead('all');
-      setSelectedDate('7d');
+      // Toggle: si ya está activo, volver a 'all'; si no, activar 'new'
+      if (activeQuickFilter === 'new') {
+        setSelectedRead('all');
+        setSelectedDate('all');
+      } else {
+        setSelectedRead('all');
+        setSelectedDate('7d');
+      }
     }
   };
 
-  const activeQuickFilter =
-    selectedRead === 'unread' ? 'unread' : selectedDate === '7d' ? 'new' : 'all';
+  const activeQuickFilter = React.useMemo(() => {
+    if (selectedRead === 'unread' && selectedDate === 'all') return 'unread';
+    if (selectedRead === 'all' && selectedDate === '7d') return 'new';
+    if (selectedRead === 'all' && selectedDate === 'all' && !selectedDomain && !selectedTag) return 'all';
+    return null;
+  }, [selectedRead, selectedDate, selectedDomain, selectedTag]);
+
+  // Solo filtros manuales (panel), no quick filters
+  const hasManualFilters = hasActiveFilters && !activeQuickFilter;
 
   const renderEmpty = () => {
-    if (loading)
-      return (
-        <View style={styles.emptyState}>
-          <ActivityIndicator />
-          <Text style={styles.emptyTitle}>Buscando...</Text>
-        </View>
-      );
-
     return (
       <View style={styles.emptyState}>
         <Text style={styles.emptyTitle}>Aquí no hay nada ... {'\n'}todavía</Text>
@@ -83,15 +111,20 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
     );
   };
 
+  const renderSkeleton = () => <SkeletonContentCard />;
+
   const renderItem = ({ item }: { item: SearchResult }) => (
     <ContentCard
       id={item.id}
       title={item.title}
       source={item.domain}
-      tag={item.tags && item.tags.length > 0 ? item.tags[0] : 'General'}
-      savedDate={new Date(item.createdAt).toLocaleDateString()}
+      tags={item.tags}
+      savedDate={item.savedDate}
       status={item.isRead ? 'Visto' : 'No visto'}
       url={item.url}
+      thumbnailUri={item.thumbnailUri}
+      faviconUri={item.faviconUri}
+      isFile={item.isFile}
       onOpenDetail={onOpenDetail}
     />
   );
@@ -130,51 +163,87 @@ export function SearchScreen({ onBack, onOpenDetail }: SearchScreenProps) {
         />
       </View>
 
-      <View style={{ marginTop: 16 }}>
+       <View style={{ marginTop: 16 }}>
         <QuickFilters
           activeQuickFilter={activeQuickFilter}
-          hasActiveFilters={hasActiveFilters}
+          hasActiveFilters={hasManualFilters}
           showFilterPanel={showFilterPanel}
           onQuickFilter={handleQuickFilter}
           onToggleFilterPanel={() => setShowFilterPanel((v) => !v)}
           onLayout={() => {}}
         />
       </View>
-      <View style={styles.inner}>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Text style={styles.resultsCounter}>
-          {activeData.length == 1
-            ? `${activeData.length} resultado`
-            : `${activeData.length} resultados`}
-          {hasActiveFilters ? ` · Hay filtros activos` : ''}
-        </Text>
-      </View>
-      {showFilterPanel && (
-        <View style={styles.filterPanel}>
+
+      <Animated.View
+        style={{
+          maxHeight: filterPanelAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1000],
+          }),
+          opacity: filterPanelAnim,
+          overflow: 'hidden',
+        }}
+      >
+        <View style={styles.filterPanelContainer}>
           <FilterPanel
             domains={domainOptions}
-            tags={tagOptions}
+            tags={allUserTags}
             selectedDomain={selectedDomain}
             selectedTag={selectedTag}
             selectedDate={selectedDate}
             selectedRead={selectedRead}
             onSelectDomain={setSelectedDomain}
-            onSelectTag={setSelectedTag}
+            onSelectTag={(tag) => {
+              if (query.trim().startsWith('#')) {
+                setQuery('');
+              }
+              setSelectedTag(selectedTag === tag ? null : tag);
+            }}
             onSelectDate={setSelectedDate}
             onSelectRead={setSelectedRead}
             onClear={clearFilters}
           />
         </View>
+      </Animated.View>
+
+      <View style={styles.inner}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Text style={styles.resultsCounter}>
+          {hasActiveFilters
+            ? filteredResults.length === 1
+              ? `${filteredResults.length} resultado`
+              : `${filteredResults.length} resultados`
+            : totalCount == 1
+              ? `${totalCount} resultado`
+              : `${totalCount} resultados`}
+        </Text>
+      </View>
+      {tagFromQuery && (
+        <View style={styles.inner}>
+          <Text style={styles.tagQueryHint}>
+            Buscando por etiqueta: <Text style={styles.tagQueryBadge}>#{tagFromQuery}</Text>
+          </Text>
+        </View>
       )}
 
-      <FlatList
+       <FlatList
         data={activeData}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListEmptyComponent={renderEmpty}
-        contentContainerStyle={
-          activeData.length === 0 ? styles.listEmptyContent : styles.listContent
-        }
+        ListEmptyComponent={!loading ? renderEmpty() : null}
+        ListHeaderComponent={loading && activeData.length === 0 ? (
+          <View style={styles.skeletonContainer}>
+            <SkeletonContentCard />
+            <SkeletonContentCard />
+            <SkeletonContentCard />
+          </View>
+        ) : null}
+        contentContainerStyle={[
+          activeData.length === 0 && !loading
+            ? styles.listEmptyContent
+            : styles.listContent,
+          { paddingBottom: navBarHeight + 20 },
+        ]}
         onEndReached={loadMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={

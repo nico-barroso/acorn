@@ -1,31 +1,100 @@
 # Acorn
 
-## Política de merges / Merge Policy
 
-### ¿Se pueden hacer merges automáticos?
 
-Sí, el proyecto soporta **merges automáticos** mediante el label `auto-merge`.
+Acorn es una aplicación multiplataforma para la gestión centralizada de recursos digitales. Permite guardar enlaces y archivos, enriquecerlos con metadatos, organizarlos con etiquetas y carpetas inteligentes, y recuperarlos después mediante búsqueda y filtros.
 
-#### Cómo funciona
+## Problema que resuelve
 
-1. **CI obligatorio**: Todo pull request debe pasar los checks de CI (lint y build) definidos en `.github/workflows/ci.yml` antes de poder ser mergeado.
-2. **Revisión requerida**: Por defecto, se requiere la aprobación de al menos un code owner (definido en `.github/CODEOWNERS`) antes de que el merge pueda completarse.
-3. **Auto-merge**: Si un PR tiene el label `auto-merge`, el workflow `.github/workflows/auto-merge.yml` habilitará el auto-merge automáticamente. Cuando todos los checks pasen y se cumplan los requisitos de aprobación, GitHub mergeará el PR de forma automática usando squash.
+Guardar contenido en internet es trivial; recuperarlo cuando realmente se necesita no lo es. Acorn nace para reducir ese problema de acumulación desorganizada de recursos digitales y transformar el almacenamiento pasivo en una gestión activa del contenido guardado.
 
-#### Flujo recomendado
+## Propuesta de valor
 
-```
-1. Abrir un PR hacia `main`
-2. El CI corre automáticamente (lint + build)
-3. Solicitar revisión (o esperar que CODEOWNERS sea notificado)
-4. Agregar el label `auto-merge` si se desea que el PR se mergee solo al cumplir los requisitos
-5. Una vez aprobado y con todos los checks verdes → merge automático
-```
+- Guardado de enlaces y archivos
+- Extracción automática de metadatos
+- Búsqueda full-text y filtros
+- Sistema de etiquetas
+- Carpetas inteligentes basadas en reglas
+- Cliente web y cliente móvil sobre backend compartido
 
-> **Sin el label `auto-merge`**: el PR requiere que alguien lo mergee manualmente después de la aprobación.
+## Arquitectura
 
----
+- **Web:** Next.js 15
+- **Móvil:** React Native + Expo
+- **Backend:** Supabase
+- **Base de datos:** PostgreSQL
+- **Autenticación:** email/password + Google OAuth
+- **Storage:** bucket privado para archivos de usuario
+- **Lógica server-side:** Edge Functions
 
-### Does the project support automatic merges?
+## Estructura del repositorio
 
-Yes. Add the `auto-merge` label to a pull request and GitHub will merge it automatically (squash) once all required CI checks pass and the required review approvals are satisfied.
+
+apps/
+  mobile/     Cliente móvil Expo / React Native
+  web/        Cliente web Next.js
+supabase/
+  migrations/ Esquema y migraciones
+  functions/  Edge Functions
+.github/
+  workflows/  Automatizaciones de CI
+## Merge( PE)
+## Requisitos previos
+.-Node.js 20 o superior
+.-npm
+.-Proyecto de Supabase configurado
+.-Variables de entorno para web y móvil
+
+## Puesta en marcha
+# Web
+bash
+
+
+cd apps/web
+npm install
+cp .env.example .env.local
+npm run dev
+
+# Variables necesarias:
+
+env
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+## Móvil
+bash
+
+cd apps/mobile
+npm install
+cp .env.example .env
+npm run start
+
+# Variables necesarias:
+
+env
+
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_ANON_KEY=
+
+## Demo
+
+.-Demo web: <ENLACE_DEMO_WEB>
+.-Vídeo de demo: <ENLACE_VIDEO_DEMO>
+.-Diseño en Figma: <ENLACE_FIGMA>
+.-Planificación en Linear: <ENLACE_LINEAR>
+
+## Capturas
+Añade aquí 3–5 capturas limpias: login, home, búsqueda, carpetas y perfil.
+
+## Estado del proyecto
+MVP funcional desarrollado como Proyecto Final de DAM.
+
+## Autores
+Débora Fernández Moraña
+José Nicolás Barroso García
+Jorge Espinoza Martínez
+
+## Documentación relacionada
+Memoria del proyecto
+Research & Strategy
+Anexos de wireframes y RFTP

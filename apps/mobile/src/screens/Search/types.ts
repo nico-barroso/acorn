@@ -1,3 +1,6 @@
+import type { TagItem } from '../Home/Home.types';
+export type { TagItem };
+
 export type SearchResult = {
   id: string;
   title: string;
@@ -5,19 +8,28 @@ export type SearchResult = {
   snippet: string;
   url: string;
   createdAt: string;
+  savedDate: string;
   isRead: boolean;
-  tags: string[];
+  tags: TagItem[];
+  thumbnailUri?: string;
+  faviconUri?: string;
+  isFile: boolean;
 };
 
 export type SearchRow = {
   id: string;
+  type: string | null;
   title: string | null;
+  metadata: { og_title: string | null }[] | null;
   description: string | null;
   domain: string | null;
   url: string | null;
   created_at: string;
   is_read: boolean;
   tags: string[] | null;
+  og_image_url: string | null;
+  preview_image_url: string | null;
+  favicon_url: string | null;
 };
 
 export type SearchScreenProps = {

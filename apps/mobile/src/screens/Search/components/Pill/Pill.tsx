@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../../../theme/colors';
 import { styles } from './Pill.styles';
+import ChevronRightIcon from '../../../../../assets/icons/chevron-right.svg';
 
 type IconProps = {
   width?: number;
@@ -42,6 +43,18 @@ export function Pill({ label, icon: Icon, active, onPress, variant = 'default' }
           {label}
         </Text>
       ) : null}
+      {isFilter && (
+        <ChevronRightIcon
+          width={12}
+          height={12}
+          fill="none"
+          stroke={active ? colors.white : colors.brownMid}
+          style={[
+            styles.chevron,
+            active && styles.chevronUp,
+          ]}
+        />
+      )}
     </TouchableOpacity>
   );
 }

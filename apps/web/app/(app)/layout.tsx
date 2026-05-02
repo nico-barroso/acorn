@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CSSProperties, ReactNode } from 'react'
+import { CSSProperties, ReactNode, useState, useCallback } from 'react'
 
-import { colors } from '../theme/colors'
-import { fonts } from '../theme/fonts'
+import { colors } from '@/theme/colors'
+import { fonts } from '@/theme/fonts'
+import { Fab } from '@/features/shared/components/Fab/Fab'
+import { AddResourceModal } from '@/features/shared/components/AddResourceModal/AddResourceModal'
 
 type AppLayoutProps = {
   children: ReactNode
@@ -24,6 +26,11 @@ function isActiveRoute(pathname: string, href: string) {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname()
+  const [showAddModal, setShowAddModal] = useState(false)
+
+  const handleSaved = useCallback(() => {
+    window.location.reload()
+  }, [])
 
   return (
     <div style={styles.page} className='app-shell'>
@@ -56,6 +63,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </aside>
 
       <main style={styles.content}>{children}</main>
+
+      <Fab onClick={() => setShowAddModal(true)} />
+
+      {showAddModal ? (
+        <AddResourceModal
+          onClose={() => setShowAddModal(false)}
+          onSaved={handleSaved}
+        />
+      ) : null}
 
       <nav aria-label='Navegacion inferior' style={styles.bottomNav} className='app-bottom-nav'>
         {NAV_ITEMS.map((item) => {

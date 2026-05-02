@@ -27,11 +27,6 @@ export const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: 'hidden',
     backgroundColor: colors.background,
-    shadowColor: colors.salmon,
-    shadowOffset: { width: 0, height: 9 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
   },
   heroImage: {
     position: 'absolute',
@@ -49,7 +44,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 35,
     zIndex: 10,
-    elevation: 8,
   },
   headerLogo: {
     flexDirection: 'row',
@@ -89,6 +83,13 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
     opacity: 0.8,
     fontWeight: '400',
+  },
+  greetingSkeleton: {
+    height: 18,
+    width: 140,
+    borderRadius: 6,
+    backgroundColor: colors.brown,
+    marginBottom: 8,
   },
   greetingTitle: {
     fontFamily: 'CabinetGrotesk-Bold',
@@ -255,5 +256,23 @@ export const styles = StyleSheet.create({
   },
   statusIcon: {
     fontSize: 10,
+  },
+  seeMoreButton: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  seeMoreText: {
+    fontFamily: 'CabinetGrotesk-Bold',
+    fontSize: 18,
+    color: colors.brown,
+    marginBottom: 4,
+  },
+  seeMoreSubtext: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 14,
+    color: colors.brown,
+    opacity: 0.6,
+    textDecorationLine: 'underline',
   },
 });

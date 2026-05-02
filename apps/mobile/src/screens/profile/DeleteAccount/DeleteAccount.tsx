@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { styles } from './DeleteAccount.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { supabase } from '@lib/supabase';
 import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useSession } from '@context/SessionContext';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '../../../lib/queryKeys';
+import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
+
+const defaultAvatar = require('@assets/default-avatar.png');
 
 interface Props {
   onBack?: () => void;
@@ -19,25 +25,43 @@ const CONSEQUENCES = [
 export default function DeleteAccountScreen({ onBack }: Props) {
   const router = useRouter();
   const { height: navBarHeight } = useNavBarHeight();
-  const [userName, setUserName] = useState('');
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const { session } = useSession();
+  const userId = useCurrentUserId();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      const fullName = user.user_metadata?.full_name;
-      setUserName(
-        typeof fullName === 'string' && fullName.trim()
-          ? fullName.trim()
-          : (user.email ?? 'Usuario'),
-      );
-      setUserAvatar(user.user_metadata?.avatar_url ?? null);
-    };
-    void loadUser();
-  }, []);
+  const { data: profileData } = useQuery({
+    queryKey: queryKeys.profile(userId ?? ''),
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', userId)
+        .single();
+      return data;
+    },
+    enabled: Boolean(userId),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const { data: avatarUrl } = useQuery({
+    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryFn: async () => {
+      if (!profileData?.avatar_url) return null;
+      const { data: signed } = await supabase.storage
+        .from('user-files')
+        .createSignedUrl(profileData.avatar_url, 3600);
+      return signed?.signedUrl ?? null;
+    },
+    enabled: Boolean(profileData?.avatar_url),
+    staleTime: 50 * 60 * 1000,
+  });
+
+  const metadataName =
+    typeof session?.user?.user_metadata?.display_name === 'string'
+      ? session.user.user_metadata.display_name.trim()
+      : '';
+  const userName =
+    profileData?.display_name?.trim() || metadataName || session?.user?.email || 'Usuario';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -58,13 +82,11 @@ export default function DeleteAccountScreen({ onBack }: Props) {
       >
         <View style={styles.avatarContainer}>
           <View style={styles.avatarWrapper}>
-            {userAvatar ? (
-              <Image source={{ uri: userAvatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitial}>{userName.charAt(0)}</Text>
-              </View>
-            )}
+            <Image
+              source={avatarUrl ? { uri: avatarUrl } : defaultAvatar}
+              style={styles.avatar}
+              resizeMode="cover"
+            />
             <View style={styles.warningBadge}>
               <Text style={styles.warningBadgeText}>!</Text>
             </View>
