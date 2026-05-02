@@ -58,13 +58,17 @@ async function rollbackDraftLink(itemId: string) {
     return;
   }
 
-  await fetch(`${env.supabaseUrl}/functions/v1/links?id=${itemId}`, {
+  const response = await fetch(`${env.supabaseUrl}/functions/v1/links?id=${itemId}`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${session.access_token}`,
       apikey: env.supabaseAnonKey,
     },
   });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete draft link: ${response.status}`);
+  }
 }
 
 export function useSaveLinkFlow() {
@@ -189,7 +193,11 @@ export function useSaveLinkFlow() {
 
   const closeFlow = async () => {
     setProcessingClose(true);
-    await cancelDraft();
+    try {
+      await cancelDraft();
+    } catch {
+      resetFlow();
+    }
   };
 
   return {
