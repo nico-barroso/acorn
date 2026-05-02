@@ -12,8 +12,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { supabase } from '@lib/supabase';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './SaveLinkModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;

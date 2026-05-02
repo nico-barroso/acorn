@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 
 export function SkeletonFolder() {
   const shimmerAnim = useRef(new Animated.Value(0)).current;

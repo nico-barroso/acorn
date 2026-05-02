@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { supabase } from '@lib/supabase';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './SaveLinkModal.styles';
 
 function isValidUrl(value: string): boolean {

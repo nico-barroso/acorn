@@ -1,4 +1,4 @@
-import { useSession } from '@context/SessionContext';
+import { useSession } from '@/context/SessionContext';
 
 export function useCurrentUserId(): string | undefined {
   const { userId } = useSession();

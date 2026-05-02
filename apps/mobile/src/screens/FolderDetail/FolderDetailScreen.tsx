@@ -7,16 +7,16 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProfileHeader } from '../../components/ProfileHeader/ProfileHeader';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
 import { styles } from './FolderDetail.styles';
 import { useFolderDetail } from './hooks/useFolderDetail';
-import { QuickFilters } from '../Search/components/QuickFilters/QuickFilters';
-import { ContentCard } from '../../components/ContentCard/ContentCard';
-import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
-import { colors } from '../../theme/colors';
-import { queryClient } from '../../lib/queryClient';
-import { queryKeys } from '../../lib/queryKeys';
-import { useCurrentUserId } from '../../hooks/useCurrentUserId';
+import { QuickFilters } from '@/screens/Search/components/QuickFilters/QuickFilters';
+import { ContentCard } from '@/components/ContentCard/ContentCard';
+import { TagPickerModal } from '@/components/TagPickerModal/TagPickerModal';
+import { colors } from '@/theme/colors';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 import type { FolderDetailScreenProps, FolderResource } from './FolderDetail.types';
 
 export function FolderDetailScreen({
@@ -82,7 +82,7 @@ export function FolderDetailScreen({
   return (
     <View style={styles.panel}>
       <ImageBackground
-        source={require('../../../assets/search-top-drop-gradient.webp')}
+        source={require('@/assets/search-top-drop-gradient.webp')}
         style={{
           position: 'absolute',
           top: -insets.top,

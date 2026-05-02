@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ConfirmModal } from '@screens/profile/components/ConfirmModal/ConfirmModal';
-import { supabase } from '@lib/supabase';
+import { ConfirmModal } from '@/screens/profile/components/ConfirmModal/ConfirmModal';
+import { supabase } from '@mobile/lib/supabase';
 import { ImageSourcePropType } from 'react-native';
 import { SvgProps } from 'react-native-svg';
 import { useState } from 'react';
 
-import SignOutImage from '@assets/session-logout-image.png';
-import DeleteAccountIcon from '@assets/icons/profile-exclamation-triangle.svg';
-import SuccessIcon from '@assets/icons/success-icon.svg';
+import SignOutImage from '@/assets/session-logout-image.png';
+import DeleteAccountIcon from '@/assets/icons/profile-exclamation-triangle.svg';
+import SuccessIcon from '@/assets/icons/success-icon.svg';
 
 const ACTION_IMAGES: Record<string, ImageSourcePropType> = {
   signOut: SignOutImage,

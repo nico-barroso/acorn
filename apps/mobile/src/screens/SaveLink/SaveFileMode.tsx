@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSaveFileFlow } from '../../../hooks/useSaveFileFlow';
+import { useSaveFileFlow } from '@/hooks/useSaveFileFlow';
 import { styles } from './SaveLinkModal.styles';
-import FileIcon from '../../../assets/icons/file-icon.svg';
+import FileIcon from '@/assets/icons/file-icon.svg';
 
 function formatBytes(size: number) {
   if (!size) return 'Tamaño no disponible';

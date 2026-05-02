@@ -3,14 +3,14 @@ import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { styles } from './DeleteAccount.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { supabase } from '@lib/supabase';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useSession } from '@context/SessionContext';
+import { supabase } from '@mobile/lib/supabase';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { useSession } from '@/context/SessionContext';
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 
-const defaultAvatar = require('@assets/default-avatar.png');
+const defaultAvatar = require('@/assets/default-avatar.png');
 
 interface Props {
   onBack?: () => void;

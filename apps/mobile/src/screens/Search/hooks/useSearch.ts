@@ -1,12 +1,12 @@
 import React from 'react';
 import { useQuery, useInfiniteQuery, keepPreviousData, type InfiniteData } from '@tanstack/react-query';
-import { supabase } from '../../../../lib/supabase';
-import { queryKeys } from '../../../lib/queryKeys';
-import { queryClient } from '../../../lib/queryClient';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import { useDebounce } from '../../../hooks/useDebounce';
-import { createTagColorMap, mapSearchResult } from '../../../lib/mappers';
-import type { DateFilterValue, ReadFilterValue, TypeFilterValue, SearchResult, SearchRow } from '../types';
+import { supabase } from '@mobile/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
+import { queryClient } from '@/lib/queryClient';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { useDebounce } from '@/hooks/useDebounce';
+import { createTagColorMap, mapSearchResult } from '@/lib/mappers';
+import type { DateFilterValue, ReadFilterValue, TypeFilterValue, SearchResult, SearchRow } from '@/screens/Search/types';
 
 const PAGE_SIZE = 10;
 

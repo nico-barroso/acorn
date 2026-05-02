@@ -1,8 +1,8 @@
 import { Stack, useRouter } from 'expo-router';
 import { View } from 'react-native';
-import { NavBar } from '@components/NavBar/NavBar';
+import { NavBar } from '@/components/NavBar/NavBar';
 import { useSegments } from 'expo-router';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
 export default function AppLayout() {
   const router = useRouter();
   const segments = useSegments();

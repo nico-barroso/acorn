@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import HomeScreen from '@screens/Home/Home';
-import { supabase } from '@lib/supabase/client';
+import HomeScreen from '@/screens/Home/Home';
+import { supabase } from '@mobile/lib/supabase/client';
 import { useShareIntentContext } from 'expo-share-intent';
-import { formatDisplayName } from '../../src/utils/formatDisplayName';
+import { formatDisplayName } from '@/utils/formatDisplayName';
 
 export default function HomeRoute() {
   const router = useRouter();

@@ -16,11 +16,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { supabase } from '../../../lib/supabase';
-import { Button } from '../../components/Button/Button';
-import { useSession } from '@context/SessionContext';
-import { queryClient } from '../../lib/queryClient';
-import { queryKeys } from '../../lib/queryKeys';
+import { supabase } from '@mobile/lib/supabase';
+import { Button } from '@/components/Button/Button';
+import { useSession } from '@/context/SessionContext';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
 import { styles } from './TagManagement.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;

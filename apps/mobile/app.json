@@ -5,27 +5,27 @@
     "version": "1.0.0",
     "scheme": "acorn",
     "orientation": "portrait",
-    "icon": "./assets/config/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/config/splash-icon.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nicobarroso.acorn",
+      "bundleIdentifier": "com.nicobarroso.acorn"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/config/adaptive-icon.png"
+        "foregroundImage": "./assets/adaptive-icon.png"
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
-      "favicon": "./assets/config/favicon.png"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [],
     "owner": "nicobarroso"

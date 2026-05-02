@@ -3,12 +3,12 @@ import { View, Text, Image, ScrollView, ImageBackground, Animated } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { styles } from './ProfileScreen.styles';
-import SectionButton from '../components/SectionButton/SectionButton';
-import { useSession } from '@context/SessionContext';
+import SectionButton from '@/screens/profile/components/SectionButton/SectionButton';
+import { useSession } from '@/context/SessionContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@lib/supabase';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
+import { supabase } from '@mobile/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 
 type ProfileScreenProps = {
   avatarUrl?: string | null;
@@ -91,13 +91,9 @@ export default function ProfileScreen({
         />
         <View style={styles.avatarContainer}>
           {avatarUrl ? (
-            <Image
-              source={{ uri: avatarUrl }}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="cover" />
           ) : (
-            <Image source={require('@assets/default-avatar.png')} style={styles.avatar} />
+            <Image source={require('@/assets/default-avatar.png')} style={styles.avatar} />
           )}
         </View>
         {profileLoading ? (

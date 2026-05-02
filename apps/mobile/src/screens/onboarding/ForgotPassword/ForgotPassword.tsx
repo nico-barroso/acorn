@@ -2,10 +2,10 @@ import React from 'react';
 import { KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { usePasswordRecoveryRequest } from '@hooks/usePasswordRecovery';
-import { Button } from '@components/Button/Button';
-import { Input } from '@components/Input/Input';
-import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
+import { usePasswordRecoveryRequest } from '@/hooks/usePasswordRecovery';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
 import { styles } from './ForgotPassword.styles';
 
 type ForgotPasswordScreenProps = {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 
 export function SkeletonContentCard() {
   const shimmerAnim = useRef(new Animated.Value(0)).current;

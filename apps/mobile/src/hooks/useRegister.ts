@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { supabase } from '../lib/supabase';
-import { isValidEmail } from '../src/lib/validators';
+import { supabase } from '@mobile/lib/supabase';
+import { isValidEmail } from '@/lib/validators';
 
 type FormErrors = {
   email?: string;

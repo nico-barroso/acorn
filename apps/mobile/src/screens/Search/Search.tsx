@@ -10,14 +10,14 @@ import type { SearchResult, SearchScreenProps } from './types';
 export interface SearchScreenExtendedProps extends SearchScreenProps {
   navBarHeight?: number;
 }
-import { Input as SearchInput } from '../../components/Input/Input';
-import SearchIcon from '../../../assets/icons/search-icon.svg';
-import { colors } from '../../theme/colors';
-import { ContentCard } from '../../components/ContentCard/ContentCard';
-import { SkeletonContentCard } from '../../components/SkeletonContentCard/SkeletonContentCard';
-import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
-import { queryClient } from '../../lib/queryClient';
-import { useCurrentUserId } from '../../hooks/useCurrentUserId';
+import { Input as SearchInput } from '@/components/Input/Input';
+import SearchIcon from '@/assets/icons/search-icon.svg';
+import { colors } from '@/theme/colors';
+import { ContentCard } from '@/components/ContentCard/ContentCard';
+import { SkeletonContentCard } from '@/components/SkeletonContentCard/SkeletonContentCard';
+import { TagPickerModal } from '@/components/TagPickerModal/TagPickerModal';
+import { queryClient } from '@/lib/queryClient';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
 
 export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchScreenExtendedProps) {
   const userId = useCurrentUserId();
@@ -112,7 +112,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
         </Text>
         <View style={styles.emptyImageContainer}>
           <Image
-            source={require('../../../assets/search-empty-drawing.png')}
+            source={require('@/assets/search-empty-drawing.png')}
             style={styles.emptyImage}
           />
         </View>
@@ -144,7 +144,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
   return (
     <View style={styles.panel}>
       <ImageBackground
-        source={require('../../../assets/search-top-drop-gradient.webp')}
+        source={require('@/assets/search-top-drop-gradient.webp')}
         style={{
           position: 'absolute',
           top: -insets.top,

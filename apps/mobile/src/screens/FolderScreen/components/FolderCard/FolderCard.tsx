@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { Dimensions, Image, Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './FolderCard.styles';
-import FolderBrownIcon from '@assets/icons/folder-brown-icon.svg';
-import { FolderOptionsMenu } from '../FolderOptionsMenu/FolderOptionsMenu';
+import FolderBrownIcon from '@/assets/icons/folder-brown-icon.svg';
+import { FolderOptionsMenu } from '@/screens/FolderScreen/components/FolderOptionsMenu/FolderOptionsMenu';
 
 type FolderCardProps = {
   name: string;

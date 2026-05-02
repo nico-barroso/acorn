@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { SaveLinkModal } from '@screens/SaveLink/SaveLinkModal';
-import { useCurrentUserId } from '../../src/hooks/useCurrentUserId';
-import { queryKeys } from '../../src/lib/queryKeys';
+import { SaveLinkModal } from '@/screens/SaveLink/SaveLinkModal';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { queryKeys } from '@/lib/queryKeys';
 
 export default function AddRoute() {
   const router = useRouter();

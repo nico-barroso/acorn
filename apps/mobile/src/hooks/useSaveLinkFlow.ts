@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { env } from '../lib/env';
-import { supabase } from '../lib/supabase';
+import { env } from '@mobile/lib/env';
+import { supabase } from '@mobile/lib/supabase';
 
 type LinkPreview = {
   id: string;

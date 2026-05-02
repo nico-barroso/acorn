@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
 import { SaveLinkMode } from './SaveLinkMode';
 import { SaveFileMode } from './SaveFileMode';
 import { styles } from './SaveLinkModal.styles';

@@ -19,11 +19,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { supabase } from '../../../lib/supabase';
-import { useSession } from '@context/SessionContext';
-import { queryKeys } from '../../lib/queryKeys';
-import { createTagColorMap } from '../../lib/mappers';
-import { Tag } from '../../components/Tag/Tag';
+import { supabase } from '@mobile/lib/supabase';
+import { useSession } from '@/context/SessionContext';
+import { queryKeys } from '@/lib/queryKeys';
+import { createTagColorMap } from '@/lib/mappers';
+import { Tag } from '@/components/Tag/Tag';
 import { styles } from './ItemDetail.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;

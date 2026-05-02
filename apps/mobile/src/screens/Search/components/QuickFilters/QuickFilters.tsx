@@ -1,8 +1,8 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
-import { Pill } from '../../components/Pill/Pill';
+import { Pill } from '@/screens/Search/components/Pill/Pill';
 import { styles } from './QuickFilters.styles';
-import FilterIcon from '../../../../../assets/icons/search-filter-icon.svg';
+import FilterIcon from '@/assets/icons/search-filter-icon.svg';
 
 const QUICK_FILTERS = [
   { id: 'all', label: 'Todos' },

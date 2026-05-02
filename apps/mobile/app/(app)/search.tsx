@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SearchScreen } from '@screens/Search/Search';
-import { ItemDetail } from '@screens/ItemDetail/ItemDetail';
-import { colors } from '@theme/colors';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useCurrentUserId } from '../../src/hooks/useCurrentUserId';
-import { queryKeys } from '../../src/lib/queryKeys';
+import { SearchScreen } from '@/screens/Search/Search';
+import { ItemDetail } from '@/screens/ItemDetail/ItemDetail';
+import { colors } from '@/theme/colors';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { queryKeys } from '@/lib/queryKeys';
 
 export default function SearchRoute() {
   const router = useRouter();

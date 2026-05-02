@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Animated } from 'react-native';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 import { styles } from './ContentCardSkeleton.styles';
 
 const AnimatedView = Animated.View;

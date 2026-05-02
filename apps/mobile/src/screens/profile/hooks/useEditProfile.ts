@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../../../lib/supabase';
-import { queryClient } from '../../../lib/queryClient';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import { useSession } from '../../../context/SessionContext';
-import { formatDisplayName, sanitizeDisplayName } from '../../../utils/formatDisplayName';
+import { supabase } from '@mobile/lib/supabase';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { useSession } from '@/context/SessionContext';
+import { formatDisplayName, sanitizeDisplayName } from '@/utils/formatDisplayName';
 
 type EditProfileErrors = {
   name?: string;

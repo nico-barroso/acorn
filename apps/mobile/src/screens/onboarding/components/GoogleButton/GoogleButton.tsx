@@ -1,6 +1,6 @@
 import { TouchableOpacity, Text, ActivityIndicator, Image } from 'react-native';
 import { styles } from './GoogleButton.styles';
-import GoogleIcon from '@assets/google-logo.webp';
+import GoogleIcon from '@/assets/google-logo.webp';
 
 type GoogleSignInButtonProps = {
   label?: string;

@@ -17,10 +17,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { supabase } from '../../../lib/supabase';
-import { useSession } from '@context/SessionContext';
-import { queryClient } from '../../lib/queryClient';
-import { queryKeys } from '../../lib/queryKeys';
+import { supabase } from '@mobile/lib/supabase';
+import { useSession } from '@/context/SessionContext';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
 import { styles } from './TagPickerModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;

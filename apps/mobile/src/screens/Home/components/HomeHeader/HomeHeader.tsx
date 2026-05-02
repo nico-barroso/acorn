@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import AcornLogo from '../../../../../assets/svg/acorn-logo.svg';
-import { ContentCard } from '@components/ContentCard/ContentCard';
-import { ContentCardSkeleton } from '@components/ContentCardSkeleton/ContentCardSkeleton';
-import { styles } from '../../Home.styles';
-import type { ContentCardData } from '../../Home.types';
+import AcornLogo from '@/assets/svg/acorn-logo.svg';
+import { ContentCard } from '@/components/ContentCard/ContentCard';
+import { ContentCardSkeleton } from '@/components/ContentCardSkeleton/ContentCardSkeleton';
+import { styles } from '@/screens/Home/Home.styles';
+import type { ContentCardData } from '@/screens/Home/Home.types';
 
 type HomeHeaderProps = {
   userName: string;
@@ -58,7 +58,7 @@ export function HomeHeader({
     <>
       <View style={styles.heroContainer}>
         <Image
-          source={require('@assets/noise-home-bg.webp')}
+          source={require('@/assets/noise-home-bg.webp')}
           style={[styles.heroImage, { height: height * 0.8 }]}
         />
         <View style={styles.header}>
@@ -78,7 +78,7 @@ export function HomeHeader({
               />
             ) : (
               <Image
-                source={require('@assets/default-avatar.png')}
+                source={require('@/assets/default-avatar.png')}
                 style={styles.avatarImage}
                 resizeMode="cover"
               />
@@ -102,7 +102,7 @@ export function HomeHeader({
               tags={[{ name: 'ayuda', color_hex: null }]}
               savedDate="Hoy"
               status="No visto"
-              iconSource={require('@assets/acorn-empty-guide.webp')}
+              iconSource={require('@/assets/acorn-empty-guide.webp')}
               onOpenDetail={() => {}}
               onToggleRead={() => {}}
             />

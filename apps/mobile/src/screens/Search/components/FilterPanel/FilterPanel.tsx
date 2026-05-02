@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './FilterPanel.styles';
-import { FilterPanelProps, DateFilterValue, ReadFilterValue, TypeFilterValue } from '../../types';
+import { FilterPanelProps, DateFilterValue, ReadFilterValue, TypeFilterValue } from '@/screens/Search/types';
 
 type ChipProps = {
   label: string;

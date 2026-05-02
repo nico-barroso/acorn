@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import Logo from '@assets/svg/acorn-logo.svg';
+import Logo from '@/assets/svg/acorn-logo.svg';
 import { styles } from './AuthHeader.styles';
 
 type AuthHeaderProps = {

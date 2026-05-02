@@ -17,12 +17,12 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 import * as Clipboard from 'expo-clipboard';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './ContentCard.styles';
-import { Button } from '../Button/Button';
-import { Tag } from '../Tag/Tag';
-import FileIcon from '../../../assets/icons/file-icon.svg';
-import CopyUrlIcon from '../../../assets/icons/copy-url-icon.svg';
+import { Button } from '@/components/Button/Button';
+import { Tag } from '@/components/Tag/Tag';
+import FileIcon from '@/assets/icons/file-icon.svg';
+import CopyUrlIcon from '@/assets/icons/copy-url-icon.svg';
 
 type TagItem = { name: string; color_hex: string | null };
 

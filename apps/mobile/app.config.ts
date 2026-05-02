@@ -7,7 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'acorn',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/config/icon.png',
+  icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   scheme: 'acorn',
   ios: {
@@ -20,13 +20,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.nicobarroso.acorn',
     adaptiveIcon: {
-      foregroundImage: './assets/config/adaptive-icon.png',
+      foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#FFFCFB',
     },
     predictiveBackGestureEnabled: false,
   },
   web: {
-    favicon: './assets/config/favicon.png',
+    favicon: './assets/favicon.png',
   },
   plugins: [
     'expo-router',
@@ -35,7 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-splash-screen',
       {
         backgroundColor: '#FFFCFB',
-        image: './assets/config/splash.png',
+        image: './assets/splash.png',
         resizeMode: 'contain',
       },
     ],

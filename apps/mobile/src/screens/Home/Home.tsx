@@ -12,24 +12,24 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
-import { supabase } from '../../../lib/supabase';
-import { ContentCard } from '../../components/ContentCard/ContentCard';
-import { ContentCardSkeleton } from '../../components/ContentCardSkeleton/ContentCardSkeleton';
-import { TagPickerModal } from '../../components/TagPickerModal/TagPickerModal';
-import { SaveFileFlow } from '../../components/SaveFileFlow/SaveFileFlow';
-import { ItemDetail } from '../ItemDetail/ItemDetail';
+import { supabase } from '@mobile/lib/supabase';
+import { ContentCard } from '@/components/ContentCard/ContentCard';
+import { ContentCardSkeleton } from '@/components/ContentCardSkeleton/ContentCardSkeleton';
+import { TagPickerModal } from '@/components/TagPickerModal/TagPickerModal';
+import { SaveFileFlow } from '@/components/SaveFileFlow/SaveFileFlow';
+import { ItemDetail } from '@/screens/ItemDetail/ItemDetail';
 import { useRouter } from 'expo-router';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 import { styles } from './Home.styles';
-import AcornEmpty from '../../../assets/svg/acorn-empty-state.svg';
+import AcornEmpty from '@/assets/svg/acorn-empty-state.svg';
 import { ContentCardData } from './Home.types';
 import { HomeHeader } from './components/HomeHeader/HomeHeader';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useSession } from '@context/SessionContext';
-import { queryClient } from '../../lib/queryClient';
-import { queryKeys } from '../../lib/queryKeys';
-import { useCurrentUserId } from '../../hooks/useCurrentUserId';
-import { createTagColorMap, mapResource, type ResourceRow } from '../../lib/mappers';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { useSession } from '@/context/SessionContext';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { createTagColorMap, mapResource, type ResourceRow } from '@/lib/mappers';
 
 
 type HomeScreenProps = {
@@ -324,7 +324,7 @@ export default function HomeScreen({
         }
       />
       <ImageBackground
-        source={require('../../../assets/bottom-home-noise-gradient.webp')}
+        source={require('@/assets/bottom-home-noise-gradient.webp')}
         style={styles.bottomGradient}
         imageStyle={styles.bottomGradientImage}
       />

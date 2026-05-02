@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@lib/supabase';
-import { queryKeys } from '../../../lib/queryKeys';
-import { queryClient } from '../../../lib/queryClient';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import type { FolderResource } from '../FolderDetail.types';
-import { createTagColorMap, mapFolderResource, type ResourceRow } from '../../../lib/mappers';
+import { supabase } from '@mobile/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
+import { queryClient } from '@/lib/queryClient';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import type { FolderResource } from '@/screens/FolderDetail/FolderDetail.types';
+import { createTagColorMap, mapFolderResource, type ResourceRow } from '@/lib/mappers';
 
 type SmartRuleRow = {
   field: string;

@@ -3,11 +3,11 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, Vie
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 
-import { Button } from '@components/Button/Button';
-import { Input } from '@components/Input/Input';
-import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
-import { AvatarPicker } from '../components/AvatarPicker/AvatarPicker';
-import { useEditProfile } from '../hooks/useEditProfile';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
+import { AvatarPicker } from '@/screens/profile/components/AvatarPicker/AvatarPicker';
+import { useEditProfile } from '@/screens/profile/hooks/useEditProfile';
 import { styles } from './UserProfile.styles';
 
 type EditProfileScreenProps = {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { signInWithGoogle } from '../lib/auth/google';
+import { signInWithGoogle } from '@mobile/lib/auth/google';
 
 export function useGoogleOAuth() {
   const [loading, setLoading] = useState(false);

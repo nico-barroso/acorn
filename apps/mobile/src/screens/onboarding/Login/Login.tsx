@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useGoogleOAuth } from '@hooks/useGoogleOAuth';
-import { useLogin } from '@hooks/useLogin';
-import { Button } from '@components/Button/Button';
-import { Input } from '@components/Input/Input';
+import { useGoogleOAuth } from '@/hooks/useGoogleOAuth';
+import { useLogin } from '@/hooks/useLogin';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
 import { styles } from './Login.styles';
-import GoogleSignInButton from '@screens/onboarding/components/GoogleButton/GoogleButton';
-import AuthHeader from '@screens/onboarding/components/AuthHeader/AuthHeader';
-import Divider from '@screens/onboarding/components/Divider/Divider';
+import GoogleSignInButton from '@/screens/onboarding/components/GoogleButton/GoogleButton';
+import AuthHeader from '@/screens/onboarding/components/AuthHeader/AuthHeader';
+import Divider from '@/screens/onboarding/components/Divider/Divider';
 const EmailInput = Input;
 const PasswordInput = Input;
 
