@@ -151,6 +151,12 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     setIsEditing(false);
     await loadDetail();
     setSaving(false);
+    const uid = session?.user.id;
+    if (uid) {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.items(uid) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.folders(uid) });
+    }
+    void queryClient.invalidateQueries({ queryKey: ['search'] });
     onUpdated?.();
   };
 
@@ -169,6 +175,11 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
         onPress: async () => {
           const { error: deleteError } = await supabase.from('items').delete().eq('id', itemId!);
           if (deleteError) { setError('No se pudo eliminar el recurso.'); return; }
+          const uid = session?.user.id;
+          if (uid) {
+            void queryClient.invalidateQueries({ queryKey: queryKeys.items(uid) });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.folders(uid) });
+          }
           void queryClient.invalidateQueries({ queryKey: ['search'] });
           onUpdated?.();
           handleClose();
