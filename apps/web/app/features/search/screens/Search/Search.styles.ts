@@ -9,9 +9,12 @@ export const searchStyles = {
   },
 
   inner: {
+    position: 'relative' as const,
+    zIndex: 1,
     maxWidth: '680px',
     margin: '0 auto',
-    paddingBottom: '60px',
+    paddingTop: '24px',
+    paddingBottom: '80px',
   },
 
   // ─── Background gradient (fixed, viewport-wide) — idéntico al home ────────
@@ -26,17 +29,17 @@ export const searchStyles = {
     ].join(', '),
   },
 
-  // ─── Hero decoration (sangra borde a borde, igual que el home) ────────────
+  // ─── Hero decoration (fixed, viewport-wide — igual que el home) ──────────
   heroDecoration: {
-    position: 'relative' as const,
-    marginLeft: '-24px',
-    marginRight: '-24px',
-    marginTop: '-20px',
-    width: 'calc(100% + 48px)',
-    height: '220px',
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '260px',
     background: 'radial-gradient(ellipse 100% 100% at 50% 0%, rgba(192, 110, 82, 0.45) 0%, rgba(248, 237, 232, 0.18) 60%, transparent 100%)',
     overflow: 'hidden' as const,
-    flexShrink: 0,
+    pointerEvents: 'none' as const,
+    zIndex: 0,
   },
 
   // ─── Hero content ─────────────────────────────────────────────────────────
@@ -45,8 +48,8 @@ export const searchStyles = {
     flexDirection: 'column' as const,
     alignItems: 'center',
     gap: '6px',
-    paddingTop: '32px',
-    paddingBottom: '28px',
+    paddingTop: '40px',
+    paddingBottom: '36px',
     textAlign: 'center' as const,
   },
   title: {
