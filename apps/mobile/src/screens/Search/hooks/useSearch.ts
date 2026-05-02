@@ -180,7 +180,7 @@ export function useSearch() {
   // Domain options: same filters as main query but WITHOUT domain filter,
   // so available domains stay visible even after one is selected
   const { data: domainOptions = [] } = useQuery({
-    queryKey: ['search-domains', userId, debouncedQuery, selectedDate, selectedRead, selectedType],
+    queryKey: ['search', 'domains', userId, debouncedQuery, selectedDate, selectedRead, selectedType],
     queryFn: async () => {
       let q = supabase
         .from('items_with_links')
@@ -211,7 +211,7 @@ export function useSearch() {
   });
 
   const { data: serverCount = 0 } = useQuery({
-    queryKey: ['search-count', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType],
+    queryKey: ['search', 'count', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType],
     queryFn: () => fetchSearchCount(userId!, debouncedQuery, filters, isTagQuery),
     enabled: Boolean(userId),
     staleTime: 30 * 1000,

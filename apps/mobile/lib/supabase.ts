@@ -23,12 +23,16 @@ export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
 });
 
 if (Platform.OS !== 'web' && !(globalThis as any).__acornSupabaseAutoRefreshBound) {
+  let autoRefreshChain: Promise<void> = Promise.resolve();
+
   AppState.addEventListener('change', (state) => {
-    if (state === 'active') {
-      supabase.auth.startAutoRefresh();
-    } else {
-      supabase.auth.stopAutoRefresh();
-    }
+    autoRefreshChain = autoRefreshChain
+      .then(() =>
+        state === 'active'
+          ? supabase.auth.startAutoRefresh()
+          : supabase.auth.stopAutoRefresh(),
+      )
+      .catch(() => {});
   });
 
   (globalThis as any).__acornSupabaseAutoRefreshBound = true;

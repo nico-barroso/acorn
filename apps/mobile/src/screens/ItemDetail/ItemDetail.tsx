@@ -169,6 +169,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
         onPress: async () => {
           const { error: deleteError } = await supabase.from('items').delete().eq('id', itemId!);
           if (deleteError) { setError('No se pudo eliminar el recurso.'); return; }
+          void queryClient.invalidateQueries({ queryKey: ['search'] });
           onUpdated?.();
           handleClose();
         },
