@@ -110,6 +110,7 @@ export const styles = StyleSheet.create({
     color: colors.brownMid,
     marginBottom: 12,
     opacity: 0.8,
+    textAlign: 'center',
   },
   ruleWrapper: {
     marginBottom: 8,
@@ -248,5 +249,20 @@ export const styles = StyleSheet.create({
   },
   logicPillTextActive: {
     color: colors.white,
+  },
+  emptyRulesWarning: {
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#FFF8EE',
+    borderWidth: 1,
+    borderColor: '#E8D4A0',
+  },
+  emptyRulesWarningText: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 13,
+    color: '#7A5500',
+    textAlign: 'center',
   },
 });
