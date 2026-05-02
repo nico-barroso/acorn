@@ -3,246 +3,376 @@ import { fonts } from '@/theme/fonts'
 
 export const searchStyles = {
   page: {
+    position: 'relative' as const,
     minHeight: '100%',
     width: '100%',
-    maxWidth: '1080px',
-    margin: '0 auto',
-    padding: 'clamp(10px, 2vw, 18px)'
   },
-  header: {
-    marginBottom: '16px'
+
+  inner: {
+    maxWidth: '680px',
+    margin: '0 auto',
+    paddingBottom: '60px',
+  },
+
+  // ─── Background gradient (fixed, viewport-wide) — idéntico al home ────────
+  gradient: {
+    position: 'fixed' as const,
+    inset: 0,
+    zIndex: -1,
+    pointerEvents: 'none' as const,
+    backgroundImage: [
+      'radial-gradient(ellipse 140% 45% at 50% 0%, rgba(192, 110, 82, 0.45) 0%, rgba(248, 237, 232, 0.18) 50%, rgba(255, 252, 251, 0) 100%)',
+      'radial-gradient(ellipse 140% 65% at 50% 100%, rgba(192, 110, 82, 0.55) 0%, rgba(248, 237, 232, 0.25) 55%, rgba(255, 252, 251, 0) 100%)',
+    ].join(', '),
+  },
+
+  // ─── Hero decoration (sangra borde a borde, igual que el home) ────────────
+  heroDecoration: {
+    position: 'relative' as const,
+    marginLeft: '-24px',
+    marginRight: '-24px',
+    marginTop: '-20px',
+    width: 'calc(100% + 48px)',
+    height: '220px',
+    background: 'radial-gradient(ellipse 100% 100% at 50% 0%, rgba(192, 110, 82, 0.45) 0%, rgba(248, 237, 232, 0.18) 60%, transparent 100%)',
+    overflow: 'hidden' as const,
+    flexShrink: 0,
+  },
+
+  // ─── Hero content ─────────────────────────────────────────────────────────
+  heroContent: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '6px',
+    paddingTop: '32px',
+    paddingBottom: '28px',
+    textAlign: 'center' as const,
   },
   title: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xl,
-    fontWeight: fonts.weight.bold
+    fontFamily: fonts.family.heading,
+    fontSize: 'clamp(30px, 5vw, 46px)',
+    fontWeight: fonts.weight.bold,
+    lineHeight: fonts.lineHeight.tight,
+    textAlign: 'center' as const,
   },
   subtitle: {
-    margin: '8px 0 0',
+    margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.comfortable
+    lineHeight: fonts.lineHeight.normal,
+    opacity: 0.8,
   },
+
+  // ─── Search input ─────────────────────────────────────────────────────────
   inputWrapper: {
     position: 'relative' as const,
-    marginTop: '14px',
-    marginBottom: '16px'
+    marginBottom: '16px',
   },
   searchIcon: {
     position: 'absolute' as const,
-    left: '12px',
+    left: '16px',
     top: '50%',
     transform: 'translateY(-50%)',
-    color: colors.brownMid,
-    fontSize: fonts.size.md,
-    pointerEvents: 'none' as const
+    pointerEvents: 'none' as const,
+    display: 'flex',
+    alignItems: 'center',
+    opacity: 0.7,
   },
   searchInput: {
     width: '100%',
-    minHeight: '44px',
-    padding: '10px 14px 10px 38px',
-    borderRadius: '12px',
-    border: `1px solid ${colors.brown}35`,
-    backgroundColor: colors.white,
+    minHeight: '50px',
+    padding: '13px 14px 13px 48px',
+    borderRadius: '10px',
+    border: `2px solid ${colors.brownMid}`,
+    backgroundColor: colors.background,
     color: colors.brown,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.md,
-    fontWeight: fonts.weight.medium,
+    fontWeight: fonts.weight.regular,
+    letterSpacing: '0.18px',
+    opacity: 0.9,
     outline: 'none',
-    transition: 'border-color 0.2s ease'
+    boxSizing: 'border-box' as const,
+    transition: 'border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease',
+    boxShadow: '0 2px 12px rgba(67, 40, 28, 0.06)',
   },
-  inputHint: {
-    margin: '6px 0 0',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
+
+  // ─── Quick filters ────────────────────────────────────────────────────────
+  quickFiltersRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    flexWrap: 'wrap' as const,
+    gap: '8px',
+    marginBottom: '16px',
   },
-  resultsCount: {
-    margin: '0 0 10px',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
-  },
-  resultsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: '12px'
-  },
-  resourceCard: {
-    borderRadius: '14px',
+  pill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 18px',
+    borderRadius: '999px',
     border: `1px solid ${colors.brown}20`,
     backgroundColor: colors.white,
-    boxShadow: '0 10px 24px rgba(67, 40, 28, 0.08)',
-    padding: '14px'
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    flexShrink: 0,
+    boxShadow: '0 2px 8px rgba(67, 40, 28, 0.06)',
+    transition: 'all 0.15s ease',
   },
-  cardTopRow: {
+  pillActive: {
+    border: `1px solid ${colors.salmon}`,
+    backgroundColor: colors.salmon,
+    color: colors.white,
+    boxShadow: `0 4px 14px rgba(161, 77, 54, 0.3)`,
+  },
+  pillFilterActive: {
+    border: `1px solid ${colors.brown}`,
+    backgroundColor: colors.brown,
+    color: colors.white,
+    boxShadow: `0 4px 14px rgba(67, 40, 28, 0.25)`,
+  },
+
+  // ─── Filter panel ─────────────────────────────────────────────────────────
+  filterPanelWrapper: {
+    display: 'grid' as const,
+    transition: 'grid-template-rows 0.22s ease',
+  },
+  filterPanelInner: {
+    overflow: 'hidden' as const,
+    minHeight: 0,
+  },
+  filterPanel: {
+    borderRadius: '16px',
+    border: `1px solid ${colors.brown}15`,
+    backgroundColor: colors.white,
+    boxShadow: '0 4px 20px rgba(67, 40, 28, 0.08)',
+    padding: '18px',
+    marginBottom: '12px',
+  },
+  filterPanelHeader: {
     display: 'flex',
-    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: '8px'
+    alignItems: 'center',
+    marginBottom: '16px',
   },
-  resourceTitle: {
+  filterPanelTitle: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.heading,
     fontSize: fonts.size.md,
-    fontWeight: fonts.weight.semibold,
-    lineHeight: fonts.lineHeight.tight
+    fontWeight: fonts.weight.bold,
   },
-  domainPill: {
+  clearButton: {
+    background: 'none',
+    border: 'none',
+    color: colors.salmon,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    padding: '2px 0',
+  },
+  filterSection: {
+    marginBottom: '14px',
+  },
+  filterSectionLabel: {
+    display: 'block',
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: '11px',
+    fontWeight: fonts.weight.semibold,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.07em',
+    marginBottom: '8px',
+  },
+  chipsWrap: {
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '6px',
+  },
+  chip: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 16px',
     borderRadius: '999px',
-    border: `1px solid ${colors.brown}26`,
-    backgroundColor: '#faf2ee',
-    color: colors.brown,
+    border: `1px solid ${colors.brown}20`,
+    backgroundColor: colors.background,
+    color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
     fontWeight: fonts.weight.medium,
-    padding: '4px 7px',
-    whiteSpace: 'nowrap' as const
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    transition: 'all 0.12s ease',
   },
-  resourceMeta: {
-    margin: '8px 0 0',
+  chipActive: {
+    border: `1px solid ${colors.salmon}`,
+    backgroundColor: colors.salmon,
+    color: colors.white,
+  },
+
+  // ─── Results meta ─────────────────────────────────────────────────────────
+  resultsMeta: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    margin: '0 0 12px',
+    padding: '4px 12px',
+    borderRadius: '999px',
+    border: `1px solid ${colors.brown}18`,
+    backgroundColor: colors.white,
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+    boxShadow: '0 1px 4px rgba(67, 40, 28, 0.05)',
   },
-  resourceSnippet: {
-    margin: '10px 0 0',
-    color: colors.black,
+  resultsMetaDot: {
+    width: '5px',
+    height: '5px',
+    borderRadius: '999px',
+    backgroundColor: colors.salmon,
+    flexShrink: 0,
+  },
+  tagQueryHint: {
+    margin: '-4px 0 12px',
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    opacity: 0.8,
+  },
+  tagQueryBadge: {
+    color: colors.salmon,
+    fontWeight: fonts.weight.semibold,
+  },
+
+  // ─── Results list ─────────────────────────────────────────────────────────
+  resultsList: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '12px',
+  },
+
+  // ─── Load more ────────────────────────────────────────────────────────────
+  loadMoreButton: {
+    display: 'block',
+    width: '100%',
+    minHeight: '44px',
+    padding: '0 24px',
+    borderRadius: '999px',
+    border: 'none',
+    backgroundColor: colors.salmon,
+    color: colors.white,
+    fontFamily: fonts.family.body,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    textAlign: 'center' as const,
+    marginTop: '8px',
+    boxShadow: `0 4px 14px rgba(161, 77, 54, 0.3)`,
+    transition: 'opacity 0.15s ease',
+  },
+
+  // ─── Initial state ────────────────────────────────────────────────────────
+  initialState: {
+    padding: '48px 0 40px',
+    textAlign: 'center' as const,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '10px',
+  },
+  squirrelImg: {
+    width: '90px',
+    height: '90px',
+    objectFit: 'contain' as const,
+    marginBottom: '4px',
+  },
+  initialTitle: {
+    margin: 0,
+    color: colors.brown,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.lg,
+    fontWeight: fonts.weight.bold,
+  },
+  initialSubtitle: {
+    margin: 0,
+    color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
     lineHeight: fonts.lineHeight.normal,
-    wordBreak: 'break-word' as const,
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical' as const,
-    overflow: 'hidden'
+    maxWidth: '280px',
+    opacity: 0.8,
   },
-  tagsRow: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '4px',
-    marginTop: '8px'
-  },
-  tagPill: {
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}14`,
-    border: `1px solid ${colors.salmon}30`,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    padding: '2px 7px'
-  },
-  statusBadge: {
-    display: 'inline-flex',
-    marginTop: '10px',
-    padding: '4px 8px',
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}20`,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    cursor: 'pointer',
-    border: 'none'
-  },
-  statusBadgeRead: {
-    display: 'inline-flex',
-    marginTop: '10px',
-    padding: '4px 8px',
-    borderRadius: '999px',
-    backgroundColor: '#e8f5e9',
-    color: '#2e7d32',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    cursor: 'pointer',
-    border: 'none'
-  },
+
+  // ─── Empty state ──────────────────────────────────────────────────────────
   emptyState: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
-    backgroundColor: colors.white,
-    padding: '16px'
+    padding: '48px 0 40px',
+    textAlign: 'center' as const,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '8px',
   },
   emptyTitle: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.heading,
     fontSize: fonts.size.lg,
-    fontWeight: fonts.weight.semibold
+    fontWeight: fonts.weight.bold,
+    lineHeight: fonts.lineHeight.tight,
   },
-  emptyText: {
-    margin: '8px 0 0',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
-  },
-  initialState: {
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}20`,
-    backgroundColor: colors.white,
-    padding: '28px 16px',
-    textAlign: 'center' as const
-  },
-  initialStateText: {
+  emptySubtitle: {
     margin: 0,
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
+    lineHeight: fonts.lineHeight.normal,
+    maxWidth: '260px',
+    opacity: 0.8,
   },
+
+  // ─── Error ────────────────────────────────────────────────────────────────
   errorText: {
-    margin: 0,
     color: '#8b2a1b',
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm
-  },
-  retryButton: {
-    marginTop: '8px',
-    minHeight: '36px',
-    padding: '0 14px',
-    border: `1px solid ${colors.salmon}50`,
-    borderRadius: '10px',
-    backgroundColor: colors.white,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontWeight: fonts.weight.semibold,
     fontSize: fonts.size.sm,
-    cursor: 'pointer'
+    margin: '0 0 8px',
   },
-  loading: {
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.md
-  },
+
+  // ─── Skeleton ─────────────────────────────────────────────────────────────
   skeletonCard: {
     borderRadius: '14px',
-    border: `1px solid ${colors.brown}18`,
+    border: `1px solid ${colors.brown}15`,
     backgroundColor: colors.white,
-    padding: '14px',
-    display: 'grid',
-    gap: '8px'
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+    boxShadow: '0 2px 8px rgba(67, 40, 28, 0.04)',
   },
   skeletonLine: {
     height: '12px',
     borderRadius: '8px',
     background: 'linear-gradient(90deg, #efe8e2 0%, #f8f3ef 50%, #efe8e2 100%)',
     backgroundSize: '200% 100%',
-    animation: 'skeletonPulse 1.2s ease-in-out infinite'
+    animation: 'skeletonPulse 1.2s ease-in-out infinite',
   },
-  skeletonLineShort: {
-    width: '45%'
+  skeletonLineShort: { width: '38%' },
+  skeletonLineLong: { width: '80%' },
+  skeletonLineMedium: { width: '60%' },
+
+  loading: {
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
   },
-  skeletonLineLong: {
-    width: '85%'
-  },
-  skeletonLineMedium: {
-    width: '65%'
-  }
 }
