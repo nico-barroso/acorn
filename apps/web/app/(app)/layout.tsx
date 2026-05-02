@@ -320,24 +320,6 @@ const styles: Record<string, CSSProperties> = {
     paddingBottom: '4px'
   },
   navItemActive: {},
-  saveContentBtn: {
-    marginTop: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '12px 16px',
-    borderRadius: '12px',
-    border: 'none',
-    backgroundColor: colors.salmon,
-    color: '#FFFFFF',
-    fontFamily: fonts.family.body,
-    fontSize: fonts.size.md,
-    fontWeight: fonts.weight.medium,
-    cursor: 'pointer',
-    width: '100%',
-    boxShadow: '0 6px 20px rgba(161, 77, 54, 0.35)',
-    transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease'
-  },
   content: {
     marginLeft: '284px',
     padding: '20px 24px 96px'

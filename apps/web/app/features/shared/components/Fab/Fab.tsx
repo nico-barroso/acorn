@@ -31,7 +31,7 @@ export function Fab({ onClick, ariaLabel = 'Anadir recurso' }: FabProps) {
         aria-label={ariaLabel}
         className='fab-button'
       >
-        <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="20" height="20" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g clipPath="url(#fab-clip)">
             <path d="M17.8148 19.5833V16.5385M17.8148 13.4937V16.5385M14.6777 16.5385H17.8148M20.9519 16.5385H17.8148" stroke="white" strokeWidth="1.38401" strokeLinecap="round" strokeLinejoin="round"/>
           </g>
@@ -42,6 +42,7 @@ export function Fab({ onClick, ariaLabel = 'Anadir recurso' }: FabProps) {
             </clipPath>
           </defs>
         </svg>
+        <span>Guardar contenido</span>
       </button>
       <style jsx>{`
         @media (min-width: 901px) {
