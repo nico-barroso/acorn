@@ -141,7 +141,10 @@ export function useEditProfile() {
       const emailChanged = trimmedEmail !== sessionEmail;
 
       if (emailChanged) {
-        const { error: emailError } = await supabase.auth.updateUser({ email: trimmedEmail });
+        const { error: emailError } = await supabase.auth.updateUser(
+          { email: trimmedEmail },
+          { emailRedirectTo: 'acorn://' },
+        );
         if (emailError) {
           setErrors({ email: 'No se pudo actualizar el correo. Inténtalo de nuevo.' });
           setLoading(false);

@@ -66,21 +66,15 @@ function AuthGate() {
     }
 
     const exchangeSessionFromUrl = async (url: string) => {
-      if (!url.includes('reset-password')) return;
-      console.log('[AuthGate] reset-password url:', url);
-
       const fragment = url.split('#')[1] ?? '';
       const params = new URLSearchParams(fragment);
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
-
       const type = params.get('type');
-      console.log('[AuthGate] access_token present:', !!accessToken, 'refresh_token present:', !!refreshToken, 'type:', type);
 
-      if (!accessToken || !refreshToken) {
-        console.warn('[AuthGate] missing tokens in url fragment');
-        return;
-      }
+      if (!accessToken || !refreshToken) return;
+
+      console.log('[AuthGate] deep link url:', url, 'type:', type);
 
       // Marcar recovery ANTES de setSession para que cuando llegue SIGNED_IN
       // la navegación vaya a reset-password en vez de al app
