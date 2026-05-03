@@ -53,6 +53,7 @@ async function fetchItemsPage(
 ): Promise<ItemsPage> {
   const cachedTags = queryClient.getQueryData<{ name: string; slug: string | null; color_hex: string | null }[]>(
     queryKeys.tags(userId),
+  );
 
   const { data: folderRows, error: folderError } = await supabase
     .from('item_folders')
