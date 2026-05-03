@@ -1,3 +1,4 @@
+<img width="1284" height="175" alt="Frame 4901" src="https://github.com/user-attachments/assets/ad084135-dc73-4c68-8740-fcb20ea060c0" />
 # Acorn
 
 Acorn es una aplicación multiplataforma para la gestión centralizada de recursos digitales. Permite guardar enlaces y archivos, enriquecerlos con metadatos, organizarlos con etiquetas y carpetas inteligentes, y recuperarlos después mediante búsqueda y filtros.
@@ -83,7 +84,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 
 ## Demo
 
-- Demo web: <ENLACE_DEMO_WEB>
+- [Demo web](https://acorn-delta.vercel.app/login)
 - Vídeo de demo: <ENLACE_VIDEO_DEMO>
 - Diseño en Figma: <ENLACE_FIGMA>
 - Planificación en Linear: <ENLACE_LINEAR>
