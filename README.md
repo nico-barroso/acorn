@@ -82,14 +82,16 @@ EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-## Demo
+## Demos y enlaces
 
 - [Demo web](https://acorn-delta.vercel.app/login)
+- [Demo móvil Android](https://expo.dev/accounts/nicobarroso/projects/acorn/builds/9d6348b8-dba2-4da1-89be-39127be8ec05)
 - [Diseño en Figma](https://www.figma.com/design/D8g2omZuNB5I1v8sAJO6BP/Wireframes-Med-Fi?node-id=0-1&t=xriPaDCRnb4DVIXH-1)
+*Nota*: la demo ipa para iOS es incompatible sin pertenecer al grupo con una certificación de Apple Developer.
 
 ## Capturas
 
-<img width="1280" height="832" alt="MacBook Air - 1" src="https://github.com/user-attachments/assets/faba3826-cbac-46f1-8e51-9922f6fe706c" />
+<img width="1280" height="832" alt="MacBook Air - 1" src="https://github.com/user-attachments/assets/c44be844-edce-4a1c-a14c-5959a55e201a" />
 
 
 ## Estado del proyecto
