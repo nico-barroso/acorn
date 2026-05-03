@@ -68,9 +68,11 @@ export function useProfile() {
   const deleteAccount = useCallback(async (): Promise<boolean> => {
     try {
       const supabase = getSupabaseBrowserClient()
-      const { error: rpcError } = await supabase.rpc('delete_user')
+      const { error: fnError } = await supabase.functions.invoke('delete-account', {
+        method: 'POST'
+      })
 
-      if (rpcError) {
+      if (fnError) {
         setError('No se pudo eliminar la cuenta')
         return false
       }

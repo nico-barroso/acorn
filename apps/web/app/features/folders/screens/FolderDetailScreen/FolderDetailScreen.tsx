@@ -146,13 +146,15 @@ export function FolderDetailScreen({ folderId }: FolderDetailScreenProps) {
         <section style={s.emptyState}>
           <div style={s.emptyIcon}>📂</div>
           <h2 style={s.emptyTitle}>
-            {totalResources === 0 ? 'Sin recursos' : 'Sin resultados'}
+            {totalResources === 0
+              ? isSmartFolder ? 'Sin recursos' : 'Sin reglas'
+              : 'Sin resultados'}
           </h2>
           <p style={s.emptyText}>
             {totalResources === 0
               ? isSmartFolder
                 ? 'Ningún recurso cumple con las reglas definidas. Prueba a modificarlas.'
-                : 'Guarda contenido en Acorn para verlo aquí.'
+                : 'Define al menos una regla para que esta carpeta muestre contenido.'
               : 'Prueba con otro filtro.'}
           </p>
         </section>

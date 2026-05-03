@@ -185,7 +185,7 @@ export function useFolderDetail(folderId: string) {
 
         const filtered = rules.length > 0
           ? allResources.filter((item) => itemMatchesRules(item, rules))
-          : allResources
+          : []
 
         setResources(filtered)
       } catch {
