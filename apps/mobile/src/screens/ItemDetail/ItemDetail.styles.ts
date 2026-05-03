@@ -136,6 +136,39 @@ export const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
+  folderList: {
+    gap: 8,
+  },
+  folderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  folderCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: `${colors.brown}50`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  folderCheckSelected: {
+    borderColor: colors.salmon,
+    backgroundColor: `${colors.salmon}20`,
+  },
+  folderCheckIcon: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: 12,
+    color: colors.salmon,
+  },
+  folderName: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.md,
+    color: colors.brown,
+  },
 
   // Error
   error: {
@@ -165,6 +198,20 @@ export const styles = StyleSheet.create({
     fontSize: fonts.size.lg,
     color: colors.white,
     letterSpacing: 0.32,
+  },
+  secondaryButton: {
+    backgroundColor: colors.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: `${colors.brown}35`,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  secondaryButtonLabel: {
+    fontFamily: fonts.family.primary.regular,
+    fontSize: fonts.size.md,
+    color: colors.brown,
   },
   deleteButton: {
     alignItems: 'center',

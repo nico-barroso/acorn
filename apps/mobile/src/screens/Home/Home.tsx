@@ -55,12 +55,28 @@ async function fetchItemsPage(
     queryKeys.tags(userId),
   );
 
+  const { data: folderRows, error: folderError } = await supabase
+    .from('item_folders')
+    .select('item_id')
+    .eq('user_id', userId);
+
+  if (folderError) throw new Error('No se pudieron cargar las carpetas de recursos.');
+
+  const excludedIds = Array.from(
+    new Set(((folderRows ?? []) as { item_id: string }[]).map((row) => row.item_id)),
+  );
+
   let q = supabase
     .from('items_with_links')
     .select('id,type,title,is_read,created_at,url,domain,favicon_url,preview_image_url,og_image_url,tags,metadata(og_title)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(PAGE_SIZE);
+
+  if (excludedIds.length > 0) {
+    const formatted = excludedIds.map((id) => `"${id}"`).join(',');
+    q = q.not('id', 'in', `(${formatted})`);
+  }
 
   if (cursor) q = q.lt('created_at', cursor);
 

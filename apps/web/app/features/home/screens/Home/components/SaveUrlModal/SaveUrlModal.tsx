@@ -24,6 +24,8 @@ export function SaveUrlModal({ userId, onClose, onSaved }: SaveUrlModalProps) {
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [folders, setFolders] = useState<{ id: string; name: string }[]>([])
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([])
   const [phase, setPhase] = useState<SavePhase>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [metadata, setMetadata] = useState<ExtractedMetadata | null>(null)
@@ -46,6 +48,29 @@ export function SaveUrlModal({ userId, onClose, onSaved }: SaveUrlModalProps) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [onClose])
+
+  useEffect(() => {
+    let active = true
+
+    const loadFolders = async () => {
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data } = await supabase
+          .from('smart_folders')
+          .select('id, name')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+
+        if (!active) return
+        setFolders((data || []).map((row) => ({ id: row.id, name: row.name || 'Carpeta sin nombre' })))
+      } catch {
+        if (active) setFolders([])
+      }
+    }
+
+    loadFolders()
+    return () => { active = false }
+  }, [userId])
 
   const extractDomain = (rawUrl: string): string => {
     try {
@@ -114,6 +139,19 @@ export function SaveUrlModal({ userId, onClose, onSaved }: SaveUrlModalProps) {
         return
       }
 
+      if (selectedFolderIds.length > 0) {
+        const rows = selectedFolderIds.map(folderId => ({
+          user_id: userId,
+          item_id: itemId,
+          folder_id: folderId
+        }))
+        const { error: folderError } = await supabase.from('item_folders').insert(rows)
+        if (folderError) {
+          console.error('Error inserting folders:', folderError)
+          setErrorMessage('El enlace se guardo, pero no se pudo asignar a la carpeta seleccionada.')
+        }
+      }
+
       setPhase('extracting')
 
       const { data: funcData, error: funcError } = await supabase.functions.invoke('extract-metadata', {
@@ -137,7 +175,7 @@ export function SaveUrlModal({ userId, onClose, onSaved }: SaveUrlModalProps) {
       setPhase('error')
       setErrorMessage('Ocurrio un error inesperado. Intentalo de nuevo.')
     }
-  }, [url, title, description, userId, onSaved])
+  }, [url, title, description, userId, selectedFolderIds, onSaved])
 
   const isSaving = phase === 'inserting' || phase === 'extracting'
   const isDone = phase === 'done'
@@ -183,6 +221,36 @@ export function SaveUrlModal({ userId, onClose, onSaved }: SaveUrlModalProps) {
             disabled={isSaving || isDone}
             style={{ ...saveUrlStyles.textarea, ...(isSaving || isDone ? { opacity: 0.6 } : {}) }}
           />
+
+          <label style={saveUrlStyles.label}>Carpetas (opcional)</label>
+          <div style={{ display: 'grid', gap: '8px' }}>
+            {folders.length === 0 ? (
+              <p style={saveUrlStyles.helperText}>No tienes carpetas creadas.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '6px' }}>
+                {folders.map((folder) => {
+                  const checked = selectedFolderIds.includes(folder.id)
+                  return (
+                    <label key={folder.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        onChange={() => {
+                          setSelectedFolderIds((prev) =>
+                            prev.includes(folder.id)
+                              ? prev.filter((id) => id !== folder.id)
+                              : [...prev, folder.id]
+                          )
+                        }}
+                        disabled={isSaving || isDone}
+                      />
+                      <span style={saveUrlStyles.helperText}>{folder.name}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {phase === 'extracting' || (phase === 'done' && metadata) ? (
