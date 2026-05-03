@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavBarHeight } from '@/context/NavBarHeightContext';
 import { supabase } from '@mobile/lib/supabase';
+import { TagSelectorSection } from './TagSelectorSection';
 import { styles } from './SaveLinkModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -115,6 +116,7 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [previewFaviconError, setPreviewFaviconError] = useState(false);
   const [previewOgImageError, setPreviewOgImageError] = useState(false);
+  const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -199,11 +201,12 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
     setLinkLoading(true);
     setLinkError('');
 
-    const { data: linkData, error: fnError } = await supabase.functions.invoke('link-test', {
+    const { data: linkData, error: fnError } = await supabase.functions.invoke('links', {
       body: {
         url: trimmedUrl,
         title: title.trim() || previewMeta?.ogTitle || undefined,
         description: notes.trim() || undefined,
+        tags: selectedTagNames,
       },
     });
 
@@ -216,7 +219,7 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
 
     const itemId = linkData?.data?.id;
     if (itemId) {
-      void supabase.functions.invoke('extract-metadata-test', {
+      void supabase.functions.invoke('extract-metadata', {
         body: {
           item_id: itemId,
           url: trimmedUrl,
@@ -333,6 +336,8 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
                   />
                 </View>
               )}
+
+              <TagSelectorSection onTagsChange={setSelectedTagNames} disabled={linkLoading} />
             </>
           )}
 

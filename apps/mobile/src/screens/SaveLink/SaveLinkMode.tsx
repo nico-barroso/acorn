@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '@mobile/lib/supabase';
+import { TagSelectorSection } from './TagSelectorSection';
 import { styles } from './SaveLinkModal.styles';
 
 function isValidUrl(value: string): boolean {
@@ -95,6 +96,7 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
   const [previewMeta, setPreviewMeta] = useState<PreviewMeta | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewFaviconError, setPreviewFaviconError] = useState(false);
+  const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -149,11 +151,12 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
     setLinkLoading(true);
     setLinkError('');
 
-    const { data: linkData, error: fnError } = await supabase.functions.invoke('link-test', {
+    const { data: linkData, error: fnError } = await supabase.functions.invoke('links', {
       body: {
         url: trimmedUrl,
         title: title.trim() || previewMeta?.ogTitle || undefined,
         description: notes.trim() || undefined,
+        tags: selectedTagNames,
       },
     });
 
@@ -166,7 +169,7 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
 
     const itemId = linkData?.data?.id;
     if (itemId) {
-      void supabase.functions.invoke('extract-metadata-test', {
+      void supabase.functions.invoke('extract-metadata', {
         body: {
           item_id: itemId,
           url: trimmedUrl,
@@ -263,6 +266,8 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
               />
             </View>
           )}
+
+          <TagSelectorSection onTagsChange={setSelectedTagNames} disabled={linkLoading} />
         </>
       )}
 

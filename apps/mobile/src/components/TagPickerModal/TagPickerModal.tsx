@@ -90,6 +90,15 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     }
   }, [visible]);
 
+  useEffect(() => {
+    if (visible && !itemId) {
+      setManagementOpen(true);
+      setMgmtVisible(true);
+      mgmtOpacity.setValue(1);
+      mgmtTranslateY.setValue(0);
+    }
+  }, [visible, itemId]);
+
 
 
   const dismiss = (callback?: () => void) => {
@@ -113,16 +122,16 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   ).current;
 
   const loadData = React.useCallback(async () => {
-    if (!visible || !itemId || !user) return;
+    if (!visible || !user) return;
     setLoading(true);
-    const [tagsResult, itemTagsResult] = await Promise.all([
-      supabase.from('tags').select('id,name,color_hex').eq('user_id', user.id).order('name'),
-      supabase.from('item_tags').select('tag_id').eq('item_id', itemId),
-    ]);
+    const tagsResult = await supabase.from('tags').select('id,name,color_hex').eq('user_id', user.id).order('name');
     setAllTags((tagsResult.data ?? []) as TagOption[]);
-    setSelectedIds(((itemTagsResult.data ?? []) as { tag_id: string }[]).map((r) => r.tag_id));
+    if (itemId) {
+      const itemTagsResult = await supabase.from('item_tags').select('tag_id').eq('item_id', itemId);
+      setSelectedIds(((itemTagsResult.data ?? []) as { tag_id: string }[]).map((r) => r.tag_id));
+    }
     setLoading(false);
-  }, [visible, itemId]);
+  }, [visible, itemId, user]);
 
   const loadTagsWithCount = React.useCallback(async () => {
     if (!user) return;
@@ -254,50 +263,55 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
           >
 
               {/* ── SELECTOR ── */}
-              <Text style={styles.title}>Etiquetas</Text>
-              <Text style={styles.subtitle}>Selecciona hasta {MAX_TAGS} etiquetas para este recurso.</Text>
+              <Text style={styles.title}>{itemId ? 'Etiquetas' : 'Gestionar etiquetas'}</Text>
 
-              {loading ? (
-                <View style={styles.loadingContainer}><ActivityIndicator /></View>
-              ) : allTags.length === 0 && !managementOpen ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>Todavía no tienes etiquetas.</Text>
-                </View>
-              ) : (
+              {itemId && (
                 <>
-                  <View style={styles.chipsContainer}>
-                    {allTags.map((tag) => {
-                      const selected = selectedIds.includes(tag.id);
-                      const disabled = !selected && selectedIds.length >= MAX_TAGS;
-                      return (
+                  <Text style={styles.subtitle}>Selecciona hasta {MAX_TAGS} etiquetas para este recurso.</Text>
+
+                  {loading ? (
+                    <View style={styles.loadingContainer}><ActivityIndicator /></View>
+                  ) : allTags.length === 0 && !managementOpen ? (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyText}>Todavía no tienes etiquetas.</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <View style={styles.chipsContainer}>
+                        {allTags.map((tag) => {
+                          const selected = selectedIds.includes(tag.id);
+                          const disabled = !selected && selectedIds.length >= MAX_TAGS;
+                          return (
+                            <TouchableOpacity
+                              key={tag.id}
+                              style={[styles.chip, selected && { backgroundColor: tag.color_hex ?? '#43281C' }, disabled && styles.chipDisabled]}
+                              onPress={() => toggleTag(tag.id)}
+                              activeOpacity={0.75}
+                              disabled={disabled}
+                            >
+                              <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>#{tag.name}</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                      {allTags.length > 0 && <Text style={styles.counter}>{selectedIds.length}/{MAX_TAGS} seleccionadas</Text>}
+                      {allTags.length > 0 && (
                         <TouchableOpacity
-                          key={tag.id}
-                          style={[styles.chip, selected && { backgroundColor: tag.color_hex ?? '#43281C' }, disabled && styles.chipDisabled]}
-                          onPress={() => toggleTag(tag.id)}
-                          activeOpacity={0.75}
-                          disabled={disabled}
+                          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                          onPress={() => void handleSave()}
+                          activeOpacity={0.8}
+                          disabled={saving}
                         >
-                          <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>#{tag.name}</Text>
+                          <Text style={styles.saveButtonLabel}>{saving ? 'Guardando...' : 'Guardar'}</Text>
                         </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                  {allTags.length > 0 && <Text style={styles.counter}>{selectedIds.length}/{MAX_TAGS} seleccionadas</Text>}
-                  {allTags.length > 0 && (
-                    <TouchableOpacity
-                      style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-                      onPress={() => void handleSave()}
-                      activeOpacity={0.8}
-                      disabled={saving}
-                    >
-                      <Text style={styles.saveButtonLabel}>{saving ? 'Guardando...' : 'Guardar'}</Text>
-                    </TouchableOpacity>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
               {/* ── GESTIONAR ── */}
-              <TouchableOpacity
+              {itemId && <TouchableOpacity
                 style={styles.manageButton}
                 onPress={() => {
                   if (managementOpen) {
@@ -319,7 +333,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
                 activeOpacity={0.7}
               >
                 <Text style={styles.manageLink}>{managementOpen ? 'Ocultar gestión' : 'Gestionar etiquetas'}</Text>
-              </TouchableOpacity>
+              </TouchableOpacity>}
 
               {mgmtVisible && (
                 <Animated.View style={{ opacity: mgmtOpacity, transform: [{ translateY: mgmtTranslateY }] }}>

@@ -19,6 +19,7 @@ export type ResourceRow = {
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
+  description: string | null;
   metadata: { og_title: string | null }[] | null;
 };
 
