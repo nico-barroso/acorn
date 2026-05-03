@@ -1,4 +1,4 @@
-<img width="1284" height="175" alt="Frame 4901" src="https://github.com/user-attachments/assets/ad084135-dc73-4c68-8740-fcb20ea060c0" />
+<img width="1284" height="175" alt="Frame 4901" src="https://github.com/user-attachments/assets/860b541f-2dc6-4037-afbe-c33853bb48b9" />
 # Acorn
 
 Acorn es una aplicación multiplataforma para la gestión centralizada de recursos digitales. Permite guardar enlaces y archivos, enriquecerlos con metadatos, organizarlos con etiquetas y carpetas inteligentes, y recuperarlos después mediante búsqueda y filtros.
