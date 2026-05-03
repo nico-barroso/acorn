@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { resourceCardStyles } from './ResourceCard.styles'
+import { colors } from '@/theme/colors'
+
+export type TagItem = { name: string; color_hex: string | null }
 
 type ResourceCardProps = {
   id: string
@@ -12,7 +15,7 @@ type ResourceCardProps = {
   thumbnailUrl?: string | null
   createdAtLabel: string
   isRead: boolean
-  tags?: string[]
+  tags?: TagItem[]
   siteName?: string | null
   onToggleRead?: (id: string, currentIsRead: boolean) => void
   onCopyUrl?: (url: string) => void
@@ -38,6 +41,7 @@ export function ResourceCard({
 }: ResourceCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const domainInitial = domain && domain !== 'Sin dominio' ? domain[0].toUpperCase() : '?'
 
@@ -50,7 +54,11 @@ export function ResourceCard({
   const handleCopyUrl = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (url) onCopyUrl?.(url)
+    if (url) {
+      onCopyUrl?.(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   const handleExpand = (e: React.MouseEvent) => {
@@ -69,87 +77,103 @@ export function ResourceCard({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-        {thumbnailUrl ? (
-          <img src={thumbnailUrl} alt='' style={resourceCardStyles.thumbnail} />
-        ) : (
-          <div style={resourceCardStyles.thumbnailPlaceholder}>{domainInitial}</div>
-        )}
+      <div style={resourceCardStyles.mainRow}>
+        <div style={resourceCardStyles.thumbnail}>
+          {thumbnailUrl ? (
+            <img src={thumbnailUrl} alt='' style={resourceCardStyles.thumbnailImage} />
+          ) : (
+            <span style={resourceCardStyles.thumbnailPlaceholder}>{domainInitial}</span>
+          )}
+        </div>
 
         <div style={resourceCardStyles.textArea}>
-          <div style={resourceCardStyles.titleRow}>
-            <h2 style={resourceCardStyles.title}>{highlightedParts ?? title}</h2>
-            <span style={resourceCardStyles.domainPill}>{domain}</span>
+          <h2 style={resourceCardStyles.title}>{highlightedParts ?? title}</h2>
+          <div style={resourceCardStyles.sourceRow}>
+            <span style={resourceCardStyles.sourceEmoji}>🔗</span>
+            <span style={resourceCardStyles.source}>{siteName ?? domain}</span>
           </div>
-
-          {siteName ? <p style={resourceCardStyles.source}>{siteName}</p> : null}
-
           {tags && tags.length > 0 ? (
             <div style={resourceCardStyles.tagsRow}>
-              {tags.slice(0, 3).map((tag) => (
-                <span key={tag} style={resourceCardStyles.tagPill}>{tag}</span>
+              {tags.map((tag) => (
+                <span key={tag.name} style={{
+                  ...resourceCardStyles.tagPill,
+                  backgroundColor: tag.color_hex ? `${tag.color_hex}20` : `${colors.salmon}14`,
+                  border: `1px solid ${tag.color_hex ? `${tag.color_hex}40` : `${colors.salmon}30`}`
+                }}>
+                  #{tag.name}
+                </span>
               ))}
             </div>
           ) : null}
         </div>
 
-        <span style={expanded ? resourceCardStyles.chevronUp : resourceCardStyles.chevron} aria-hidden>&#8964;</span>
+        <span style={expanded ? resourceCardStyles.chevronUp : resourceCardStyles.chevron} aria-hidden>
+          ›
+        </span>
       </div>
-
-      {!expanded && description ? (
-        <p style={{ ...resourceCardStyles.description, marginTop: '8px' }}>
-          {descriptionHighlighted ?? description}
-        </p>
-      ) : null}
-
-      {!expanded ? (
-        <button
-          type='button'
-          onClick={handleToggleRead}
-          style={isRead ? resourceCardStyles.statusBadgeRead : resourceCardStyles.statusBadge}
-          aria-label={isRead ? 'Marcar como no visto' : 'Marcar como visto'}
-        >
-          {isRead ? 'Visto' : 'No visto'}
-        </button>
-      ) : null}
 
       {expanded ? (
         <div style={resourceCardStyles.expandedSection}>
-          <p style={resourceCardStyles.description}>
-            {descriptionHighlighted ?? description}
-          </p>
+          <div style={resourceCardStyles.expandedDivider} />
+
+          {description ? (
+            <p style={resourceCardStyles.description}>
+              {descriptionHighlighted ?? description}
+            </p>
+          ) : null}
 
           <div style={resourceCardStyles.metaRow}>
-            <span style={resourceCardStyles.metaLabel}>Guardado</span>
-            <span style={resourceCardStyles.metaValue}>{createdAtLabel}</span>
-          </div>
-
-          <div style={resourceCardStyles.metaRow}>
-            <span style={resourceCardStyles.metaLabel}>Estado</span>
-            <button
-              type='button'
-              onClick={handleToggleRead}
-              style={isRead ? resourceCardStyles.statusBadgeRead : resourceCardStyles.statusBadge}
-              aria-label={isRead ? 'Marcar como no visto' : 'Marcar como visto'}
-            >
-              {isRead ? 'Visto' : 'No visto'}
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
-            {url ? (
-              <a href={url} target='_blank' rel='noopener noreferrer' style={{ textDecoration: 'none' }}>
-                <button type='button' style={resourceCardStyles.primaryButton}>
-                  Abrir enlace
-                </button>
-              </a>
-            ) : null}
-            {url ? (
-              <button type='button' onClick={handleCopyUrl} style={resourceCardStyles.actionButton}>
-                Copiar URL
+            <span style={resourceCardStyles.metaLabel}>Estado:</span>
+            <span style={isRead ? resourceCardStyles.statusBadgeRead : resourceCardStyles.statusBadge}>
+              {isRead ? 'Visto' : 'No visto'} 👁
+            </span>
+            {onToggleRead ? (
+              <button
+                type='button'
+                onClick={handleToggleRead}
+                style={resourceCardStyles.readToggleButton}
+              >
+                {isRead ? 'Marcar como no visto' : 'Marcar como visto'}
               </button>
             ) : null}
           </div>
+
+          {tags && tags.length > 0 ? (
+            <div style={resourceCardStyles.tagsSection}>
+              <span style={resourceCardStyles.metaLabel}>Etiquetas</span>
+              {tags.map((tag) => (
+                <span key={tag.name} style={{
+                  ...resourceCardStyles.tagPill,
+                  backgroundColor: tag.color_hex ? `${tag.color_hex}20` : `${colors.salmon}14`,
+                  border: `1px solid ${tag.color_hex ? `${tag.color_hex}40` : `${colors.salmon}30`}`
+                }}>
+                  #{tag.name}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          <div style={resourceCardStyles.metaRow}>
+            <span style={resourceCardStyles.metaLabel}>Guardado:</span>
+            <span style={resourceCardStyles.metaValue}>{createdAtLabel}</span>
+            {url ? (
+              <button
+                type='button'
+                onClick={handleCopyUrl}
+                style={resourceCardStyles.copyUrlButton}
+              >
+                {copied ? '¡Enlace copiado!' : 'Copiar URL'}
+              </button>
+            ) : null}
+          </div>
+
+          {url ? (
+            <a href={url} target='_blank' rel='noopener noreferrer' style={{ textDecoration: 'none', cursor: 'pointer' }}>
+              <button type='button' style={resourceCardStyles.primaryButton}>
+                Abrir enlace original
+              </button>
+            </a>
+          ) : null}
         </div>
       ) : null}
     </article>

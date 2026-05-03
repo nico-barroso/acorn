@@ -42,5 +42,10 @@ yarn-error.*
 
 .env
 
+# Editor config
+.zed/
+
 /components/
 /App.tsx
+.claude/
+AUDIT.md

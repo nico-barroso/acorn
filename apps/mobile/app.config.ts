@@ -7,31 +7,38 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'acorn',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/config/icon.png',
+  icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   scheme: 'acorn',
-  splash: {
-    image: './assets/config/splash.png',
-    resizeMode: 'cover',
-    backgroundColor: '#FFFCFB',
-  },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.nicobarroso.acornmobile',
+    bundleIdentifier: 'com.nicobarroso.acorn',
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
-    package: 'com.nicobarroso.acornmobile',
+    package: 'com.nicobarroso.acorn',
     adaptiveIcon: {
-      foregroundImage: './assets/config/adaptive-icon.png',
+      foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#FFFCFB',
     },
     predictiveBackGestureEnabled: false,
   },
   web: {
-    favicon: './assets/config/favicon.png',
+    favicon: './assets/favicon.png',
   },
   plugins: [
     'expo-router',
+    'expo-dev-client',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#FFFCFB',
+        image: './assets/splash.png',
+        resizeMode: 'contain',
+      },
+    ],
     'expo-web-browser',
     [
       'expo-image-picker',
@@ -62,7 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     eas: {
-      projectId: '85e23e07-f828-4ee6-8825-63896cccb192',
+      projectId: 'efcc103c-2a5e-4975-b431-fe2e2e12e40c',
     },
   },
 });

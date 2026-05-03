@@ -2,6 +2,173 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'CabinetGrotesk';
+  src: url('/fonts/CabinetGrotesk-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* ── Profile micro-animations ── */
+@keyframes profileFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes profileShimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes profileAvatarIn {
+  0%   { opacity: 0; transform: scale(0.82); }
+  60%  { transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes profileRingPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(67,40,28,0.18), 0 0 0 0 rgba(161,77,54,0); }
+  50%       { box-shadow: 0 4px 16px rgba(67,40,28,0.18), 0 0 0 6px rgba(161,77,54,0.12); }
+}
+
+.profile-radial-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 58vh;
+  min-height: 360px;
+  background: radial-gradient(
+    ellipse 120% 95% at 50% 0%,
+    rgba(192,110,82,0.62) 0%,
+    rgba(249,111,93,0.30) 32%,
+    rgba(255,247,241,0.10) 58%,
+    transparent 72%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profile-header  { animation: profileFadeUp 0.52s cubic-bezier(0.22,1,0.36,1) 0.04s both; }
+.profile-section-1 { animation: profileFadeUp 0.52s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
+.profile-section-2 { animation: profileFadeUp 0.52s cubic-bezier(0.22,1,0.36,1) 0.20s both; }
+.profile-section-3 { animation: profileFadeUp 0.52s cubic-bezier(0.22,1,0.36,1) 0.28s both; }
+
+.profile-avatar-wrap {
+  animation: profileAvatarIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+}
+.profile-avatar-wrap:hover {
+  transform: scale(1.06);
+  animation: profileRingPulse 2s ease-in-out 0.3s infinite;
+}
+
+.profile-skeleton {
+  background: linear-gradient(90deg, rgba(67,40,28,0.08) 25%, rgba(67,40,28,0.14) 50%, rgba(67,40,28,0.08) 75%);
+  background-size: 800px 100%;
+  animation: profileShimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.profile-row {
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.18s ease;
+}
+.profile-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 100% at 20% 50%, rgba(249,111,93,0.07) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.profile-row:hover { background-color: rgba(249,111,93,0.04); }
+.profile-row:hover::before { opacity: 1; }
+.profile-row:active { background-color: rgba(249,111,93,0.09); transform: scale(0.992); transition: transform 0.08s ease, background-color 0.08s ease; }
+
+.profile-icon {
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background-color 0.2s ease;
+}
+.profile-row:hover .profile-icon {
+  transform: scale(1.12);
+  background-color: rgba(249,111,93,0.18) !important;
+}
+
+.profile-chevron-anim {
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
+}
+.profile-row:hover .profile-chevron-anim {
+  transform: translateX(4px);
+  opacity: 0.65 !important;
+}
+
+.folder-left {
+  isolation: isolate;
+}
+
+.folder-left::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 150px 150px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.app-sidebar {
+  isolation: isolate;
+}
+
+.app-sidebar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+/* ── AcornLoader animations ── */
+@keyframes acornSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes acornDot {
+  0%, 70%, 100% { opacity: 0.25; transform: translateY(0); }
+  35%            { opacity: 1;    transform: translateY(-3px); }
+}
+.acorn-loader-spin {
+  animation: acornSpin 1s linear infinite;
+  transform-origin: 50% 50%;
+}
+.acorn-loader-dot {
+  display: inline-block;
+  margin-left: 1px;
+  animation: acornDot 1.2s ease-in-out infinite;
+}
+@keyframes acornLoaderExit {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
+}
+.acorn-loader-exiting {
+  animation: acornLoaderExit 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -15,11 +182,13 @@
 
   body {
     min-height: 100vh;
-    background: radial-gradient(circle at 15% 20%, #fff7f4 0%, #fffcfb 45%, #f8ede8 100%);
+    background-color: #FFFCFB;
+    background-image: radial-gradient(ellipse 140% 65% at 50% 100%, rgba(192, 110, 82, 0.55) 0%, rgba(248, 237, 232, 0.25) 55%, rgba(255, 252, 251, 0) 100%);
   }
 
   a {
     color: inherit;
+    cursor: pointer;
   }
 
   button:focus-visible,

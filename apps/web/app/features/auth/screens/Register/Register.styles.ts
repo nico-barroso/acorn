@@ -2,6 +2,10 @@ import { colors } from '@/theme/colors'
 import { fonts } from '@/theme/fonts'
 
 export const registerStyles = {
+  form: {
+    display: 'grid',
+    gap: '16px'
+  },
   fieldGroup: {
     display: 'grid',
     gap: '6px'
@@ -9,7 +13,7 @@ export const registerStyles = {
   label: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold
   },
@@ -21,7 +25,7 @@ export const registerStyles = {
     padding: '0 14px',
     color: colors.black,
     backgroundColor: colors.white,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md,
     lineHeight: fonts.lineHeight.normal
   },
@@ -31,7 +35,7 @@ export const registerStyles = {
   fieldError: {
     margin: 0,
     color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm
   },
   submitButton: {
@@ -42,7 +46,7 @@ export const registerStyles = {
     backgroundColor: colors.salmon,
     color: colors.white,
     cursor: 'pointer',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md,
     fontWeight: fonts.weight.semibold
   },
@@ -63,15 +67,19 @@ export const registerStyles = {
   dividerText: {
     margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.xs,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.04em'
   },
-  helperText: {
+  successText: {
     margin: 0,
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    color: '#2f6a3b',
+    backgroundColor: '#e7f7eb',
+    border: '1px solid #b8e4c2',
+    borderRadius: '12px',
+    padding: '10px 12px',
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     lineHeight: fonts.lineHeight.normal
   }

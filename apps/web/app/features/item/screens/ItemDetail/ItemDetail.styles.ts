@@ -1,103 +1,149 @@
 import { colors } from '@/theme/colors'
 import { fonts } from '@/theme/fonts'
 
-export const detailStyles = {
+export const s = {
+
+  // ── Page ──────────────────────────────────────────────────────────────────
   page: {
     minHeight: '100%',
     width: '100%',
-    maxWidth: '720px',
+    maxWidth: '620px',
     margin: '0 auto',
-    padding: 'clamp(10px, 2vw, 18px)'
+    paddingBottom: '40px',
   },
+
   backButton: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    minHeight: '36px',
+    height: '36px',
     padding: '0 14px',
-    border: `1px solid ${colors.brown}35`,
+    border: `1px solid ${colors.brown}28`,
     borderRadius: '10px',
-    backgroundColor: colors.white,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontWeight: fonts.weight.medium,
-    fontSize: fonts.size.sm,
-    cursor: 'pointer',
-    marginBottom: '16px'
-  },
-  backArrow: {
-    fontSize: fonts.size.md,
-    lineHeight: 1
-  },
-  card: {
-    borderRadius: '18px',
-    border: `1px solid ${colors.brown}20`,
-    backgroundColor: colors.white,
-    boxShadow: '0 18px 44px rgba(67, 40, 28, 0.1)',
-    padding: 'clamp(18px, 4vw, 28px)'
-  },
-  title: {
-    margin: 0,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xl,
-    fontWeight: fonts.weight.bold,
-    lineHeight: fonts.lineHeight.tight
-  },
-  metaRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    flexWrap: 'wrap' as const,
-    marginTop: '10px'
-  },
-  domainPill: {
-    borderRadius: '999px',
-    border: `1px solid ${colors.brown}26`,
-    backgroundColor: '#faf2ee',
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    padding: '4px 7px',
-    whiteSpace: 'nowrap' as const
-  },
-  readBadge: {
-    borderRadius: '999px',
-    padding: '4px 8px',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    cursor: 'pointer',
-    border: 'none'
-  },
-  readBadgeUnread: {
-    backgroundColor: `${colors.salmon}20`,
-    color: colors.brown
-  },
-  readBadgeRead: {
-    backgroundColor: '#e8f5e9',
-    color: '#2e7d32'
-  },
-  dateText: {
+    backgroundColor: 'transparent',
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    marginBottom: '16px',
+    transition: 'background-color 0.15s ease',
   },
-  thumbnail: {
+
+  // ── Card ──────────────────────────────────────────────────────────────────
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: '20px',
+    border: `1px solid ${colors.brown}12`,
+    boxShadow: '0 2px 16px rgba(67, 40, 28, 0.07), 0 8px 32px rgba(67, 40, 28, 0.05)',
+    overflow: 'hidden',
+  },
+
+  // ── Image header ──────────────────────────────────────────────────────────
+  imageContainer: {
     width: '100%',
-    maxHeight: '300px',
-    objectFit: 'cover' as const,
-    borderRadius: '14px',
-    marginTop: '16px',
-    border: `1px solid ${colors.brown}18`
+    height: '220px',
+    overflow: 'hidden',
+    flexShrink: 0,
   },
-  descriptionTitle: {
-    margin: '20px 0 6px',
-    color: colors.brown,
+  image: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover' as const,
+    display: 'block',
+  },
+  gradientHeader: {
+    width: '100%',
+    height: '80px',
+    background: 'linear-gradient(135deg, rgba(161,77,54,0.12) 0%, rgba(67,40,28,0.06) 100%)',
+    position: 'relative' as const,
+    overflow: 'hidden',
+  },
+  gradientHeaderInner: {
+    position: 'absolute' as const,
+    bottom: '-30px',
+    left: '-10%',
+    width: '120%',
+    height: '60px',
+    borderRadius: '50%',
+    backgroundColor: colors.white,
+  },
+
+  // ── Card content ──────────────────────────────────────────────────────────
+  cardContent: {
+    padding: '20px',
+  },
+
+  // ── Source row ────────────────────────────────────────────────────────────
+  sourceRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    marginBottom: '10px',
+    flexWrap: 'wrap' as const,
+  },
+  favicon: {
+    width: '14px',
+    height: '14px',
+    borderRadius: '3px',
+    flexShrink: 0,
+    objectFit: 'contain' as const,
+  },
+  domainText: {
+    color: colors.brownMid,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.md,
-    fontWeight: fonts.weight.semibold
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+  },
+  sourceDot: {
+    color: `${colors.brownMid}50`,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+  },
+  dateText: {
+    color: `${colors.brownMid}70`,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+  },
+
+  // ── Title ─────────────────────────────────────────────────────────────────
+  title: {
+    margin: '0 0 12px',
+    color: colors.brown,
+    fontFamily: fonts.family.heading,
+    fontSize: 'clamp(18px, 3.5vw, 24px)',
+    fontWeight: fonts.weight.bold,
+    lineHeight: fonts.lineHeight.tight,
+  },
+
+  // ── Read badge ────────────────────────────────────────────────────────────
+  readBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    height: '28px',
+    padding: '0 12px',
+    borderRadius: '999px',
+    border: '1px solid transparent',
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    transition: 'opacity 0.15s ease',
+  },
+
+  // ── Sections ──────────────────────────────────────────────────────────────
+  section: {
+    marginBottom: '4px',
+  },
+  sectionLabel: {
+    margin: '0 0 8px',
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: '11px',
+    fontWeight: fonts.weight.semibold,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
   },
   descriptionText: {
     margin: 0,
@@ -105,136 +151,393 @@ export const detailStyles = {
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
     lineHeight: fonts.lineHeight.comfortable,
-    wordBreak: 'break-word' as const
+    wordBreak: 'break-word' as const,
   },
-  tagsSection: {
-    marginTop: '16px'
+  divider: {
+    height: '1px',
+    backgroundColor: `${colors.brown}08`,
+    margin: '18px 0',
   },
-  tagsLabel: {
-    margin: '0 0 8px',
-    color: colors.brown,
+
+  // ── Tags section ──────────────────────────────────────────────────────────
+  tagsHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '10px',
+  },
+  addTagButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    height: '26px',
+    padding: '0 10px',
+    borderRadius: '999px',
+    border: `1px solid ${colors.salmon}40`,
+    color: colors.salmon,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    transition: 'background-color 0.15s ease',
   },
   tagsRow: {
     display: 'flex',
     flexWrap: 'wrap' as const,
-    gap: '6px'
+    gap: '6px',
+  },
+  tagsEmpty: {
+    color: `${colors.brownMid}55`,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontStyle: 'italic' as const,
   },
   tagPill: {
-    borderRadius: '999px',
-    backgroundColor: `${colors.salmon}14`,
-    border: `1px solid ${colors.salmon}30`,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    padding: '4px 10px'
-  },
-  metaSection: {
-    marginTop: '16px',
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '10px'
-  },
-  metaCard: {
-    borderRadius: '12px',
-    border: `1px solid ${colors.brown}18`,
-    backgroundColor: '#fff8f3',
-    padding: '10px 12px'
-  },
-  metaLabel: {
-    margin: 0,
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.04em'
-  },
-  metaValue: {
-    margin: '4px 0 0',
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.medium,
-    wordBreak: 'break-word' as const
-  },
-  actionsRow: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '8px',
-    marginTop: '20px'
-  },
-  actionButton: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '6px',
-    minHeight: '40px',
-    padding: '0 16px',
-    borderRadius: '12px',
-    border: `1px solid ${colors.brown}32`,
+    gap: '5px',
+    height: '26px',
+    padding: '0 10px',
+    borderRadius: '999px',
+    border: '1px solid transparent',
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+  },
+  tagDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '999px',
+    flexShrink: 0,
+  },
+
+  // ── Tag panel ─────────────────────────────────────────────────────────────
+  tagPanel: {
+    marginTop: '12px',
+    borderRadius: '14px',
+    border: `1px solid ${colors.brown}14`,
+    backgroundColor: '#FEFAF8',
+    overflow: 'hidden',
+  },
+  tagPanelSearchRow: {
+    padding: '12px 12px 8px',
+  },
+  tagPanelSearchInput: {
+    width: '100%',
+    height: '36px',
+    padding: '0 12px',
+    borderRadius: '10px',
+    border: `1px solid ${colors.brown}18`,
     backgroundColor: colors.white,
     color: colors.brown,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer',
-    transition: 'background-color 0.15s ease'
+    outline: 'none',
+    boxSizing: 'border-box' as const,
   },
-  actionButtonPrimary: {
-    display: 'inline-flex',
+  tagPanelList: {
+    maxHeight: '200px',
+    overflowY: 'auto' as const,
+    padding: '4px 8px',
+  },
+  tagPanelItemRow: {
+    display: 'flex',
+    alignItems: 'center',
+    borderRadius: '10px',
+    transition: 'background-color 0.12s ease',
+    marginBottom: '1px',
+  },
+  tagPanelItemBtn: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    height: '38px',
+    padding: '0 8px',
+    borderRadius: '10px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+  },
+  tagEditBtn: {
+    flexShrink: 0,
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    borderRadius: '8px',
+    backgroundColor: 'transparent',
+    color: '#A14D3680',
+    fontSize: '14px',
+    cursor: 'pointer',
+    marginRight: '4px',
+    transition: 'background-color 0.12s ease, color 0.12s ease',
+  },
+  tagEditForm: {
+    padding: '10px 8px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+    borderRadius: '10px',
+    backgroundColor: '#FFF8F3',
+    border: `1px solid #A14D3618`,
+    marginBottom: '2px',
+  },
+  tagPanelItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '100%',
+    height: '38px',
+    padding: '0 8px',
+    borderRadius: '10px',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+    transition: 'background-color 0.12s ease',
+  },
+  tagPanelItemDot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '999px',
+    flexShrink: 0,
+  },
+  tagPanelItemName: {
+    flex: 1,
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+  },
+  tagPanelItemCheck: {
+    color: colors.salmon,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+  },
+  tagPanelEmpty: {
+    margin: '12px 8px',
+    color: `${colors.brownMid}60`,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    textAlign: 'center' as const,
+  },
+  tagPanelCreateTrigger: {
+    display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    minHeight: '40px',
+    width: '100%',
+    height: '42px',
+    padding: '0 14px',
+    border: 'none',
+    borderTop: `1px solid ${colors.brown}0C`,
+    backgroundColor: 'transparent',
+    color: colors.salmon,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+  },
+  tagCreateForm: {
+    padding: '12px 14px 14px',
+    borderTop: `1px solid ${colors.brown}0C`,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+  },
+  tagCreateInput: {
+    width: '100%',
+    height: '38px',
+    padding: '0 12px',
+    borderRadius: '10px',
+    border: `1px solid ${colors.brown}20`,
+    backgroundColor: colors.white,
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+  },
+  tagColorGrid: {
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '8px',
+  },
+  tagColorBtn: {
+    width: '22px',
+    height: '22px',
+    borderRadius: '999px',
+    border: 'none',
+    cursor: 'pointer',
+    flexShrink: 0,
+    transition: 'transform 0.12s ease',
+  },
+  tagCreateRow: {
+    display: 'flex',
+    gap: '8px',
+    justifyContent: 'flex-end',
+  },
+  tagCreateCancel: {
+    height: '34px',
+    padding: '0 14px',
+    borderRadius: '10px',
+    border: `1px solid ${colors.brown}20`,
+    backgroundColor: 'transparent',
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+  },
+  tagCreateSave: {
+    height: '34px',
     padding: '0 16px',
+    borderRadius: '10px',
+    border: 'none',
+    color: colors.white,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+    cursor: 'pointer',
+    transition: 'opacity 0.15s ease',
+  },
+
+  // ── Meta grid ─────────────────────────────────────────────────────────────
+  metaGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
+  },
+  metaItem: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '3px',
+    padding: '10px 12px',
     borderRadius: '12px',
+    backgroundColor: '#FFF8F3',
+    border: `1px solid ${colors.brown}08`,
+  },
+  metaLabel: {
+    color: `${colors.brownMid}90`,
+    fontFamily: fonts.family.primary,
+    fontSize: '10px',
+    fontWeight: fonts.weight.semibold,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+  },
+  metaValue: {
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    wordBreak: 'break-word' as const,
+  },
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  actionsCol: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '8px',
+  },
+  actionsRow: {
+    display: 'flex',
+    gap: '8px',
+  },
+  actionPrimary: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '46px',
+    borderRadius: '14px',
     border: 'none',
     backgroundColor: colors.salmon,
+    color: colors.white,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+    cursor: 'pointer',
+    transition: 'opacity 0.15s ease',
+  },
+  actionSecondary: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '42px',
+    padding: '0 12px',
+    borderRadius: '12px',
+    border: `1px solid ${colors.brown}22`,
+    backgroundColor: 'transparent',
+    color: colors.brownMid,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    cursor: 'pointer',
+    transition: 'background-color 0.15s ease',
+  },
+  actionDanger: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '40px',
+    borderRadius: '12px',
+    border: `1px solid #C0392B28`,
+    backgroundColor: 'transparent',
+    color: '#C0392B',
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    cursor: 'pointer',
+    marginTop: '2px',
+    transition: 'background-color 0.15s ease',
+  },
+
+  // ── Delete confirm ────────────────────────────────────────────────────────
+  deleteCard: {
+    padding: '14px',
+    borderRadius: '12px',
+    border: `1px solid #C0392B28`,
+    backgroundColor: '#FEF9F9',
+  },
+  deleteText: {
+    margin: '0 0 12px',
+    color: '#8b2a1b',
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    lineHeight: fonts.lineHeight.normal,
+  },
+  deleteRow: {
+    display: 'flex',
+    gap: '8px',
+  },
+  actionDeleteConfirm: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '38px',
+    borderRadius: '10px',
+    border: 'none',
+    backgroundColor: '#C0392B',
     color: colors.white,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold,
     cursor: 'pointer',
-    transition: 'background-color 0.15s ease'
+    transition: 'opacity 0.15s ease',
   },
-  actionButtonDanger: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    minHeight: '40px',
-    padding: '0 16px',
-    borderRadius: '12px',
-    border: `1px solid #8b2a1b40`,
-    backgroundColor: colors.white,
-    color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer',
-    transition: 'background-color 0.15s ease'
-  },
-  deleteConfirmCard: {
-    marginTop: '12px',
-    borderRadius: '14px',
-    border: `1px solid #8b2a1b40`,
-    backgroundColor: '#fff5f5',
-    padding: '16px'
-  },
-  deleteConfirmText: {
-    margin: '0 0 12px',
-    color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.normal
-  },
-  deleteConfirmRow: {
-    display: 'flex',
-    gap: '8px'
-  },
-  copyToast: {
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  toast: {
     position: 'fixed' as const,
-    bottom: '100px',
+    bottom: '90px',
     left: '50%',
     transform: 'translateX(-50%)',
     backgroundColor: colors.brown,
@@ -242,44 +545,53 @@ export const detailStyles = {
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.medium,
-    padding: '8px 16px',
+    padding: '8px 18px',
     borderRadius: '999px',
-    boxShadow: '0 8px 24px rgba(67, 40, 28, 0.2)',
-    zIndex: 50
+    boxShadow: '0 8px 24px rgba(67, 40, 28, 0.22)',
+    zIndex: 100,
+    whiteSpace: 'nowrap' as const,
   },
+
+  // ── Error ─────────────────────────────────────────────────────────────────
   errorText: {
-    margin: 0,
     color: '#8b2a1b',
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm
+    fontSize: fonts.size.sm,
   },
-  loading: {
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.md
+
+  // ── Skeleton ──────────────────────────────────────────────────────────────
+  skeletonBack: {
+    width: '80px',
+    height: '36px',
+    borderRadius: '10px',
+    background: 'linear-gradient(90deg, #efe8e2 25%, #f8f3ef 50%, #efe8e2 75%)',
+    backgroundSize: '500px 100%',
+    animation: 'shimmer 1.2s ease-in-out infinite',
+    marginBottom: '16px',
   },
   skeletonCard: {
-    borderRadius: '18px',
-    border: `1px solid ${colors.brown}18`,
     backgroundColor: colors.white,
-    padding: 'clamp(18px, 4vw, 28px)',
-    display: 'grid',
-    gap: '12px'
+    borderRadius: '20px',
+    border: `1px solid ${colors.brown}10`,
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: '180px',
+    background: 'linear-gradient(90deg, #efe8e2 25%, #f8f3ef 50%, #efe8e2 75%)',
+    backgroundSize: '500px 100%',
+    animation: 'shimmer 1.2s ease-in-out infinite',
+  },
+  skeletonContent: {
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0',
   },
   skeletonLine: {
-    height: '12px',
     borderRadius: '8px',
-    background: 'linear-gradient(90deg, #efe8e2 0%, #f8f3ef 50%, #efe8e2 100%)',
-    backgroundSize: '200% 100%',
-    animation: 'skeletonPulse 1.2s ease-in-out infinite'
+    background: 'linear-gradient(90deg, #efe8e2 25%, #f8f3ef 50%, #efe8e2 75%)',
+    backgroundSize: '500px 100%',
+    animation: 'shimmer 1.2s ease-in-out infinite',
   },
-  skeletonLineShort: {
-    width: '45%'
-  },
-  skeletonLineMedium: {
-    width: '65%'
-  },
-  skeletonLineLong: {
-    width: '85%'
-  }
 }

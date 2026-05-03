@@ -14,7 +14,7 @@ export const googleOAuthButtonStyles = {
     alignItems: 'center',
     gap: '12px',
     padding: '0 16px',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontWeight: fonts.weight.semibold,
     fontSize: fonts.size.md,
     lineHeight: fonts.lineHeight.normal,

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 import { Dimensions } from 'react-native';
 export const styles = StyleSheet.create({
   navbar: {

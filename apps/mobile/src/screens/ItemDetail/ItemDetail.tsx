@@ -19,10 +19,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { supabase } from '../../../lib/supabase';
-import { useSession } from '@context/SessionContext';
-import { queryKeys } from '../../lib/queryKeys';
-import { Tag } from '../../components/Tag/Tag';
+import { supabase } from '@mobile/lib/supabase';
+import { useSession } from '@/context/SessionContext';
+import { queryKeys } from '@/lib/queryKeys';
+import { createTagColorMap } from '@/lib/mappers';
+import { Tag } from '@/components/Tag/Tag';
 import { styles } from './ItemDetail.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -114,12 +115,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     }
 
     const tagRows = (tagFetchResult.data ?? []) as { name: string; slug: string | null; color_hex: string | null }[];
-    const colorMap = new Map<string, string | null>();
-    tagRows.forEach((t) => {
-      colorMap.set(t.name, t.color_hex);
-      if (t.slug) colorMap.set(t.slug, t.color_hex);
-      colorMap.set(t.name.toLowerCase(), t.color_hex);
-    });
+    const colorMap = createTagColorMap(tagRows);
 
     const tagNames: string[] = ((data.tags ?? []) as string[]).filter(Boolean);
     const tagDetails: TagDetail[] = tagNames.map((name) => ({ name, color_hex: colorMap.get(name) ?? null }));
@@ -151,6 +147,12 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     setIsEditing(false);
     await loadDetail();
     setSaving(false);
+    const uid = session?.user.id;
+    if (uid) {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.items(uid) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.folders(uid) });
+    }
+    void queryClient.invalidateQueries({ queryKey: ['search'] });
     onUpdated?.();
   };
 
@@ -169,6 +171,12 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
         onPress: async () => {
           const { error: deleteError } = await supabase.from('items').delete().eq('id', itemId!);
           if (deleteError) { setError('No se pudo eliminar el recurso.'); return; }
+          const uid = session?.user.id;
+          if (uid) {
+            void queryClient.invalidateQueries({ queryKey: queryKeys.items(uid) });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.folders(uid) });
+          }
+          void queryClient.invalidateQueries({ queryKey: ['search'] });
           onUpdated?.();
           handleClose();
         },

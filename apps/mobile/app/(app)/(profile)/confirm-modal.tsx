@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { ConfirmModal } from '@screens/profile/components/ConfirmModal/ConfirmModal';
-import { supabase } from '@lib/supabase';
-import { ImageSourcePropType } from 'react-native';
+import { ConfirmModal } from '@/screens/profile/components/ConfirmModal/ConfirmModal';
+import { supabase } from '@mobile/lib/supabase';
+import { Alert, ImageSourcePropType } from 'react-native';
 import { SvgProps } from 'react-native-svg';
 import { useState } from 'react';
 
-import SignOutImage from '@assets/session-logout-image.png';
-import DeleteAccountIcon from '@assets/icons/profile-exclamation-triangle.svg';
-import SuccessIcon from '@assets/icons/success-icon.svg';
+import SignOutImage from '@/assets/session-logout-image.png';
+import DeleteAccountIcon from '@/assets/icons/profile-exclamation-triangle.svg';
+import SuccessIcon from '@/assets/icons/success-icon.svg';
 
 const ACTION_IMAGES: Record<string, ImageSourcePropType> = {
   signOut: SignOutImage,
@@ -48,6 +48,13 @@ export default function ConfirmModalRoute() {
       await supabase.auth.signOut();
       router.back();
     } else if (action === 'deleteAccount') {
+      const { error } = await supabase.functions.invoke('delete-account', {
+        method: 'POST',
+      });
+      if (error) {
+        Alert.alert('Error', error.message ?? 'No se pudo eliminar la cuenta. Intenta de nuevo.');
+        return;
+      }
       // signOut is deferred to onSuccessDismiss so the success modal can be shown first
     }
   };

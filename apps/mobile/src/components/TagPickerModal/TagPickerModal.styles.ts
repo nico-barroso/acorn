@@ -1,16 +1,17 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '../../theme/colors';
+import { colors } from '@/theme/colors';
 
 export const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(27, 27, 27, 0.45)',
   },
+  keyboardView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    minHeight: '55%',
     maxHeight: '92%',
     backgroundColor: colors.background,
     borderTopLeftRadius: 20,
@@ -110,6 +111,7 @@ export const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
     alignItems: 'center',
+    paddingVertical: 12,
   },
   manageLink: {
     fontFamily: 'Satoshi-Regular',
@@ -121,6 +123,7 @@ export const styles = StyleSheet.create({
   // Management section
   managementSection: {
     paddingBottom: 8,
+    paddingVertical: 16,
     marginTop: 30,
   },
   divider: {
@@ -193,7 +196,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: `${colors.brown}18`,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 22,
     marginTop: 8,
     gap: 10,
   },

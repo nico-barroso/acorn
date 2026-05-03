@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { getSupabaseBrowserClient } from '@/lib/supabase'
 import { useProfile } from '../../hooks/useProfile'
 import { confirmModalStyles } from '../../components/ConfirmModal/ConfirmModal.styles'
 import { profileScreenStyles } from './ProfileScreen.styles'
 
-type ModalType = 'signOut' | 'deleteAccount' | 'changePassword' | null
+type ModalType = 'signOut' | null
 
 function getInitials(name: string, email: string): string {
   if (name && name !== 'Usuario') {
@@ -20,62 +19,123 @@ function getInitials(name: string, email: string): string {
   return 'AC'
 }
 
-export function ProfileScreen() {
-  const { profile, loading, error, signOut, deleteAccount } = useProfile()
-  const [activeModal, setActiveModal] = useState<ModalType>(null)
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-  const [passwordSaving, setPasswordSaving] = useState(false)
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
+function IconUser() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M12 15.5H7.5C6.10444 15.5 5.40665 15.5 4.83886 15.6722C3.56045 16.06 2.56004 17.0605 2.17224 18.3389C2 18.9067 2 19.6044 2 21M19 21V15M16 18H22M14.5 7.5C14.5 9.98528 12.4853 12 10 12C7.51472 12 5.5 9.98528 5.5 7.5C5.5 5.01472 7.51472 3 10 3C12.4853 3 14.5 5.01472 14.5 7.5Z" stroke="#43281C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
 
-  const inputStyle = {
-    width: '100%',
-    minHeight: '42px',
-    padding: '10px 12px',
-    borderRadius: '10px',
-    border: '1px solid #43281C35',
-    backgroundColor: '#fff',
-    color: '#43281C',
-    fontFamily: 'CabinetGrotesk, Inter, -apple-system, sans-serif',
-    fontSize: '14px',
-    fontWeight: 500 as const,
-    outline: 'none'
+function IconLock() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 18 20" fill="none">
+      <path d="M14 8V6C14 3.23858 11.7614 1 9 1C6.23858 1 4 3.23858 4 6V8M9 12.5V14.5M5.8 19H12.2C13.8802 19 14.7202 19 15.362 18.673C15.9265 18.3854 16.3854 17.9265 16.673 17.362C17 16.7202 17 15.8802 17 14.2V12.8C17 11.1198 17 10.2798 16.673 9.638C16.3854 9.0735 15.9265 8.6146 15.362 8.327C14.7202 8 13.8802 8 12.2 8H5.8C4.11984 8 3.27976 8 2.63803 8.327C2.07354 8.6146 1.6146 9.0735 1.32698 9.638C1 10.2798 1 11.1198 1 12.8V14.2C1 15.8802 1 16.7202 1.32698 17.362C1.6146 17.9265 2.07354 18.3854 2.63803 18.673C3.27976 19 4.11984 19 5.8 19Z" stroke="#43281C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function IconLogOut() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 22 20" fill="none">
+      <path d="M17 6L21 10M21 10L17 14M21 10H8M14 2.20404C12.7252 1.43827 11.2452 1 9.6667 1C4.8802 1 1 5.02944 1 10C1 14.9706 4.8802 19 9.6667 19C11.2452 19 12.7252 18.5617 14 17.796" stroke="#43281C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function IconWarning() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M12 16a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1zm9.94 2.47-8.05-14a2.24 2.24 0 0 0-3.78 0l-8 14A2.25 2.25 0 0 0 4.05 22h15.9a2.25 2.25 0 0 0 1.99-3.53zM12 8a1 1 0 0 1 1 1v4a1 1 0 0 1-2 0V9a1 1 0 0 1 1-1z" fill="#8b2a1b"/>
+    </svg>
+  )
+}
+
+function IconChevron() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M9 18L15 12L9 6" stroke="#43281C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function SectionRow({
+  icon,
+  label,
+  danger,
+  onClick,
+  href,
+  border
+}: {
+  icon: React.ReactNode
+  label: string
+  danger?: boolean
+  onClick?: () => void
+  href?: string
+  border?: boolean
+}) {
+  const inner = (
+    <>
+      <div className="profile-icon" style={profileScreenStyles.sectionIcon}>{icon}</div>
+      <span style={{ ...profileScreenStyles.sectionLabel, ...(danger ? profileScreenStyles.sectionLabelDanger : {}) }}>
+        {label}
+      </span>
+      <span className="profile-chevron-anim" style={profileScreenStyles.sectionChevron}><IconChevron /></span>
+    </>
+  )
+
+  const style = {
+    ...profileScreenStyles.sectionItem,
+    ...(border ? profileScreenStyles.sectionItemBorder : {})
   }
 
-  const handleChangePassword = async () => {
-    if (!newPassword || newPassword.length < 8) {
-      setPasswordError('La contrasena debe tener al menos 8 caracteres')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Las contrasenas no coinciden')
-      return
-    }
-    setPasswordSaving(true)
-    setPasswordError('')
-    try {
-      const supabase = getSupabaseBrowserClient()
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
-      if (error) {
-        setPasswordError('No se pudo cambiar la contrasena. Intentalo de nuevo.')
-      } else {
-        setPasswordSuccess(true)
-      }
-    } catch {
-      setPasswordError('Ocurrio un error inesperado')
-    } finally {
-      setPasswordSaving(false)
-    }
-  }
-
-  if (loading) {
+  if (href) {
     return (
-      <main style={profileScreenStyles.page}>
-        <p style={profileScreenStyles.loading}>Cargando perfil...</p>
-      </main>
+      <Link href={href} className="profile-row" style={style}>
+        {inner}
+      </Link>
     )
   }
+
+  return (
+    <button type="button" onClick={onClick} className="profile-row" style={style}>
+      {inner}
+    </button>
+  )
+}
+
+function ProfileSkeleton() {
+  return (
+    <main style={profileScreenStyles.page}>
+      <div style={profileScreenStyles.heroGradient} aria-hidden />
+      <div style={profileScreenStyles.inner}>
+        <div className="profile-header" style={profileScreenStyles.header}>
+          <div
+            className="profile-skeleton"
+            style={{ width: '84px', height: '84px', borderRadius: '50%', marginBottom: '14px', flexShrink: 0 }}
+          />
+          <div className="profile-skeleton" style={{ width: '140px', height: '28px', borderRadius: '8px' }} />
+          <div className="profile-skeleton" style={{ width: '180px', height: '16px', borderRadius: '6px', marginTop: '8px', opacity: 0.6 }} />
+        </div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={`profile-section-${i}`} style={profileScreenStyles.section}>
+            <div className="profile-skeleton" style={{ width: '70px', height: '16px', borderRadius: '6px' }} />
+            <div style={{ ...profileScreenStyles.sectionCard, padding: '14px 16px', display: 'grid', gap: '12px' }}>
+              <div className="profile-skeleton" style={{ height: '20px', borderRadius: '6px' }} />
+              {i === 1 && <div className="profile-skeleton" style={{ height: '20px', borderRadius: '6px', opacity: 0.7 }} />}
+            </div>
+          </div>
+        ))}
+      </div>
+    </main>
+  )
+}
+
+export function ProfileScreen() {
+  const { profile, loading, error, signOut } = useProfile()
+  const [activeModal, setActiveModal] = useState<ModalType>(null)
+
+  if (loading) return <ProfileSkeleton />
 
   if (error || !profile) {
     return (
@@ -85,170 +145,73 @@ export function ProfileScreen() {
     )
   }
 
-  const sections = [
-    {
-      id: 'my-profile',
-      icon: '👤',
-      iconStyle: profileScreenStyles.sectionIconUser,
-      label: 'Mi perfil',
-      onClick: undefined as (() => void) | undefined,
-      href: '/profile/edit'
-    },
-    {
-      id: 'change-password',
-      icon: '🔒',
-      iconStyle: profileScreenStyles.sectionIconPassword,
-      label: 'Cambiar contrasena',
-      onClick: () => { setNewPassword(''); setConfirmPassword(''); setPasswordError(''); setPasswordSuccess(false); setActiveModal('changePassword') }
-    },
-    {
-      id: 'sign-out',
-      icon: '→',
-      iconStyle: profileScreenStyles.sectionIconLogout,
-      label: 'Cerrar sesion',
-      onClick: () => setActiveModal('signOut')
-    },
-    {
-      id: 'delete-account',
-      icon: '⚠',
-      iconStyle: profileScreenStyles.sectionIconDanger,
-      label: 'Eliminar cuenta',
-      labelStyle: profileScreenStyles.sectionLabelDanger,
-      onClick: () => setActiveModal('deleteAccount')
-    }
-  ]
-
   return (
     <main style={profileScreenStyles.page}>
-      <header style={profileScreenStyles.header}>
-        <div style={profileScreenStyles.avatarRow}>
-          {profile.avatarUrl ? (
-            <div style={profileScreenStyles.avatar}>
-              <img src={profile.avatarUrl} alt='Avatar' style={profileScreenStyles.avatarImage} />
-            </div>
-          ) : (
-            <div style={profileScreenStyles.avatar}>
-              {getInitials(profile.displayName, profile.email)}
-            </div>
-          )}
-          <div style={profileScreenStyles.nameSection}>
-            <h1 style={profileScreenStyles.displayName}>{profile.displayName}</h1>
-            <p style={profileScreenStyles.email}>{profile.email}</p>
+      {/* Radial de fondo full-bleed */}
+      <div style={profileScreenStyles.heroGradient} aria-hidden />
+
+      <div style={profileScreenStyles.inner}>
+        {/* Header sin card */}
+        <header className="profile-header" style={profileScreenStyles.header}>
+          <Link href="/profile/edit" className="profile-avatar-wrap" style={profileScreenStyles.avatar}>
+            <img
+              src={profile.avatarUrl || '/squirrel-avatar.png'}
+              alt="Avatar"
+              style={profileScreenStyles.avatarImage}
+            />
+          </Link>
+          <h1 style={profileScreenStyles.displayName}>{profile.displayName}</h1>
+          <p style={profileScreenStyles.email}>{profile.email}</p>
+        </header>
+
+        {/* Cuenta */}
+        <div className="profile-section-1" style={profileScreenStyles.section}>
+          <h2 style={profileScreenStyles.sectionTitle}>Cuenta</h2>
+          <div style={profileScreenStyles.sectionCard}>
+            <SectionRow icon={<IconUser />} label="Mi perfil" href="/profile/edit" border />
+            <SectionRow
+              icon={<IconLock />}
+              label="Cambiar contraseña"
+              href="/profile/change-password"
+            />
           </div>
         </div>
-      </header>
 
-      <h2 style={profileScreenStyles.sectionTitle}>Cuenta</h2>
-      <div style={profileScreenStyles.sectionCard}>
-        {sections.map((section, index) => {
-          const inner = (
-            <>
-              <div style={{ ...profileScreenStyles.sectionIcon, ...section.iconStyle }}>
-                {section.icon}
-              </div>
-              <span style={{ ...profileScreenStyles.sectionLabel, ...(section.labelStyle || {}) }}>
-                {section.label}
-              </span>
-              <span style={profileScreenStyles.sectionChevron}>›</span>
-            </>
-          )
+        {/* Sesión */}
+        <div className="profile-section-2" style={profileScreenStyles.section}>
+          <h2 style={profileScreenStyles.sectionTitle}>Sesión</h2>
+          <div style={profileScreenStyles.sectionCard}>
+            <SectionRow icon={<IconLogOut />} label="Cerrar sesión" onClick={() => setActiveModal('signOut')} />
+          </div>
+        </div>
 
-          const style = {
-            ...profileScreenStyles.sectionItem,
-            ...(index < sections.length - 1 ? profileScreenStyles.sectionItemBorder : {})
-          }
-
-          if (section.href) {
-            return (
-              <Link key={section.id} href={section.href} style={{ ...style, textDecoration: 'none' }}>
-                {inner}
-              </Link>
-            )
-          }
-
-          return (
-            <button key={section.id} type='button' onClick={section.onClick} style={style}>
-              {inner}
-            </button>
-          )
-        })}
+        {/* Eliminar cuenta */}
+        <div className="profile-section-3" style={profileScreenStyles.section}>
+          <div style={profileScreenStyles.sectionCard}>
+            <SectionRow
+              icon={<IconWarning />}
+              label="Eliminar cuenta"
+              danger
+              href="/profile/delete"
+            />
+          </div>
+        </div>
       </div>
 
-      {activeModal === 'signOut' ? (
+      {/* Modal: cerrar sesión */}
+      {activeModal === 'signOut' && (
         <div style={confirmModalStyles.overlay} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}>
           <div style={confirmModalStyles.modal}>
-            <h2 style={confirmModalStyles.title}>Cerrar sesion</h2>
-            <p style={confirmModalStyles.message}>¿Estas seguro de que quieres cerrar sesion? Tendras que iniciar sesion de nuevo para acceder a tus recursos.</p>
+            <h2 style={confirmModalStyles.title}>Cerrar sesión</h2>
+            <p style={confirmModalStyles.message}>¿Estás seguro de que quieres cerrar sesión? Tendrás que iniciar sesión de nuevo para acceder a tus recursos.</p>
             <div style={confirmModalStyles.actionsRow}>
-              <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cancelar</button>
-              <button type='button' onClick={signOut} style={confirmModalStyles.dangerButton}>Cerrar sesion</button>
+              <button type="button" onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cancelar</button>
+              <button type="button" onClick={signOut} style={confirmModalStyles.dangerButton}>Cerrar sesión</button>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
-      {activeModal === 'deleteAccount' ? (
-        <div style={confirmModalStyles.overlay} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}>
-          <div style={confirmModalStyles.modal}>
-            <h2 style={confirmModalStyles.title}>Eliminar cuenta</h2>
-            <p style={confirmModalStyles.message}>Esta accion es irreversible. Se eliminaran todos tus recursos, carpetas y datos permanentemente. No podras recuperarlos.</p>
-            <div style={confirmModalStyles.actionsRow}>
-              <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cancelar</button>
-              <button type='button' onClick={deleteAccount} style={confirmModalStyles.dangerButton}>Eliminar cuenta</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {activeModal === 'changePassword' ? (
-        <div style={confirmModalStyles.overlay} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null) }}>
-          <div style={confirmModalStyles.modal}>
-            <h2 style={confirmModalStyles.title}>Cambiar contrasena</h2>
-
-            {passwordSuccess ? (
-              <>
-                <p style={{ ...confirmModalStyles.message, color: '#2e7d32' }}>Contrasena actualizada correctamente.</p>
-                <div style={confirmModalStyles.actionsRow}>
-                  <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton}>Cerrar</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p style={confirmModalStyles.message}>Introduce tu nueva contrasena. Debe tener al menos 8 caracteres.</p>
-                <div style={{ marginTop: '18px', display: 'grid', gap: '10px' }}>
-                  <label style={profileScreenStyles.sectionLabel} htmlFor='new-password'>Nueva contrasena</label>
-                  <input
-                    id='new-password'
-                    type='password'
-                    value={newPassword}
-                    onChange={(e) => { setNewPassword(e.target.value); setPasswordError('') }}
-                    disabled={passwordSaving}
-                    style={inputStyle}
-                    placeholder='Minimo 8 caracteres'
-                  />
-                  <label style={profileScreenStyles.sectionLabel} htmlFor='confirm-password'>Confirmar contrasena</label>
-                  <input
-                    id='confirm-password'
-                    type='password'
-                    value={confirmPassword}
-                    onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError('') }}
-                    disabled={passwordSaving}
-                    style={inputStyle}
-                    placeholder='Repite la contrasena'
-                  />
-                </div>
-                {passwordError ? <p style={confirmModalStyles.message}>{passwordError}</p> : null}
-                <div style={confirmModalStyles.actionsRow}>
-                  <button type='button' onClick={() => setActiveModal(null)} style={confirmModalStyles.cancelButton} disabled={passwordSaving}>Cancelar</button>
-                  <button type='button' onClick={handleChangePassword} disabled={passwordSaving || !newPassword} style={!newPassword || passwordSaving ? { ...confirmModalStyles.dangerButton, opacity: 0.6, cursor: 'not-allowed' } : confirmModalStyles.dangerButton}>
-                    {passwordSaving ? 'Guardando...' : 'Cambiar contrasena'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      ) : null}
     </main>
   )
 }

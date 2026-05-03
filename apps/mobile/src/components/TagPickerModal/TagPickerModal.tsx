@@ -4,6 +4,7 @@ import {
   Alert,
   Animated,
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   PanResponder,
@@ -16,8 +17,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { supabase } from '../../../lib/supabase';
-import { useSession } from '@context/SessionContext';
+import { supabase } from '@mobile/lib/supabase';
+import { useSession } from '@/context/SessionContext';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
 import { styles } from './TagPickerModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -73,6 +76,14 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   const [editingTagColor, setEditingTagColor] = React.useState(PRESET_COLORS[0]);
   const [mgmtError, setMgmtError] = React.useState('');
 
+  const [keyboardVisible, setKeyboardVisible] = React.useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
   useEffect(() => {
     if (visible) {
       Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }).start();
@@ -80,7 +91,9 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   }, [visible]);
 
 
+
   const dismiss = (callback?: () => void) => {
+    Keyboard.dismiss();
     Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 200, useNativeDriver: true })
       .start(() => { translateY.setValue(SCREEN_HEIGHT); callback?.(); });
   };
@@ -170,6 +183,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     const { error } = await supabase.from('tags').insert({ user_id: user.id, name: normalized, slug, color_hex: newTagColor });
     if (error) { setSaving(false); setMgmtError('No se pudo crear la etiqueta.'); return; }
     setNewTagName(''); setNewTagColor(PRESET_COLORS[0]); setSaving(false);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
     await loadTagsWithCount();
   };
 
@@ -183,6 +197,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
     const { error } = await supabase.from('tags').update({ name: normalized, slug, color_hex: editingTagColor }).eq('id', tagId).eq('user_id', user.id);
     if (error) { setSaving(false); setMgmtError('No se pudo actualizar la etiqueta.'); return; }
     setEditingTagId(null); setEditingTagName(''); setSaving(false);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
     await loadTagsWithCount();
   };
 
@@ -197,6 +212,7 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
           await supabase.from('item_tags').delete().eq('tag_id', tag.id);
           await supabase.from('tags').delete().eq('id', tag.id).eq('user_id', user.id);
           setSelectedIds((prev) => prev.filter((id) => id !== tag.id));
+          void queryClient.invalidateQueries({ queryKey: queryKeys.tags(user.id) });
           await loadTagsWithCount();
           setSaving(false);
         })(),
@@ -205,21 +221,37 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
-      <>
-        <TouchableWithoutFeedback onPress={handleClose}>
-          <View style={styles.backdrop} />
-        </TouchableWithoutFeedback>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={() => {
+        if (keyboardVisible) {
+          Keyboard.dismiss();
+        } else {
+          handleClose();
+        }
+      }}
+    >
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View style={styles.backdrop} />
+      </TouchableWithoutFeedback>
 
+      <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Animated.View
-          style={[styles.sheet, { transform: [{ translateY }], paddingBottom: insets.bottom + 16 }]}
+          style={[styles.sheet, { transform: [{ translateY }], minHeight: managementOpen ? SCREEN_HEIGHT * 0.9 : '55%' }]}
+          onStartShouldSetResponder={() => true}
         >
           <View style={styles.handleContainer} {...panResponder.panHandlers}>
             <View style={styles.handle} />
           </View>
 
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+          >
 
               {/* ── SELECTOR ── */}
               <Text style={styles.title}>Etiquetas</Text>
@@ -384,9 +416,8 @@ export function TagPickerModal({ visible, itemId, onClose, onSaved }: TagPickerM
               )}
 
             </ScrollView>
-          </KeyboardAvoidingView>
         </Animated.View>
-      </>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

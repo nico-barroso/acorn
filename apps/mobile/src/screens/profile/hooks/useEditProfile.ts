@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../../../lib/supabase';
-import { queryClient } from '../../../lib/queryClient';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import { useSession } from '../../../context/SessionContext';
-import { formatDisplayName, sanitizeDisplayName } from '../../../utils/formatDisplayName';
+import { supabase } from '@mobile/lib/supabase';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import { useSession } from '@/context/SessionContext';
+import { formatDisplayName, sanitizeDisplayName } from '@/utils/formatDisplayName';
 
 type EditProfileErrors = {
   name?: string;
@@ -25,16 +25,18 @@ export function useEditProfile() {
   const userId = useCurrentUserId();
   const { session, email: sessionEmail } = useSession();
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(sessionEmail ?? '');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [errors, setErrors] = useState<EditProfileErrors>({});
   const [loading, setLoading] = useState(false);
+  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
   const [profileInitialized, setProfileInitialized] = useState(false);
 
-  // Sync email from session
-  if (sessionEmail && email === '') {
-    setEmail(sessionEmail);
-  }
+  useEffect(() => {
+    if (sessionEmail && !email) {
+      setEmail(sessionEmail);
+    }
+  }, [sessionEmail]);
 
   // Profile query
   const { data: profileData } = useQuery({
@@ -54,15 +56,16 @@ export function useEditProfile() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Sync local form state when profile data loads (only once)
-  if (profileData && !profileInitialized) {
-    if (profileData.display_name) setName(profileData.display_name);
-    setProfileInitialized(true);
-  }
+  useEffect(() => {
+    if (profileData && !profileInitialized) {
+      if (profileData.display_name) setName(profileData.display_name);
+      setProfileInitialized(true);
+    }
+  }, [profileData, profileInitialized]);
 
   // Avatar signed URL query — separate key so it can be invalidated independently
   const { data: cachedAvatarUrl } = useQuery({
-    queryKey: queryKeys.avatarUrl(userId ?? ''),
+    queryKey: [...queryKeys.avatarUrl(userId ?? ''), profileData?.avatar_url ?? ''],
     queryFn: () => getSignedAvatarUrl(profileData!.avatar_url!),
     enabled: Boolean(userId) && Boolean(profileData?.avatar_url),
     staleTime: 50 * 60 * 1000,
@@ -86,11 +89,6 @@ export function useEditProfile() {
     const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
     const filePath = `${uid}/avatar.${ext}`;
 
-    console.log('[Avatar] Upload - URI:', localUri);
-    console.log('[Avatar] Upload - Ext:', ext);
-    console.log('[Avatar] Upload - ContentType:', contentType);
-    console.log('[Avatar] Upload - FilePath:', filePath);
-
     const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('GET', localUri, true);
@@ -106,14 +104,9 @@ export function useEditProfile() {
       xhr.send();
     });
 
-    console.log('[Avatar] ArrayBuffer size:', arrayBuffer.byteLength);
-
     const { error } = await supabase.storage
       .from('user-files')
       .upload(filePath, arrayBuffer, { upsert: true, contentType });
-
-    console.log('[Avatar] Upload - Error:', error);
-    console.log('[Avatar] Upload - Success, path:', filePath);
 
     if (error) throw error;
 
@@ -127,20 +120,14 @@ export function useEditProfile() {
       const user = session?.user;
       if (!user) throw new Error('No user');
 
-      console.log('[Avatar] handleSave - userId:', user.id);
-      console.log('[Avatar] handleSave - avatarUri:', avatarUri);
-
       let avatarPath: string | undefined;
       if (avatarUri && !avatarUri.startsWith('http')) {
-        console.log('[Avatar] handleSave - Starting upload');
         avatarPath = await uploadAvatar(user.id, avatarUri);
-        console.log('[Avatar] handleSave - avatarPath:', avatarPath);
         const signedUrl = await getSignedAvatarUrl(avatarPath);
-        console.log('[Avatar] handleSave - signedUrl:', signedUrl);
         if (signedUrl) setAvatarUri(signedUrl);
       }
 
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           display_name: name.trim(),
@@ -148,14 +135,27 @@ export function useEditProfile() {
         })
         .eq('id', user.id);
 
-      console.log('[Avatar] handleSave - Profile update error:', error);
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      // Invalidate profile and avatar URL caches
+      const trimmedEmail = email.trim();
+      const emailChanged = trimmedEmail !== sessionEmail;
+
+      if (emailChanged) {
+        const { error: emailError } = await supabase.auth.updateUser(
+          { email: trimmedEmail },
+          { emailRedirectTo: 'acorn://' },
+        );
+        if (emailError) {
+          setErrors({ email: 'No se pudo actualizar el correo. Inténtalo de nuevo.' });
+          setLoading(false);
+          return;
+        }
+        setEmailConfirmationSent(true);
+      }
+
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile(user.id) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.avatarUrl(user.id) });
-    } catch (e) {
-      console.log('[Avatar] handleSave - Catch error:', e);
+    } catch {
       setErrors({ general: 'Error al guardar los cambios' });
     } finally {
       setLoading(false);
@@ -175,6 +175,7 @@ export function useEditProfile() {
     setAvatarUri,
     errors,
     loading,
+    emailConfirmationSent,
     handleSave,
   };
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
-import { ResetPasswordForm } from '@components/ResetPasswordForm/ResetPasswordForm';
-import { supabase } from '@lib/supabase';
+import { ResetPasswordForm } from '@/components/ResetPasswordForm/ResetPasswordForm';
+import { supabase } from '@mobile/lib/supabase';
 
 export const ResetPassword: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);

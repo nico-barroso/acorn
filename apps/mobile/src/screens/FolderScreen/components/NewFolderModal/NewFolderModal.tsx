@@ -10,9 +10,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
-import { useSession } from '@context/SessionContext';
-import { supabase } from '@lib/supabase';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
+import { useSession } from '@/context/SessionContext';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './NewFolderModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -392,6 +392,14 @@ export function NewFolderModal({ visible, onClose, onCreated }: NewFolderModalPr
             >
               <Text style={styles.addRuleBtnText}>+ Añadir regla</Text>
             </TouchableOpacity>
+
+            {rules.length === 0 && (
+              <View style={styles.emptyRulesWarning}>
+                <Text style={styles.emptyRulesWarningText}>
+                  Importante: si no añades reglas la carpeta estará vacía.
+                </Text>
+              </View>
+            )}
 
             {rules.length > 1 && (
               <View style={styles.logicRow}>

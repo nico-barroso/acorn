@@ -1,31 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@lib/supabase';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import { formatSavedDate } from '../../../lib/formatSavedDate';
-import type { FolderResource } from '../FolderDetail.types';
-
-const FILE_ICON = require('../../../../assets/config/favicon.png');
-
-function isImageUrl(url: string): boolean {
-  return /\.(jpe?g|png|gif|webp|heic|bmp|tiff?)(\?|$)/i.test(url);
-}
-
-type ItemRow = {
-  id: string;
-  type: string | null;
-  title: string | null;
-  is_read: boolean;
-  created_at: string;
-  url: string | null;
-  domain: string | null;
-  tags: string[] | null;
-  og_image_url: string | null;
-  preview_image_url: string | null;
-  favicon_url: string | null;
-  metadata: { og_title: string | null }[] | null;
-};
+import { supabase } from '@mobile/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
+import { queryClient } from '@/lib/queryClient';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import type { FolderResource } from '@/screens/FolderDetail/FolderDetail.types';
+import { createTagColorMap, mapFolderResource, type ResourceRow } from '@/lib/mappers';
 
 type SmartRuleRow = {
   field: string;
@@ -35,25 +15,97 @@ type SmartRuleRow = {
   is_negated: boolean | null;
 };
 
+function slugify(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function evalStringOp(actual: string | null | undefined, op: string, expected: string | string[]): boolean {
+  const a = (actual ?? '').toLowerCase();
+  const e = Array.isArray(expected) ? expected.map((v) => v.toLowerCase()) : expected.toLowerCase();
+  switch (op) {
+    case 'equals': return a === e;
+    case 'not_equals': return a !== e;
+    case 'contains': return a.includes(e as string);
+    case 'starts_with': return a.startsWith(e as string);
+    case 'ends_with': return a.endsWith(e as string);
+    case 'in': return (e as string[]).includes(a);
+    case 'not_in': return !(e as string[]).includes(a);
+    default: return false;
+  }
+}
+
+function evalTagOp(tagNames: string[], op: string, expected: string | string[]): boolean {
+  const tagSlugs = tagNames.map(slugify);
+  const vals = (Array.isArray(expected) ? expected : [expected]).map((v) => v.toLowerCase());
+  switch (op) {
+    case 'equals':
+    case 'contains':
+    case 'in':
+      return vals.some((v) => tagNames.some((n) => n.toLowerCase() === v) || tagSlugs.includes(v));
+    case 'all_in':
+      return vals.every((v) => tagNames.some((n) => n.toLowerCase() === v) || tagSlugs.includes(v));
+    case 'not_equals':
+    case 'not_contains':
+    case 'not_in':
+      return !vals.some((v) => tagNames.some((n) => n.toLowerCase() === v) || tagSlugs.includes(v));
+    default:
+      return false;
+  }
+}
+
+function evalDateOp(isoDate: string, op: string, expected: unknown): boolean {
+  const actual = new Date(isoDate).getTime();
+  if (typeof expected === 'string' || typeof expected === 'number') {
+    const exp = new Date(expected as string).getTime();
+    switch (op) {
+      case 'equals': return actual === exp;
+      case 'gt': return actual > exp;
+      case 'gte': return actual >= exp;
+      case 'lt': return actual < exp;
+      case 'lte': return actual <= exp;
+    }
+  }
+  if (op === 'between' && Array.isArray(expected) && expected.length === 2) {
+    const [from, to] = (expected as string[]).map((d) => new Date(d).getTime());
+    return actual >= from && actual <= to;
+  }
+  return false;
+}
+
 function applySmartRules(
   items: FolderResource[],
   rules: SmartRuleRow[],
   logic: string,
 ): FolderResource[] {
-  if (rules.length === 0) return items;
+  if (rules.length === 0) return [];
 
   return items.filter((item) => {
     const results = rules.map((rule) => {
-      const ruleValue =
-        typeof rule.value === 'string' ? rule.value : String(rule.value ?? '');
+      const field = rule.field.toLowerCase();
+      const op = (rule.operator ?? 'equals').toLowerCase();
+      const val = rule.value;
+      const strVal = typeof val === 'string' ? val : String(val ?? '');
 
       let matches = false;
-      if (rule.field === 'tag') {
-        matches = item.tags.some((t) => t.name === ruleValue);
-      } else if (rule.field === 'domain') {
-        matches = Boolean(
-          item.domain && item.domain.toLowerCase() === ruleValue.toLowerCase(),
-        );
+
+      if (field === 'domain') {
+        matches = evalStringOp(item.domain, op, Array.isArray(val) ? (val as string[]) : strVal);
+      } else if (field === 'tag' || field === 'tag_slug' || field === 'tags' || field === 'tag_name') {
+        const tagNames = item.tags.map((t) => t.name);
+        matches = evalTagOp(tagNames, op, Array.isArray(val) ? (val as string[]) : strVal);
+      } else if (field === 'is_read' || field === 'status' || field === 'visto') {
+        const boolVal = typeof val === 'boolean' ? val : ['true', '1', 'yes', 'visto', 'read'].includes(strVal.toLowerCase());
+        matches = op === 'not_equals' ? item.isRead !== boolVal : item.isRead === boolVal;
+      } else if (field === 'created_at' || field === 'date') {
+        matches = evalDateOp(item.createdAt, op, val);
       }
 
       return rule.is_negated ? !matches : matches;
@@ -102,36 +154,10 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
 
   if (itemError) throw new Error('No se pudieron cargar los recursos.');
 
-  const tagColorMap = new Map<string, string | null>();
-  ((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]).forEach((t) => {
-    tagColorMap.set(t.name, t.color_hex);
-    if (t.slug) tagColorMap.set(t.slug, t.color_hex);
-    tagColorMap.set(t.name.toLowerCase(), t.color_hex);
-  });
+  const tagColorMap = createTagColorMap((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]);
 
-  const rows = (itemData ?? []) as unknown as ItemRow[];
-  const mapped: FolderResource[] = rows.map((row): FolderResource => {
-    const isFile = row.type === 'file';
-    const fileUrl = row.url ?? undefined;
-    const fileThumbnail = isFile && fileUrl && isImageUrl(fileUrl) ? fileUrl : undefined;
-    return {
-      id: row.id,
-      title: row.title?.trim() || row.metadata?.[0]?.og_title?.trim() || row.domain || 'Recurso sin título',
-      source: isFile ? 'Archivo' : row.domain ? `Enlace / ${row.domain}` : 'Enlace',
-      domain: row.domain ?? undefined,
-      tags: (row.tags ?? []).map((name) => ({
-        name,
-        color_hex: tagColorMap.get(name) ?? null,
-      })),
-      savedDate: formatSavedDate(row.created_at),
-      status: row.is_read ? 'Visto' : 'No visto',
-      isRead: Boolean(row.is_read),
-      url: fileUrl,
-      thumbnailUri: fileThumbnail ?? (row.og_image_url ?? row.preview_image_url ?? undefined),
-      faviconUri: row.favicon_url ?? undefined,
-      isFile,
-    };
-  });
+  const rows = (itemData ?? []) as unknown as ResourceRow[];
+  const mapped: FolderResource[] = rows.map((row) => mapFolderResource(row, tagColorMap));
 
   const folderLogic = (folderData.logic as string) ?? 'ALL';
   const smartRules = (rulesData ?? []) as SmartRuleRow[];
@@ -171,6 +197,37 @@ export function useFolderDetail(folderId: string) {
     return resources;
   }, [data?.resources, activeQuickFilter]);
 
+  const handleToggleRead = useCallback(async (itemId: string, nextRead: boolean) => {
+    const queryKey = queryKeys.folderDetail(userId!, folderId);
+
+    queryClient.setQueryData<{ folderName: string; folderDescription: string; resources: FolderResource[] }>(queryKey, (old) => {
+      if (!old) return old;
+      return {
+        ...old,
+        resources: old.resources.map((r) =>
+          r.id === itemId ? { ...r, isRead: nextRead, status: nextRead ? 'Visto' : 'No visto' } : r,
+        ),
+      };
+    });
+
+    const { error: updateError } = await supabase
+      .from('items')
+      .update({ is_read: nextRead, updated_at: new Date().toISOString() })
+      .eq('id', itemId);
+
+    if (updateError) {
+      queryClient.setQueryData<{ folderName: string; folderDescription: string; resources: FolderResource[] }>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          resources: old.resources.map((r) =>
+            r.id === itemId ? { ...r, isRead: !nextRead, status: !nextRead ? 'Visto' : 'No visto' } : r,
+          ),
+        };
+      });
+    }
+  }, [userId, folderId]);
+
   return {
     folderName: data?.folderName ?? '',
     folderDescription: data?.folderDescription ?? '',
@@ -180,5 +237,6 @@ export function useFolderDetail(folderId: string) {
     activeQuickFilter,
     hasActiveFilters: activeQuickFilter !== 'all',
     onQuickFilter: setActiveQuickFilter,
+    handleToggleRead,
   };
 }

@@ -1,4 +1,4 @@
-import type { TagItem } from '../Home/Home.types';
+import type { TagItem } from '@/screens/Home/Home.types';
 export type { TagItem };
 
 export type FolderResource = {
@@ -8,6 +8,7 @@ export type FolderResource = {
   domain?: string;
   tags: TagItem[];
   savedDate: string;
+  createdAt: string;
   status: 'Visto' | 'No visto';
   url?: string;
   thumbnailUri?: string;

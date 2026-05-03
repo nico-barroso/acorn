@@ -2,10 +2,10 @@ import React from 'react';
 import { KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { usePasswordRecoveryRequest } from '@hooks/usePasswordRecovery';
-import { Button } from '@components/Button/Button';
-import { Input } from '@components/Input/Input';
-import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
+import { usePasswordRecoveryRequest } from './usePasswordRecovery';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
 import { styles } from './ForgotPassword.styles';
 
 type ForgotPasswordScreenProps = {
@@ -13,7 +13,7 @@ type ForgotPasswordScreenProps = {
 };
 
 export default function ForgotPasswordScreen({ onGoToLogin }: ForgotPasswordScreenProps) {
-  const { email, setEmail, errors, loading, sent, handleSendRecovery } =
+  const { email, setEmail, errors, loading, sent, cooldown, handleSendRecovery } =
     usePasswordRecoveryRequest();
 
   return (
@@ -42,7 +42,7 @@ export default function ForgotPasswordScreen({ onGoToLogin }: ForgotPasswordScre
         <Button
           label={loading ? 'Enviando enlace...' : 'Enviar enlace de recuperacion'}
           onPress={handleSendRecovery}
-          disabled={loading}
+          disabled={loading || cooldown}
         />
 
         <TouchableOpacity onPress={onGoToLogin} disabled={loading}>

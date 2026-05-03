@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -16,11 +16,13 @@ import {
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
-import { supabase } from '../../../lib/supabase';
+import * as Clipboard from 'expo-clipboard';
+import { supabase } from '@mobile/lib/supabase';
 import { styles } from './ContentCard.styles';
-import { Button } from '../Button/Button';
-import { Tag } from '../Tag/Tag';
-import FileIcon from '../../../assets/icons/file-icon.svg';
+import { Button } from '@/components/Button/Button';
+import { Tag } from '@/components/Tag/Tag';
+import FileIcon from '@/assets/icons/file-icon.svg';
+import CopyUrlIcon from '@/assets/icons/copy-url-icon.svg';
 
 type TagItem = { name: string; color_hex: string | null };
 
@@ -34,6 +36,7 @@ export interface ContentCardProps {
   url?: string;
   thumbnailUri?: string;
   faviconUri?: string;
+  faviconFallbackUri?: string;
   iconSource?: ImageSourcePropType;
   isFile?: boolean;
   onOpenDetail?: (id: string) => void;
@@ -51,6 +54,7 @@ export function ContentCard({
   url,
   thumbnailUri,
   faviconUri,
+  faviconFallbackUri,
   iconSource,
   isFile = false,
   onOpenDetail,
@@ -58,8 +62,27 @@ export function ContentCard({
   onTagsPress,
 }: ContentCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [tagsVisible, setTagsVisible] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);
+  const [faviconStage, setFaviconStage] = useState<'primary' | 'fallback' | 'none'>('primary');
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  useEffect(() => { setThumbnailError(false); }, [thumbnailUri]);
+  useEffect(() => { setFaviconStage('primary'); }, [faviconUri]);
+
+  const activeFaviconUri =
+    faviconStage === 'primary' ? faviconUri :
+    faviconStage === 'fallback' ? faviconFallbackUri :
+    undefined;
+
+  const handleFaviconFail = () => {
+    if (faviconStage === 'primary' && faviconFallbackUri) {
+      setFaviconStage('fallback');
+    } else {
+      setFaviconStage('none');
+    }
+  };
   const animHeight = useRef(new Animated.Value(0)).current;
   const isRead = status === 'Visto';
 
@@ -92,8 +115,11 @@ export function ContentCard({
     }
   };
 
-  const handleCopyUrl = () => {
-    console.log('Copiar URL:', url);
+  const handleCopyUrl = async () => {
+    if (!url) return;
+    await Clipboard.setStringAsync(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleOpenUrl = async () => {
@@ -126,14 +152,29 @@ export function ContentCard({
     >
       <View style={styles.row}>
         <View style={styles.thumbnail}>
-          {thumbnailUri ? (
-            <Image source={{ uri: thumbnailUri }} style={styles.thumbnailImage} resizeMode="cover" />
-          ) : isFile ? (
+          {isFile ? (
             <FileIcon width={62} height={62} />
-          ) : faviconUri ? (
-            <Image source={{ uri: faviconUri }} style={styles.thumbnailIcon} resizeMode="contain" />
+          ) : activeFaviconUri ? (
+            <Image
+              source={{ uri: activeFaviconUri }}
+              style={styles.thumbnailIcon}
+              resizeMode="contain"
+              onLoad={(e) => {
+                const { width, height } = e.nativeEvent.source;
+                if (width <= 16 && height <= 16) handleFaviconFail();
+              }}
+              onError={handleFaviconFail}
+            />
           ) : iconSource ? (
             <Image source={iconSource} style={styles.thumbnailIcon} resizeMode="contain" />
+          ) : null}
+          {thumbnailUri && !thumbnailError ? (
+            <Image
+              source={{ uri: thumbnailUri }}
+              style={styles.thumbnailImage}
+              resizeMode="cover"
+              onError={() => setThumbnailError(true)}
+            />
           ) : null}
         </View>
         <View style={styles.textLayout}>
@@ -196,8 +237,8 @@ export function ContentCard({
             <Text style={styles.metaLabel}>Guardado:</Text>
             <Text style={styles.metaValue}>{savedDate}</Text>
             <TouchableOpacity style={styles.copyUrlButton} onPress={handleCopyUrl} activeOpacity={0.7}>
-              <Text style={styles.copyUrlIcon}>⧉</Text>
-              <Text style={styles.copyUrlText}>Copiar URL</Text>
+              <CopyUrlIcon width={17} height={17} />
+              <Text style={styles.copyUrlText}>{copied ? '¡Enlace copiado!' : 'Copiar URL'}</Text>
             </TouchableOpacity>
           </View>
           <Button label="Abrir enlace original" onPress={handleOpenUrl} />

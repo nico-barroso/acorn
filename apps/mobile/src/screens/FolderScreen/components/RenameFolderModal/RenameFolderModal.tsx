@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Animated, Dimensions, Keyboard, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavBarHeight } from '@context/NavBarHeightContext';
+import { useNavBarHeight } from '@/context/NavBarHeightContext';
 import { styles } from './RenameFolderModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;

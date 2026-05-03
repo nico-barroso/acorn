@@ -1,74 +1,252 @@
 import { colors } from '@/theme/colors'
 import { fonts } from '@/theme/fonts'
 
-export const addResourceStyles = {
+export const s = {
+  // ── Overlay & modal ──────────────────────────────────────────────────────
   overlay: {
     position: 'fixed' as const,
     inset: 0,
     backgroundColor: 'rgba(67, 40, 28, 0.45)',
     display: 'grid',
     placeItems: 'center',
-    zIndex: 60
+    zIndex: 60,
+    padding: '16px',
   },
   modal: {
     width: '100%',
     maxWidth: '480px',
     maxHeight: '90vh',
     overflowY: 'auto' as const,
-    backgroundColor: colors.white,
-    borderRadius: '18px',
-    border: `1px solid ${colors.brown}20`,
+    backgroundColor: colors.background,
+    borderRadius: '24px',
+    border: `1px solid ${colors.brown}14`,
     boxShadow: '0 24px 48px rgba(67, 40, 28, 0.18)',
-    padding: 'clamp(20px, 4vw, 28px)'
+    padding: 'clamp(20px, 4vw, 28px)',
   },
+
+  // ── Header ───────────────────────────────────────────────────────────────
   title: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.heading,
     fontSize: fonts.size.xl,
-    fontWeight: fonts.weight.bold
+    fontWeight: fonts.weight.bold,
   },
   subtitle: {
     margin: '6px 0 0',
     color: colors.brownMid,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    lineHeight: fonts.lineHeight.comfortable
+    lineHeight: fonts.lineHeight.comfortable,
   },
+
+  // ── Mode toggle ──────────────────────────────────────────────────────────
+  modeToggle: {
+    display: 'flex',
+    flexDirection: 'row' as const,
+    backgroundColor: '#F0E6E0',
+    borderRadius: '14px',
+    padding: '4px',
+    marginTop: '20px',
+    marginBottom: '24px',
+    gap: '0px',
+  },
+  modeTab: {
+    flex: 1,
+    padding: '9px 0',
+    borderRadius: '11px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+  },
+  modeTabActive: {
+    backgroundColor: colors.white,
+    boxShadow: '0 2px 6px rgba(161, 77, 54, 0.15)',
+  },
+  modeTabText: {
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+    color: colors.brownMid,
+  },
+  modeTabTextActive: {
+    color: colors.brown,
+  },
+
+  // ── Form fields ──────────────────────────────────────────────────────────
   fieldGroup: {
-    marginTop: '18px',
-    display: 'grid',
-    gap: '10px'
+    display: 'grid' as const,
+    gap: '6px',
+    marginTop: '14px',
   },
   label: {
     margin: 0,
-    color: colors.brown,
+    color: colors.brownMid,
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
   },
   input: {
     width: '100%',
-    minHeight: '42px',
-    padding: '10px 12px',
-    borderRadius: '10px',
-    border: `1px solid ${colors.brown}35`,
-    backgroundColor: colors.white,
+    minHeight: '44px',
+    padding: '10px 14px',
+    borderRadius: '12px',
+    border: `1px solid #E8D8CF`,
+    backgroundColor: '#FFF8F5',
     color: colors.brown,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.medium,
     outline: 'none',
-    transition: 'border-color 0.2s ease'
+    boxSizing: 'border-box' as const,
+    transition: 'border-color 0.2s ease',
   },
   inputError: {
-    border: `1px solid #8b2a1b`
+    border: `1px solid #8b2a1b`,
   },
-  tagsRow: {
+  textarea: {
+    width: '100%',
+    padding: '10px 14px',
+    borderRadius: '12px',
+    border: `1px solid #E8D8CF`,
+    backgroundColor: '#FFF8F5',
+    color: colors.brown,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+    outline: 'none',
+    resize: 'vertical' as const,
+    boxSizing: 'border-box' as const,
+    minHeight: '80px',
+  },
+
+  // ── Preview card ─────────────────────────────────────────────────────────
+  previewCard: {
+    marginTop: '20px',
+    backgroundColor: colors.white,
+    borderRadius: '15px',
+    border: `1px solid rgba(161, 77, 54, 0.2)`,
+    boxShadow: '0 4px 12px rgba(161, 77, 54, 0.12)',
+    display: 'flex',
+    flexDirection: 'row' as const,
+    alignItems: 'center',
+    padding: '12px 16px',
+    gap: '12px',
+    minHeight: '72px',
+  },
+  previewThumbnail: {
+    width: '52px',
+    height: '52px',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    flexShrink: 0,
+    backgroundColor: '#F0E6E0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewThumbnailIcon: {
+    width: '36px',
+    height: '36px',
+    objectFit: 'contain' as const,
+  },
+  previewThumbnailFallback: {
+    color: colors.salmon,
+    fontFamily: fonts.family.heading,
+    fontSize: '20px',
+    fontWeight: fonts.weight.bold,
+  },
+  fileIconEmoji: {
+    fontSize: '28px',
+    lineHeight: 1,
+  },
+  previewTextLayout: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '4px',
+  },
+  previewTitle: {
+    margin: 0,
+    color: colors.black,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.semibold,
+    lineHeight: fonts.lineHeight.tight,
+    overflow: 'hidden',
+    display: '-webkit-box' as const,
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical' as const,
+  },
+  previewSource: {
+    margin: 0,
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    letterSpacing: '-0.01em',
+  },
+
+  // ── Edit toggle & fields ─────────────────────────────────────────────────
+  editToggle: {
+    marginTop: '10px',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.sm,
+    textDecoration: 'underline',
+  },
+  editFields: {
+    marginTop: '4px',
+  },
+
+  // ── Drop zone ────────────────────────────────────────────────────────────
+  dropZone: {
+    marginTop: '0',
+    borderRadius: '14px',
+    border: `1.5px dashed ${colors.brownMid}`,
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    cursor: 'pointer',
+    transition: 'border-color 0.15s ease, background-color 0.15s ease',
+    backgroundColor: 'transparent',
+  },
+  dropZoneDragging: {
+    borderColor: colors.salmon,
+    backgroundColor: `${colors.salmon}08`,
+  },
+  dropZoneText: {
+    color: colors.brownMid,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+  },
+  dropZoneHint: {
+    color: `${colors.brownMid}80`,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+  },
+
+  // ── Tags ─────────────────────────────────────────────────────────────────
+  tagsInputWrapper: {
     display: 'flex',
     flexWrap: 'wrap' as const,
     gap: '6px',
-    marginTop: '6px'
+    padding: '8px 12px',
+    borderRadius: '12px',
+    border: `1px solid #E8D8CF`,
+    backgroundColor: '#FFF8F5',
+    minHeight: '44px',
+    alignItems: 'center',
+    cursor: 'text',
   },
   tagPill: {
     display: 'inline-flex',
@@ -82,171 +260,18 @@ export const addResourceStyles = {
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.xs,
     fontWeight: fonts.weight.medium,
-    lineHeight: '1.4'
   },
   tagRemove: {
     background: 'none',
     border: 'none',
-    padding: 0,
+    padding: '0 0 0 2px',
     color: colors.salmon,
     cursor: 'pointer',
     fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.bold,
-    lineHeight: 1
-  },
-  actionsRow: {
-    marginTop: '20px',
-    display: 'flex',
-    gap: '10px',
-    justifyContent: 'flex-end'
-  },
-  cancelButton: {
-    minHeight: '40px',
-    padding: '0 18px',
-    borderRadius: '12px',
-    border: `1px solid ${colors.brown}35`,
-    backgroundColor: colors.white,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer'
-  },
-  saveButton: {
-    minHeight: '40px',
-    padding: '0 18px',
-    borderRadius: '12px',
-    border: 'none',
-    backgroundColor: colors.salmon,
-    color: colors.white,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'pointer',
-    transition: 'opacity 0.15s ease'
-  },
-  saveButtonDisabled: {
-    minHeight: '40px',
-    padding: '0 18px',
-    borderRadius: '12px',
-    border: 'none',
-    backgroundColor: colors.salmon,
-    color: colors.white,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    cursor: 'not-allowed',
-    opacity: 0.6
-  },
-  errorText: {
-    margin: '8px 0 0',
-    color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm
-  },
-  helperText: {
-    margin: 0,
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
-  },
-  extractStatusRow: {
-    marginTop: '12px',
+    fontSize: '14px',
+    lineHeight: 1,
     display: 'flex',
     alignItems: 'center',
-    gap: '8px'
-  },
-  extractSpinner: {
-    width: '16px',
-    height: '16px',
-    borderRadius: '999px',
-    border: `2px solid ${colors.brown}20`,
-    borderTopColor: colors.salmon,
-    animation: 'spin 0.7s linear infinite'
-  },
-  extractSpinnerDone: {
-    width: '16px',
-    height: '16px',
-    borderRadius: '999px',
-    backgroundColor: '#2e7d32',
-    display: 'grid',
-    placeItems: 'center',
-    color: colors.white,
-    fontSize: '10px',
-    fontWeight: fonts.weight.bold
-  },
-  extractText: {
-    margin: 0,
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs
-  },
-  previewCard: {
-    marginTop: '14px',
-    borderRadius: '14px',
-    border: `1px solid ${colors.brown}18`,
-    backgroundColor: '#fff8f3',
-    padding: '12px',
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr',
-    gap: '12px',
-    alignItems: 'start'
-  },
-  previewImage: {
-    width: '60px',
-    height: '60px',
-    borderRadius: '10px',
-    objectFit: 'cover' as const,
-    border: `1px solid ${colors.brown}18`
-  },
-  previewPlaceholder: {
-    width: '60px',
-    height: '60px',
-    borderRadius: '10px',
-    backgroundColor: `${colors.salmon}16`,
-    border: `1px solid ${colors.brown}18`,
-    display: 'grid',
-    placeItems: 'center',
-    color: colors.salmon,
-    fontFamily: fonts.family.primary,
-    fontSize: '22px',
-    fontWeight: fonts.weight.bold
-  },
-  previewTitle: {
-    margin: 0,
-    color: colors.brown,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    lineHeight: fonts.lineHeight.tight,
-    display: '-webkit-box' as const,
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical' as const,
-    overflow: 'hidden'
-  },
-  previewDescription: {
-    margin: '4px 0 0',
-    color: colors.brownMid,
-    fontFamily: fonts.family.primary,
-    fontSize: fonts.size.xs,
-    lineHeight: fonts.lineHeight.normal,
-    display: '-webkit-box' as const,
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical' as const,
-    overflow: 'hidden'
-  },
-  tagsInputWrapper: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '6px',
-    padding: '8px 10px',
-    borderRadius: '10px',
-    border: `1px solid ${colors.brown}35`,
-    backgroundColor: colors.white,
-    minHeight: '42px',
-    alignItems: 'center',
-    transition: 'border-color 0.2s ease'
   },
   tagInput: {
     flex: 1,
@@ -257,6 +282,83 @@ export const addResourceStyles = {
     color: colors.brown,
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.medium
-  }
+    fontWeight: fonts.weight.medium,
+  },
+
+  // ── Progress ─────────────────────────────────────────────────────────────
+  progressRow: {
+    marginTop: '14px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '6px',
+  },
+  progressBar: {
+    height: '4px',
+    borderRadius: '999px',
+    backgroundColor: colors.salmon,
+    transition: 'width 0.3s ease',
+    maxWidth: '100%',
+  },
+  progressText: {
+    margin: 0,
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+    textAlign: 'center' as const,
+  },
+
+  // ── Actions ──────────────────────────────────────────────────────────────
+  buttons: {
+    marginTop: '24px',
+    display: 'flex',
+    gap: '10px',
+  },
+  cancelButton: {
+    flex: 1,
+    minHeight: '44px',
+    padding: '0 18px',
+    borderRadius: '14px',
+    border: `1px solid ${colors.brownMid}60`,
+    backgroundColor: 'transparent',
+    color: colors.brownMid,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+    cursor: 'pointer',
+  },
+  saveButton: {
+    flex: 1,
+    minHeight: '44px',
+    padding: '0 18px',
+    borderRadius: '14px',
+    border: 'none',
+    backgroundColor: colors.salmon,
+    color: colors.white,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+    cursor: 'pointer',
+  },
+  saveButtonDisabled: {
+    flex: 1,
+    minHeight: '44px',
+    padding: '0 18px',
+    borderRadius: '14px',
+    border: 'none',
+    backgroundColor: colors.salmon,
+    color: colors.white,
+    fontFamily: fonts.family.heading,
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.bold,
+    cursor: 'not-allowed',
+    opacity: 0.45,
+  },
+
+  // ── Errors ───────────────────────────────────────────────────────────────
+  errorText: {
+    margin: '8px 0 0',
+    color: '#8b2a1b',
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs,
+  },
 }

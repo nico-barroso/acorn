@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import RegisterScreen from '@screens/onboarding/Register/Register';
+import RegisterScreen from '@/screens/onboarding/Register/Register';
 
 export default function RegisterRoute() {
   const router = useRouter();

@@ -1,6 +1,8 @@
 export const fonts = {
   family: {
-    primary: 'CabinetGrotesk, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+    heading: 'CabinetGrotesk, sans-serif',
+    body: 'Satoshi, sans-serif',
+    primary: 'Satoshi, sans-serif'
   },
   size: {
     xs: '12px',

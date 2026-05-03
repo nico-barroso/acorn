@@ -20,14 +20,9 @@ const config: Config = {
         white: '#FFFFFF',
       },
       fontFamily: {
-        primary: [
-          'CabinetGrotesk',
-          'Inter',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'sans-serif',
-        ],
+        heading: ['CabinetGrotesk', 'sans-serif'],
+        body: ['Satoshi', 'sans-serif'],
+        primary: ['Satoshi', 'sans-serif'],
       },
       fontSize: {
         xs: '12px',

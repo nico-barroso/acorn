@@ -2,6 +2,10 @@ import { colors } from '@/theme/colors'
 import { fonts } from '@/theme/fonts'
 
 export const loginStyles = {
+  form: {
+    display: 'grid',
+    gap: '16px'
+  },
   fieldGroup: {
     display: 'grid',
     gap: '6px'
@@ -9,7 +13,7 @@ export const loginStyles = {
   label: {
     margin: 0,
     color: colors.brown,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     fontWeight: fonts.weight.semibold
   },
@@ -21,7 +25,7 @@ export const loginStyles = {
     padding: '0 14px',
     color: colors.black,
     backgroundColor: colors.white,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md,
     lineHeight: fonts.lineHeight.normal
   },
@@ -31,7 +35,7 @@ export const loginStyles = {
   fieldError: {
     margin: 0,
     color: '#8b2a1b',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm
   },
   submitButton: {
@@ -42,7 +46,7 @@ export const loginStyles = {
     backgroundColor: colors.salmon,
     color: colors.white,
     cursor: 'pointer',
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.md,
     fontWeight: fonts.weight.semibold
   },
@@ -63,7 +67,7 @@ export const loginStyles = {
   dividerText: {
     margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.xs,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.04em'
@@ -71,16 +75,16 @@ export const loginStyles = {
   helperText: {
     margin: 0,
     color: colors.brownMid,
-    fontFamily: fonts.family.primary,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
     lineHeight: fonts.lineHeight.normal
   },
   forgotLink: {
-    marginTop: '4px',
-    color: colors.salmon,
-    fontFamily: fonts.family.primary,
+    color: colors.brownMid,
+    fontFamily: fonts.family.body,
     fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    textDecoration: 'none'
+    textDecoration: 'underline',
+    textAlign: 'center' as const,
+    display: 'block'
   }
 }

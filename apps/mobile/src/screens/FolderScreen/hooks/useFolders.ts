@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { supabase } from '@lib/supabase';
-import { queryClient } from '../../../lib/queryClient';
-import { queryKeys } from '../../../lib/queryKeys';
-import { useCurrentUserId } from '../../../hooks/useCurrentUserId';
-import type { FolderData } from '../FoldersScreen.types';
+import { supabase } from '@mobile/lib/supabase';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useCurrentUserId } from '@/hooks/useCurrentUserId';
+import type { FolderData } from '@/screens/FolderScreen/FoldersScreen.types';
 
 type SmartFolderRow = {
   id: string;

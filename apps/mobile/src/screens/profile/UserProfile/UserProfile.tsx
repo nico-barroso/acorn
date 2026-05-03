@@ -1,13 +1,13 @@
 import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 
-import { Button } from '@components/Button/Button';
-import { Input } from '@components/Input/Input';
-import { ProfileHeader } from '@components/ProfileHeader/ProfileHeader';
-import { AvatarPicker } from '../components/AvatarPicker/AvatarPicker';
-import { useEditProfile } from '../hooks/useEditProfile';
+import { Button } from '@/components/Button/Button';
+import { Input } from '@/components/Input/Input';
+import { ProfileHeader } from '@/components/ProfileHeader/ProfileHeader';
+import { AvatarPicker } from '@/screens/profile/components/AvatarPicker/AvatarPicker';
+import { useEditProfile } from '@/screens/profile/hooks/useEditProfile';
 import { styles } from './UserProfile.styles';
 
 type EditProfileScreenProps = {
@@ -25,6 +25,7 @@ export default function EditProfileScreen({ onGoBack }: EditProfileScreenProps) 
     setAvatarUri,
     errors,
     loading,
+    emailConfirmationSent,
     handleSave,
   } = useEditProfile();
 
@@ -35,9 +36,7 @@ export default function EditProfileScreen({ onGoBack }: EditProfileScreenProps) 
       aspect: [1, 1],
       quality: 0.8,
     });
-    console.log('[Avatar] ImagePicker result:', JSON.stringify(result));
     if (!result.canceled) {
-      console.log('[Avatar] Selected URI:', result.assets[0].uri);
       setAvatarUri(result.assets[0].uri);
     }
   };
@@ -78,6 +77,12 @@ export default function EditProfileScreen({ onGoBack }: EditProfileScreenProps) 
               autoCapitalize="none"
             />
           </View>
+
+          {emailConfirmationSent && (
+            <Text style={styles.emailConfirmation}>
+              Te hemos enviado un correo de confirmación a {email}. Revisa tu bandeja de entrada para completar el cambio.
+            </Text>
+          )}
 
           <Button
             label={loading ? 'Guardando...' : 'Guardar cambios'}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/supabase'
+import type { TagItem } from '@/features/shared/components/ResourceCard/ResourceCard'
 
 export type FolderDetail = {
   id: string
@@ -26,7 +27,7 @@ export type FolderResource = {
   thumbnailUrl: string | null
   createdAtLabel: string
   isRead: boolean
-  tags: string[]
+  tags: TagItem[]
   siteName: string | null
 }
 
@@ -60,7 +61,7 @@ function ruleMatchesItem(rule: SmartFolderRule, item: FolderResource): boolean {
       }
     }
     case 'tag': {
-      const itemTags = item.tags.map((t) => t.toLowerCase())
+      const itemTags = item.tags.map((t) => t.name.toLowerCase())
       switch (rule.operator) {
         case 'contains': return itemTags.some((t) => t.includes(ruleValue))
         case 'equals': return itemTags.some((t) => t === ruleValue)
@@ -141,12 +142,18 @@ export function useFolderDetail(folderId: string) {
         if (!active) return
         setFolder(mappedFolder)
 
-        const { data: folderItems, error: folderItemsError } = await supabase
-          .from('item_folders')
-          .select('item_id')
-          .eq('user_id', user.id)
-          .eq('folder_id', folderId)
-          .order('created_at', { ascending: false })
+        const [{ data: itemsData, error: itemsError }, { data: tagData }] = await Promise.all([
+          supabase
+            .from('items_with_links')
+            .select('id,title,description,domain,url,created_at,is_read,tags,preview_image_url,og_image_url,site_name')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(200),
+          supabase
+            .from('tags')
+            .select('name,slug,color_hex')
+            .eq('user_id', user.id)
+        ])
 
         if (folderItemsError) {
           setError('No se pudieron cargar los recursos de la carpeta')
@@ -154,7 +161,25 @@ export function useFolderDetail(folderId: string) {
           return
         }
 
-        const assignedIds = Array.from(new Set((folderItems || []).map((row: { item_id: string }) => row.item_id)))
+        const tagColorMap = new Map<string, string | null>()
+        ;(tagData ?? []).forEach((t: { name: string; slug: string | null; color_hex: string | null }) => {
+          tagColorMap.set(t.name, t.color_hex)
+          if (t.slug) tagColorMap.set(t.slug, t.color_hex)
+          tagColorMap.set(t.name.toLowerCase(), t.color_hex)
+        })
+
+        const allResources: FolderResource[] = (itemsData || []).map((row: ItemRow) => ({
+          id: row.id,
+          title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+          description: row.description?.trim() || 'Sin descripcion disponible.',
+          domain: row.domain || 'Sin dominio',
+          url: row.url,
+          thumbnailUrl: row.og_image_url || row.preview_image_url || null,
+          createdAtLabel: new Date(row.created_at).toLocaleDateString(),
+          isRead: Boolean(row.is_read),
+          tags: (row.tags ?? []).filter(Boolean).map((name: string) => ({ name, color_hex: tagColorMap.get(name) ?? tagColorMap.get(name.toLowerCase()) ?? null })),
+          siteName: row.site_name || null
+        }))
 
         let assignedResources: FolderResource[] = []
         if (assignedIds.length > 0) {
@@ -194,35 +219,9 @@ export function useFolderDetail(folderId: string) {
             .order('created_at', { ascending: false })
             .limit(200)
 
-          if (itemsError) {
-            setError('No se pudieron cargar los recursos')
-            setLoading(false)
-            return
-          }
-
-          const byRules: FolderResource[] = (itemsData || [])
-            .map((row: ItemRow) => ({
-              id: row.id,
-              title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-              description: row.description?.trim() || 'Sin descripcion disponible.',
-              domain: row.domain || 'Sin dominio',
-              url: row.url,
-              thumbnailUrl: row.og_image_url || row.preview_image_url || null,
-              createdAtLabel: new Date(row.created_at).toLocaleDateString(),
-              isRead: Boolean(row.is_read),
-              tags: row.tags?.filter(Boolean) ?? [],
-              siteName: row.site_name || null
-            }))
-            .filter((item) => itemMatchesRules(item, rules))
-
-          const merged = new Map<string, FolderResource>()
-          for (const resource of [...assignedResources, ...byRules]) {
-            merged.set(resource.id, resource)
-          }
-          filtered = Array.from(merged.values())
-        }
-
-        if (!active) return
+        const filtered = rules.length > 0
+          ? allResources.filter((item) => itemMatchesRules(item, rules))
+          : []
 
         setResources(filtered)
       } catch {

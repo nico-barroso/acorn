@@ -1,0 +1,74 @@
+import { useState } from 'react';
+import { supabase } from '@mobile/lib/supabase';
+import { isValidEmail } from '@/lib/validators';
+
+type FormErrors = {
+  email?: string;
+  password?: string;
+  general?: string;
+};
+
+const COOLDOWN_MS = 3000;
+
+export function useLogin() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+
+  function validate(): boolean {
+    const newErrors: FormErrors = {};
+
+    if (!email) {
+      newErrors.email = 'El email es obligatorio';
+    } else if (!isValidEmail(email)) {
+      newErrors.email = 'El email no es válido';
+    }
+
+    if (!password) {
+      newErrors.password = 'La contraseña es obligatoria';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  async function handleLogin() {
+    if (!validate()) return;
+
+    setLoading(true);
+    setErrors({});
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      // Supabase devuelve "Email not confirmed" si el usuario no verificó su email
+      if (error.message === 'Email not confirmed') {
+        setErrors({ general: 'Debes verificar tu email antes de iniciar sesión' });
+      } else {
+        setErrors({ general: 'Email o contraseña incorrectos' });
+      }
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), COOLDOWN_MS);
+      return;
+    }
+
+  }
+
+  return {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    errors,
+    loading,
+    cooldown,
+    handleLogin,
+  };
+}

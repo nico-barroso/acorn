@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './FilterPanel.styles';
-import { FilterPanelProps, DateFilterValue, ReadFilterValue } from '../../types';
+import { FilterPanelProps, DateFilterValue, ReadFilterValue, TypeFilterValue } from '@/screens/Search/types';
 
 type ChipProps = {
   label: string;
@@ -43,6 +43,12 @@ const READ_OPTIONS: { label: string; value: ReadFilterValue }[] = [
   { label: 'Visto', value: 'read' },
 ];
 
+const TYPE_OPTIONS: { label: string; value: TypeFilterValue }[] = [
+  { label: 'Todos', value: 'all' },
+  { label: 'Enlace', value: 'link' },
+  { label: 'Archivo', value: 'file' },
+];
+
 export function FilterPanel({
   domains,
   tags,
@@ -50,10 +56,12 @@ export function FilterPanel({
   selectedTag,
   selectedDate,
   selectedRead,
+  selectedType,
   onSelectDomain,
   onSelectTag,
   onSelectDate,
   onSelectRead,
+  onSelectType,
   onClear,
 }: FilterPanelProps) {
   const [showAllDomains, setShowAllDomains] = useState(false);
@@ -165,6 +173,20 @@ export function FilterPanel({
                 label={o.label}
                 active={selectedRead === o.value}
                 onPress={() => onSelectRead(o.value)}
+              />
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Tipo</Text>
+          <View style={styles.chipsWrap}>
+            {TYPE_OPTIONS.map((o) => (
+              <Chip
+                key={o.value}
+                label={o.label}
+                active={selectedType === o.value}
+                onPress={() => onSelectType(o.value)}
               />
             ))}
           </View>
