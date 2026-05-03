@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { supabase } from '@mobile/lib/supabase';
+import { useSession } from '@/context/SessionContext';
 import { TagSelectorSection } from './TagSelectorSection';
+import { FolderSelectorSection } from './FolderSelectorSection';
 import { styles } from './SaveLinkModal.styles';
 
 function isValidUrl(value: string): boolean {
@@ -84,6 +86,7 @@ type SaveLinkModeProps = {
 };
 
 export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps) {
+  const { session } = useSession();
   const fetchAbortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -97,6 +100,7 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewFaviconError, setPreviewFaviconError] = useState(false);
   const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -177,6 +181,16 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
           og_image_url: previewMeta?.ogImage ?? undefined,
         },
       });
+
+      if (selectedFolderIds.length > 0 && session?.user) {
+        await supabase.from('item_folders').insert(
+          selectedFolderIds.map((folder_id) => ({
+            user_id: session.user.id,
+            item_id: itemId,
+            folder_id,
+          })),
+        );
+      }
     }
 
     onSave();
@@ -268,6 +282,7 @@ export function SaveLinkMode({ initialUrl, onSave, onClose }: SaveLinkModeProps)
           )}
 
           <TagSelectorSection onTagsChange={setSelectedTagNames} disabled={linkLoading} />
+          <FolderSelectorSection selectedIds={selectedFolderIds} onChange={setSelectedFolderIds} disabled={linkLoading} />
         </>
       )}
 
