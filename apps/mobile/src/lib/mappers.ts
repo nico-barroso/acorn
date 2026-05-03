@@ -71,7 +71,7 @@ export function mapSearchResult(
     id: row.id,
     title:
       row.title?.trim() ||
-      row.metadata?.[0]?.og_title?.trim() ||
+      row.og_title?.trim() ||
       row.domain ||
       'Recurso sin titulo',
     rawDomain: isFile ? null : (row.domain ?? null),

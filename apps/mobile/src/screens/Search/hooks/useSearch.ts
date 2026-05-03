@@ -24,22 +24,23 @@ function dateThreshold(filter: DateFilterValue): string | null {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
-function buildQuery<T>(base: T, term: string, filters: SearchFilters, isTagQuery: boolean): T {
+function filtersToRpcParams(filters: SearchFilters) {
+  return {
+    p_type:          filters.type !== 'all' ? filters.type : null,
+    p_domain:        filters.domain ?? null,
+    p_created_after: dateThreshold(filters.date) ?? null,
+    p_is_read:       filters.read === 'read' ? true : filters.read === 'unread' ? false : null,
+  };
+}
+
+function buildDomainQuery<T>(base: T, filters: Omit<SearchFilters, 'domain'>): T {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let q: any = base;
-
-  if (!isTagQuery && term.trim()) {
-    const pat = `%${term.trim().replace(/[%_]/g, '')}%`;
-    q = q.or(`title.ilike.${pat},description.ilike.${pat},domain.ilike.${pat},url.ilike.${pat}`);
-  }
-
   if (filters.type !== 'all') q = q.eq('type', filters.type);
-  if (filters.domain) q = q.eq('domain', filters.domain);
   const threshold = dateThreshold(filters.date);
   if (threshold) q = q.gte('created_at', threshold);
   if (filters.read === 'read') q = q.eq('is_read', true);
   else if (filters.read === 'unread') q = q.eq('is_read', false);
-
   return q;
 }
 
@@ -47,41 +48,37 @@ async function fetchSearchCount(
   userId: string,
   term: string,
   filters: SearchFilters,
-  isTagQuery: boolean,
+  tag: string | null,
 ): Promise<number> {
-  let q = supabase
-    .from('items_with_links')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId);
-
-  q = buildQuery(q, term, filters, isTagQuery);
-
-  const { count, error } = await q;
+  const { data, error } = await supabase.rpc('search_user_items_count', {
+    p_user_id: userId,
+    p_query:   term.trim() || null,
+    p_tag:     tag,
+    ...filtersToRpcParams(filters),
+  });
   if (error) {
     console.error('[search-count]', error);
     throw new Error('Error al contar resultados');
   }
-  return count ?? 0;
+  return (data as number) ?? 0;
 }
 
 async function fetchSearchPage(
   userId: string,
   term: string,
   filters: SearchFilters,
-  isTagQuery: boolean,
+  tag: string | null,
   pageIndex: number,
 ): Promise<SearchResult[]> {
-  let q = supabase
-    .from('items_with_links')
-    .select('id,type,title,description,domain,url,created_at,is_read,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
-
-  q = buildQuery(q, term, filters, isTagQuery);
-
   const [{ data, error: fetchError }, { data: tagRows }] = await Promise.all([
-    q,
+    supabase.rpc('search_user_items', {
+      p_user_id: userId,
+      p_query:   term.trim() || null,
+      p_tag:     tag,
+      p_limit:   PAGE_SIZE,
+      p_offset:  pageIndex * PAGE_SIZE,
+      ...filtersToRpcParams(filters),
+    }),
     supabase.from('tags').select('name,slug,color_hex').eq('user_id', userId),
   ]);
 
@@ -136,7 +133,7 @@ export function useSearch() {
   // Domain options: same filters as main query but WITHOUT domain filter,
   // so available domains stay visible even after one is selected
   const { data: domainOptions = [] } = useQuery({
-    queryKey: ['search', 'domains', userId, debouncedQuery, selectedDate, selectedRead, selectedType],
+    queryKey: ['search', 'domains', userId, selectedDate, selectedRead, selectedType],
     queryFn: async () => {
       const base = supabase
         .from('items_with_links')
@@ -145,7 +142,7 @@ export function useSearch() {
         .not('domain', 'is', null)
         .limit(200);
 
-      const q = buildQuery(base, debouncedQuery, { domain: null, date: selectedDate, read: selectedRead, type: selectedType }, isTagQuery);
+      const q = buildDomainQuery(base, { date: selectedDate, read: selectedRead, type: selectedType });
 
       const { data } = await q;
       return Array.from(
@@ -157,8 +154,8 @@ export function useSearch() {
   });
 
   const { data: serverCount = 0 } = useQuery({
-    queryKey: ['search', 'count', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType],
-    queryFn: () => fetchSearchCount(userId!, debouncedQuery, filters, isTagQuery),
+    queryKey: ['search', 'count', userId, debouncedQuery, effectiveTag, selectedDomain, selectedDate, selectedRead, selectedType],
+    queryFn: () => fetchSearchCount(userId!, isTagQuery ? '' : debouncedQuery, filters, effectiveTag),
     enabled: Boolean(userId),
     staleTime: 30 * 1000,
   });
@@ -176,9 +173,9 @@ export function useSearch() {
     isLoading: loading,
     error: queryError,
   } = useInfiniteQuery({
-    queryKey: ['search', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType],
+    queryKey: ['search', userId, debouncedQuery, effectiveTag, selectedDomain, selectedDate, selectedRead, selectedType],
     queryFn: ({ pageParam }) =>
-      fetchSearchPage(userId!, debouncedQuery, filters, isTagQuery, (pageParam as number) ?? 0),
+      fetchSearchPage(userId!, isTagQuery ? '' : debouncedQuery, filters, effectiveTag, (pageParam as number) ?? 0),
     initialPageParam: 0 as number,
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       lastPage.length === PAGE_SIZE ? (lastPageParam as number) + 1 : undefined,
@@ -192,17 +189,9 @@ export function useSearch() {
     [infiniteData],
   );
 
-  // Tag filter stays client-side: the tags column in the view uses json_agg
-  // and the @> operator doesn't work reliably on JSON arrays via PostgREST
-  const filteredResults = React.useMemo(
-    () =>
-      effectiveTag
-        ? results.filter((r) => r.tags.some((t) => t.name.toLowerCase() === effectiveTag))
-        : results,
-    [results, effectiveTag],
-  );
+  const filteredResults = results;
 
-  const totalCount = effectiveTag ? filteredResults.length : serverCount;
+  const totalCount = serverCount;
 
   const error = queryError ? 'No se pudieron cargar los recursos.' : '';
 
@@ -211,7 +200,7 @@ export function useSearch() {
   }, [loadingMore, hasNextPage, fetchNextPage]);
 
   const handleToggleRead = React.useCallback(async (itemId: string, nextRead: boolean) => {
-    const queryKey = ['search', userId, debouncedQuery, selectedDomain, selectedDate, selectedRead, selectedType];
+    const queryKey = ['search', userId, debouncedQuery, effectiveTag, selectedDomain, selectedDate, selectedRead, selectedType];
 
     queryClient.setQueryData<InfiniteData<SearchResult[]>>(queryKey, (old) => {
       if (!old) return old;
