@@ -16,4 +16,5 @@ export type ContentCardData = {
   faviconFallbackUri?: string;
   iconSource?: ImageSourcePropType;
   isFile?: boolean;
+  note?: string;
 };

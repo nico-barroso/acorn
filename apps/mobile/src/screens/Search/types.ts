@@ -16,6 +16,7 @@ export type SearchResult = {
   faviconUri?: string;
   faviconFallbackUri?: string;
   isFile: boolean;
+  note?: string;
 };
 
 export type SearchRow = {

@@ -135,6 +135,7 @@ export function SearchScreen({ onBack, onOpenDetail, navBarHeight = 0 }: SearchS
       faviconUri={item.faviconUri}
       faviconFallbackUri={item.faviconFallbackUri}
       isFile={item.isFile}
+      note={item.note}
       onOpenDetail={onOpenDetail}
       onToggleRead={handleToggleRead}
       onTagsPress={setTagPickerItemId}

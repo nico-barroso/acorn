@@ -58,6 +58,7 @@ export function mapResource(
     faviconFallbackUri: row.favicon_url ?? undefined,
     iconSource: isFile ? FILE_ICON : undefined,
     isFile,
+    note: row.description?.trim() || undefined,
   };
 }
 
@@ -90,6 +91,7 @@ export function mapSearchResult(
       : (row.favicon_url ?? undefined),
     faviconFallbackUri: row.favicon_url ?? undefined,
     isFile,
+    note: row.description?.trim() || undefined,
   };
 }
 
