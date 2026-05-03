@@ -1,33 +1,52 @@
-# Acorn Mobile
+# Mobile (Expo / React Native)
 
-## Setup
+Cliente móvil de Acorn para iOS y Android. Permite guardar enlaces y archivos, etiquetarlos, organizarlos en carpetas inteligentes y editar sus detalles.
 
-1. Copy `.env.example` to `.env`.
-2. Add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
-3. In Supabase Dashboard go to Auth > URL Configuration and add `acorn://auth/callback` to Redirect URLs.
-4. Install dependencies with `npm install`.
-5. Start with `npm run start`.
+## Stack
+
+- Expo ~54 con Expo Router (navegación basada en archivos)
+- React Native 0.81 / React 19
+- Supabase JS para autenticación, base de datos y storage
+- TanStack Query para estado de servidor y caché
+- React Native SVG para iconos personalizados
+
+## Estructura
+
+```
+apps/mobile/
+  app/               Rutas de Expo Router
+  src/
+    components/      Componentes UI compartidos
+    screens/         Pantallas (Home, Search, FolderDetail, ItemDetail, …)
+    lib/             Cliente de Supabase, query keys, utilidades
+    hooks/           Hooks compartidos
+    theme/           Tokens de color y tipografía
+  hooks/             Hooks de feature (useUploadFile, useSaveFileFlow, …)
+  assets/            Fuentes, imágenes y SVGs
+```
+
+## Configuración
+
+1. Copia `.env.example` a `.env` y rellena las variables:
+
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=
+   ```
+
+2. En el panel de Supabase, ve a **Auth → URL Configuration** y añade `acorn://auth/callback` a las **Redirect URLs**. Es necesario para que el flujo de OAuth (Google) pueda volver a la app vía deep link.
+
+## Instalación
+
+```bash
+cd apps/mobile
+npm install
+```
 
 ## Scripts
 
-- `npm run android`
-- `npm run ios`
-- `npm run web`
-- `npm run lint`
-- `npm run typecheck`
-- `npm run format`
-
-
-Se inicializó el cliente móvil en apps/mobile con Expo + TypeScript.
-
-Se configuró navegación base con Expo Router (app/_layout.tsx, app/index.tsx).
-
-Se añadió configuración de entorno con dotenv + expo-constants en app.config.ts y .env.
-
-Se integró cliente Supabase en lib/supabase/client.ts con variables EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY.
-
-Se creó estructura base app/, components/, lib/, hooks/.
-
-Se configuró ESLint + Prettier y scripts (lint, typecheck, format).
-
-Validaciones ejecutadas: npm run lint, npm run typecheck, npm run format, npx expo config --type public (todo OK).
+```bash
+npm run start       # Expo dev server (escanea el QR con Expo Go)
+npm run ios         # Ejecuta en simulador iOS
+npm run android     # Ejecuta en emulador Android
+```

@@ -14,6 +14,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavBarHeight } from '@/context/NavBarHeightContext';
 import { supabase } from '@mobile/lib/supabase';
+import { useSession } from '@/context/SessionContext';
+import { TagSelectorSection } from './TagSelectorSection';
+import { FolderSelectorSection } from './FolderSelectorSection';
 import { styles } from './SaveLinkModal.styles';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -98,6 +101,7 @@ type SaveLinkSheetProps = {
 };
 
 export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetProps) {
+  const { session } = useSession();
   const insets = useSafeAreaInsets();
   const { height: navBarHeight } = useNavBarHeight();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -115,6 +119,8 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [previewFaviconError, setPreviewFaviconError] = useState(false);
   const [previewOgImageError, setPreviewOgImageError] = useState(false);
+  const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
 
   const urlValid = isValidUrl(url);
   const domain = urlValid ? getDomain(url) : '';
@@ -199,11 +205,12 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
     setLinkLoading(true);
     setLinkError('');
 
-    const { data: linkData, error: fnError } = await supabase.functions.invoke('link-test', {
+    const { data: linkData, error: fnError } = await supabase.functions.invoke('links', {
       body: {
         url: trimmedUrl,
         title: title.trim() || previewMeta?.ogTitle || undefined,
         description: notes.trim() || undefined,
+        tags: selectedTagNames,
       },
     });
 
@@ -216,7 +223,7 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
 
     const itemId = linkData?.data?.id;
     if (itemId) {
-      void supabase.functions.invoke('extract-metadata-test', {
+      void supabase.functions.invoke('extract-metadata', {
         body: {
           item_id: itemId,
           url: trimmedUrl,
@@ -224,6 +231,16 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
           og_image_url: previewMeta?.ogImage ?? undefined,
         },
       });
+
+      if (selectedFolderIds.length > 0 && session?.user) {
+        await supabase.from('item_folders').insert(
+          selectedFolderIds.map((folder_id) => ({
+            user_id: session.user.id,
+            item_id: itemId,
+            folder_id,
+          })),
+        );
+      }
     }
 
     onSaved();
@@ -333,6 +350,9 @@ export function SaveLinkSheet({ initialUrl, onClose, onSaved }: SaveLinkSheetPro
                   />
                 </View>
               )}
+
+              <TagSelectorSection onTagsChange={setSelectedTagNames} disabled={linkLoading} />
+              <FolderSelectorSection selectedIds={selectedFolderIds} onChange={setSelectedFolderIds} disabled={linkLoading} />
             </>
           )}
 

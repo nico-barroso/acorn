@@ -165,6 +165,14 @@ export const styles = StyleSheet.create({
     gap: 4,
     marginTop: 6,
   },
+  note: {
+    fontFamily: 'Satoshi-Regular',
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: colors.brownMid,
+    marginTop: 4,
+    lineHeight: 16,
+  },
   tagsSection: {
     marginBottom: 4,
   },

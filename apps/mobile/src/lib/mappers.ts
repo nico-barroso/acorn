@@ -19,6 +19,7 @@ export type ResourceRow = {
   preview_image_url: string | null;
   og_image_url: string | null;
   tags: string[] | null;
+  description: string | null;
   metadata: { og_title: string | null }[] | null;
 };
 
@@ -58,6 +59,7 @@ export function mapResource(
     faviconFallbackUri: row.favicon_url ?? undefined,
     iconSource: isFile ? FILE_ICON : undefined,
     isFile,
+    note: row.description?.trim() || undefined,
   };
 }
 
@@ -71,7 +73,7 @@ export function mapSearchResult(
     id: row.id,
     title:
       row.title?.trim() ||
-      row.metadata?.[0]?.og_title?.trim() ||
+      row.og_title?.trim() ||
       row.domain ||
       'Recurso sin titulo',
     rawDomain: isFile ? null : (row.domain ?? null),
@@ -90,6 +92,7 @@ export function mapSearchResult(
       : (row.favicon_url ?? undefined),
     faviconFallbackUri: row.favicon_url ?? undefined,
     isFile,
+    note: row.description?.trim() || undefined,
   };
 }
 

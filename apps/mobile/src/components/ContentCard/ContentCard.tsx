@@ -39,6 +39,7 @@ export interface ContentCardProps {
   faviconFallbackUri?: string;
   iconSource?: ImageSourcePropType;
   isFile?: boolean;
+  note?: string;
   onOpenDetail?: (id: string) => void;
   onToggleRead?: (id: string, nextRead: boolean) => void;
   onTagsPress?: (id: string) => void;
@@ -57,6 +58,7 @@ export function ContentCard({
   faviconFallbackUri,
   iconSource,
   isFile = false,
+  note,
   onOpenDetail,
   onToggleRead,
   onTagsPress,
@@ -187,6 +189,9 @@ export function ContentCard({
             <View style={styles.tagsRowCollapsed}>
               {tags.map((t) => <Tag key={t.name} label={`#${t.name}`} color={t.color_hex} />)}
             </View>
+          ) : null}
+          {note && tagsVisible ? (
+            <Text style={styles.note} numberOfLines={2}>{note}</Text>
           ) : null}
         </View>
         <Text style={[styles.chevron, expanded && styles.chevronUp]}>›</Text>

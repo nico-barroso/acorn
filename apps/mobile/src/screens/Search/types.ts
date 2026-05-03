@@ -16,13 +16,14 @@ export type SearchResult = {
   faviconUri?: string;
   faviconFallbackUri?: string;
   isFile: boolean;
+  note?: string;
 };
 
 export type SearchRow = {
   id: string;
   type: string | null;
   title: string | null;
-  metadata: { og_title: string | null }[] | null;
+  og_title: string | null;
   description: string | null;
   domain: string | null;
   url: string | null;

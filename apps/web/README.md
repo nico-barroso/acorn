@@ -1,34 +1,55 @@
 # Web (Next.js 15)
 
-## Base structure
+Cliente web de Acorn. Usa el mismo proyecto de Supabase y la misma autenticación que el cliente móvil.
 
-- `app/` App Router routes and features
-- `components/` shared UI components (root-level)
-- `lib/` app services and integrations (including Supabase SSR helpers)
-- `hooks/` shared hooks (root-level)
+## Stack
 
-## Supabase environment setup
+- Next.js 15 con App Router
+- React 19
+- Supabase SSR (`@supabase/ssr`) para cliente de navegador y servidor
+- Tailwind CSS
 
-This app expects the following public variables:
+## Estructura
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+```
+apps/web/
+  app/       Rutas y features (App Router)
+  lib/       Servicios e integraciones
+    supabase/  Clientes de Supabase (browser + server)
+  hooks/     Hooks compartidos
+  public/    Assets estáticos
+```
 
-### Development
+Clientes de Supabase:
 
-1. Copy `apps/web/.env.example` to `apps/web/.env.local`.
-2. Fill in your Supabase development project values.
+- Navegador: `lib/supabase/client.ts`
+- Servidor: `lib/supabase/server.ts`
 
-### Production
+## Configuración
 
-Set the same variables in your hosting provider environment settings (for example Vercel project environment variables):
+1. Copia `.env.example` a `.env.local`.
+2. Rellena las variables con los valores de tu proyecto de Supabase:
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-Do not commit real `.env` files.
+En producción (por ejemplo Vercel), define las mismas variables en la configuración del proveedor. No subas archivos `.env` reales al repositorio.
 
-## Supabase clients
+## Instalación
 
-- Browser client (`@supabase/ssr`): `lib/supabase/client.ts`
-- Server client (`@supabase/ssr`): `lib/supabase/server.ts`
+```bash
+cd apps/web
+npm install
+```
+
+## Scripts
+
+```bash
+npm run dev         # Servidor de desarrollo en http://localhost:3000
+npm run build       # Build de producción
+npm run start       # Servidor de producción
+npm run lint        # ESLint
+npm run typecheck   # tsc --noEmit
+```
