@@ -145,6 +145,12 @@ export const addResourceStyles = {
     fontFamily: fonts.family.primary,
     fontSize: fonts.size.sm
   },
+  helperText: {
+    margin: 0,
+    color: colors.brownMid,
+    fontFamily: fonts.family.primary,
+    fontSize: fonts.size.xs
+  },
   extractStatusRow: {
     marginTop: '12px',
     display: 'flex',

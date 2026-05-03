@@ -95,8 +95,21 @@ export function Home() {
   const readCount = useMemo(() => resources.filter((resource) => resource.isRead).length, [resources])
   const unreadCount = resources.length - readCount
 
-  const fetchResourcesPage = async (currentCursor: Cursor | null) => {
+  const fetchResourcesPage = async (currentCursor: Cursor | null, uid?: string) => {
     const supabase = getSupabaseBrowserClient()
+
+    let excludedIds: string[] = []
+    const currentUserId = uid || userId
+    if (currentUserId) {
+      const { data: folderItems } = await supabase
+        .from('item_folders')
+        .select('item_id')
+        .eq('user_id', currentUserId)
+      
+      if (folderItems && folderItems.length > 0) {
+        excludedIds = folderItems.map((row: { item_id: string }) => row.item_id)
+      }
+    }
 
     let query = supabase
       .from('items_with_links')
@@ -104,6 +117,11 @@ export function Home() {
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(PAGE_SIZE)
+
+    if (excludedIds.length > 0) {
+      const formattedIds = excludedIds.map((id) => `"${id}"`).join(',')
+      query = query.not('id', 'in', `(${formattedIds})`)
+    }
 
     if (currentCursor) {
       query = query.or(
@@ -164,7 +182,7 @@ export function Home() {
       let localHasMore = true
 
       for (let i = 1; i <= targetPage; i += 1) {
-        const pagePayload = await fetchResourcesPage(localCursor)
+        const pagePayload = await fetchResourcesPage(localCursor, data.user.id)
         localResources = [...localResources, ...pagePayload.resources]
         localCursor = pagePayload.nextCursor
         localHasMore = pagePayload.hasMore
@@ -257,13 +275,13 @@ export function Home() {
   }
 
   const handleSaved = useCallback(() => {
-    fetchResourcesPage(null).then((pagePayload) => {
+    fetchResourcesPage(null, userId).then((pagePayload) => {
       setResources(pagePayload.resources)
       setCursor(pagePayload.nextCursor)
       setHasMore(pagePayload.hasMore)
       setPage(1)
     }).catch(() => {})
-  }, [fetchResourcesPage])
+  }, [userId])
 
   const handleToggleRead = useCallback(async (itemId: string, currentIsRead: boolean) => {
     setResources((current) =>

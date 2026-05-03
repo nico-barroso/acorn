@@ -57,6 +57,8 @@ export function AddResourceModal({ onClose, onSaved }: AddResourceModalProps) {
   const [url, setUrl] = useState('')
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const [folders, setFolders] = useState<{ id: string; name: string }[]>([])
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([])
   const [phase, setPhase] = useState<SavePhase>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [metadata, setMetadata] = useState<ExtractedMetadata | null>(null)
@@ -81,6 +83,32 @@ export function AddResourceModal({ onClose, onSaved }: AddResourceModalProps) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [onClose])
+
+  useEffect(() => {
+    let active = true
+
+    const loadFolders = async () => {
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data } = await supabase
+          .from('smart_folders')
+          .select('id, name')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (!active) return
+        setFolders((data || []).map((row) => ({ id: row.id, name: row.name || 'Carpeta sin nombre' })))
+      } catch {
+        if (active) setFolders([])
+      }
+    }
+
+    loadFolders()
+    return () => { active = false }
+  }, [])
 
   const addTag = useCallback((raw: string) => {
     const trimmed = raw.trim().toLowerCase()
@@ -195,6 +223,20 @@ export function AddResourceModal({ onClose, onSaved }: AddResourceModalProps) {
         setMetadata(extracted)
       }
 
+      if (selectedFolderIds.length > 0) {
+        for (const folderId of selectedFolderIds) {
+          const { error: folderError } = await supabase.from('item_folders').insert({
+            user_id: user.id,
+            item_id: itemId,
+            folder_id: folderId
+          })
+          if (folderError) {
+            console.error('Error inserting folder:', folderError)
+            setErrorMessage('El recurso se guardo, pero no se pudo asignar a la carpeta seleccionada.')
+          }
+        }
+      }
+
       if (tags.length > 0) {
         setPhase('tagging')
 
@@ -231,7 +273,7 @@ export function AddResourceModal({ onClose, onSaved }: AddResourceModalProps) {
       setPhase('error')
       setErrorMessage('Ocurrio un error inesperado. Intentalo de nuevo.')
     }
-  }, [url, tags, onSaved])
+  }, [url, tags, selectedFolderIds, onSaved])
 
   const isSaving = phase === 'inserting' || phase === 'extracting' || phase === 'tagging'
   const isDone = phase === 'done'
@@ -296,6 +338,36 @@ export function AddResourceModal({ onClose, onSaved }: AddResourceModalProps) {
               disabled={isSaving || isDone}
               style={addResourceStyles.tagInput}
             />
+          </div>
+
+          <label style={addResourceStyles.label}>Carpetas (opcional)</label>
+          <div style={{ display: 'grid', gap: '8px' }}>
+            {folders.length === 0 ? (
+              <p style={addResourceStyles.helperText}>No tienes carpetas creadas.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '6px' }}>
+                {folders.map((folder) => {
+                  const checked = selectedFolderIds.includes(folder.id)
+                  return (
+                    <label key={folder.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        onChange={() => {
+                          setSelectedFolderIds((prev) =>
+                            prev.includes(folder.id)
+                              ? prev.filter((id) => id !== folder.id)
+                              : [...prev, folder.id]
+                          )
+                        }}
+                        disabled={isSaving || isDone}
+                      />
+                      <span style={addResourceStyles.helperText}>{folder.name}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 

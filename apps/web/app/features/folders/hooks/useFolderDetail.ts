@@ -141,37 +141,88 @@ export function useFolderDetail(folderId: string) {
         if (!active) return
         setFolder(mappedFolder)
 
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('items_with_links')
-          .select('id,title,description,domain,url,created_at,is_read,tags,preview_image_url,og_image_url,site_name')
+        const { data: folderItems, error: folderItemsError } = await supabase
+          .from('item_folders')
+          .select('item_id')
           .eq('user_id', user.id)
+          .eq('folder_id', folderId)
           .order('created_at', { ascending: false })
-          .limit(200)
 
-        if (itemsError) {
-          setError('No se pudieron cargar los recursos')
+        if (folderItemsError) {
+          setError('No se pudieron cargar los recursos de la carpeta')
           setLoading(false)
           return
         }
 
-        const allResources: FolderResource[] = (itemsData || []).map((row: ItemRow) => ({
-          id: row.id,
-          title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
-          description: row.description?.trim() || 'Sin descripcion disponible.',
-          domain: row.domain || 'Sin dominio',
-          url: row.url,
-          thumbnailUrl: row.og_image_url || row.preview_image_url || null,
-          createdAtLabel: new Date(row.created_at).toLocaleDateString(),
-          isRead: Boolean(row.is_read),
-          tags: row.tags?.filter(Boolean) ?? [],
-          siteName: row.site_name || null
-        }))
+        const assignedIds = Array.from(new Set((folderItems || []).map((row: { item_id: string }) => row.item_id)))
+
+        let assignedResources: FolderResource[] = []
+        if (assignedIds.length > 0) {
+          const { data: assignedData, error: assignedError } = await supabase
+            .from('items_with_links')
+            .select('id,title,description,domain,url,created_at,is_read,tags,preview_image_url,og_image_url,site_name')
+            .in('id', assignedIds)
+            .order('created_at', { ascending: false })
+
+          if (assignedError) {
+            setError('No se pudieron cargar los recursos')
+            setLoading(false)
+            return
+          }
+
+          assignedResources = (assignedData || []).map((row: ItemRow) => ({
+            id: row.id,
+            title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+            description: row.description?.trim() || 'Sin descripcion disponible.',
+            domain: row.domain || 'Sin dominio',
+            url: row.url,
+            thumbnailUrl: row.og_image_url || row.preview_image_url || null,
+            createdAtLabel: new Date(row.created_at).toLocaleDateString(),
+            isRead: Boolean(row.is_read),
+            tags: row.tags?.filter(Boolean) ?? [],
+            siteName: row.site_name || null
+          }))
+        }
+
+        let filtered: FolderResource[] = assignedResources
+
+        if (rules.length > 0) {
+          const { data: itemsData, error: itemsError } = await supabase
+            .from('items_with_links')
+            .select('id,title,description,domain,url,created_at,is_read,tags,preview_image_url,og_image_url,site_name')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(200)
+
+          if (itemsError) {
+            setError('No se pudieron cargar los recursos')
+            setLoading(false)
+            return
+          }
+
+          const byRules: FolderResource[] = (itemsData || [])
+            .map((row: ItemRow) => ({
+              id: row.id,
+              title: row.title?.trim() || row.domain || row.url || 'Recurso sin titulo',
+              description: row.description?.trim() || 'Sin descripcion disponible.',
+              domain: row.domain || 'Sin dominio',
+              url: row.url,
+              thumbnailUrl: row.og_image_url || row.preview_image_url || null,
+              createdAtLabel: new Date(row.created_at).toLocaleDateString(),
+              isRead: Boolean(row.is_read),
+              tags: row.tags?.filter(Boolean) ?? [],
+              siteName: row.site_name || null
+            }))
+            .filter((item) => itemMatchesRules(item, rules))
+
+          const merged = new Map<string, FolderResource>()
+          for (const resource of [...assignedResources, ...byRules]) {
+            merged.set(resource.id, resource)
+          }
+          filtered = Array.from(merged.values())
+        }
 
         if (!active) return
-
-        const filtered = rules.length > 0
-          ? allResources.filter((item) => itemMatchesRules(item, rules))
-          : allResources
 
         setResources(filtered)
       } catch {
