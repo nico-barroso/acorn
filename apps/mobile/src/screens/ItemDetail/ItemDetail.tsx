@@ -29,6 +29,7 @@ import { styles } from './ItemDetail.styles';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 type TagDetail = { name: string; color_hex: string | null };
+type FolderOption = { id: string; name: string };
 
 type ItemDetailProps = {
   visible: boolean;
@@ -57,6 +58,9 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
   const [domain, setDomain] = React.useState('');
   const [createdAt, setCreatedAt] = React.useState('');
   const [isFile, setIsFile] = React.useState(false);
+  const [folders, setFolders] = React.useState<FolderOption[]>([]);
+  const [selectedFolderIds, setSelectedFolderIds] = React.useState<string[]>([]);
+  const [savingFolders, setSavingFolders] = React.useState(false);
 
   React.useEffect(() => {
     if (visible) {
@@ -97,7 +101,7 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
       queryKeys.tags(session.user.id),
     );
 
-    const [{ data, error: detailError }, tagFetchResult] = await Promise.all([
+    const [{ data, error: detailError }, tagFetchResult, foldersResult, itemFoldersResult] = await Promise.all([
       supabase
         .from('items_with_links')
         .select('id,type,title,description,is_read,created_at,url,domain,tags,metadata(og_title)')
@@ -106,6 +110,16 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
       cachedTags
         ? Promise.resolve({ data: cachedTags })
         : supabase.from('tags').select('name,slug,color_hex').eq('user_id', session.user.id),
+      supabase
+        .from('smart_folders')
+        .select('id,name')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('item_folders')
+        .select('folder_id')
+        .eq('user_id', session.user.id)
+        .eq('item_id', itemId),
     ]);
 
     if (detailError || !data) {
@@ -130,8 +144,54 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
     setIsFile(data.type === 'file');
     setDomain(data.domain ?? '');
     setCreatedAt(new Date(data.created_at as string).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }));
+    setFolders(((foldersResult.data ?? []) as { id: string; name: string | null }[]).map((folder) => ({
+      id: folder.id,
+      name: folder.name?.trim() || 'Carpeta sin nombre',
+    })));
+    setSelectedFolderIds(
+      ((itemFoldersResult.data ?? []) as { folder_id: string }[]).map((row) => row.folder_id),
+    );
     setLoading(false);
   }, [itemId, visible, session?.user, queryClient]);
+
+  const handleSaveFolders = async () => {
+    if (!itemId || !session?.user) return;
+    setSavingFolders(true);
+    setError('');
+
+    const { error: deleteError } = await supabase
+      .from('item_folders')
+      .delete()
+      .eq('item_id', itemId)
+      .eq('user_id', session.user.id);
+
+    if (deleteError) {
+      setSavingFolders(false);
+      setError('No se pudieron actualizar las carpetas.');
+      return;
+    }
+
+    if (selectedFolderIds.length > 0) {
+      const rows = selectedFolderIds.map((folderId) => ({
+        user_id: session.user.id,
+        item_id: itemId,
+        folder_id: folderId,
+      }));
+
+      const { error: insertError } = await supabase.from('item_folders').insert(rows);
+
+      if (insertError) {
+        setSavingFolders(false);
+        setError('No se pudieron actualizar las carpetas.');
+        return;
+      }
+    }
+
+    await queryClient.invalidateQueries({ queryKey: queryKeys.folders(session.user.id) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.items(session.user.id) });
+    onUpdated?.();
+    setSavingFolders(false);
+  };
 
   React.useEffect(() => { void loadDetail(); }, [loadDetail]);
 
@@ -278,6 +338,47 @@ export function ItemDetail({ visible, itemId, onClose, onUpdated }: ItemDetailPr
                   </View>
                 </>
               )}
+
+              <Text style={styles.sectionTitle}>Carpetas</Text>
+              {folders.length === 0 ? (
+                <Text style={styles.metaText}>No tienes carpetas creadas.</Text>
+              ) : (
+                <View style={styles.folderList}>
+                  {folders.map((folder) => {
+                    const selected = selectedFolderIds.includes(folder.id);
+                    return (
+                      <TouchableOpacity
+                        key={folder.id}
+                        style={styles.folderRow}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setSelectedFolderIds((prev) =>
+                            prev.includes(folder.id)
+                              ? prev.filter((id) => id !== folder.id)
+                              : [...prev, folder.id],
+                          );
+                        }}
+                      >
+                        <View style={[styles.folderCheck, selected ? styles.folderCheckSelected : null]}>
+                          {selected ? <Text style={styles.folderCheckIcon}>✓</Text> : null}
+                        </View>
+                        <Text style={styles.folderName}>{folder.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[styles.secondaryButton, savingFolders ? styles.primaryButtonDisabled : null]}
+                onPress={handleSaveFolders}
+                activeOpacity={0.8}
+                disabled={savingFolders}
+              >
+                <Text style={styles.secondaryButtonLabel}>
+                  {savingFolders ? 'Guardando carpetas...' : 'Guardar carpetas'}
+                </Text>
+              </TouchableOpacity>
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
 

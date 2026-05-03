@@ -10,7 +10,7 @@ export default function AppLayout() {
 
   const currentRoute = segments[segments.length - 1];
   const searchActive = currentRoute === 'search';
-  const tagsActive = currentRoute === 'folders';
+  const tagsActive = segments.includes('folders');
   const profileActive = segments.includes('(profile)');
   const modalActive = currentRoute === 'confirm-modal' || currentRoute === 'save-link' || currentRoute === 'add';
   const homeActive = !searchActive && !tagsActive && !profileActive && !modalActive;
@@ -56,7 +56,9 @@ export default function AppLayout() {
             }}
             onAddPress={() => router.push('/(app)/add')}
             onSearchPress={() => { if (!searchActive) router.push('/(app)/search'); }}
-            onTagsPress={() => { if (!tagsActive) router.push('/(app)/folders'); }}
+            onTagsPress={() => {
+              if (!tagsActive) router.navigate('/(app)/folders');
+            }}
             onProfilePress={() => { if (!profileActive) router.push('/(app)/(profile)/'); }}
             homeActive={homeActive}
             searchActive={searchActive}

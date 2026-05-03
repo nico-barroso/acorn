@@ -53,6 +53,16 @@ async function fetchItemsPage(
 ): Promise<ItemsPage> {
   const cachedTags = queryClient.getQueryData<{ name: string; slug: string | null; color_hex: string | null }[]>(
     queryKeys.tags(userId),
+
+  const { data: folderRows, error: folderError } = await supabase
+    .from('item_folders')
+    .select('item_id')
+    .eq('user_id', userId);
+
+  if (folderError) throw new Error('No se pudieron cargar las carpetas de recursos.');
+
+  const excludedIds = Array.from(
+    new Set(((folderRows ?? []) as { item_id: string }[]).map((row) => row.item_id)),
   );
 
   let q = supabase
@@ -61,6 +71,11 @@ async function fetchItemsPage(
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(PAGE_SIZE);
+
+  if (excludedIds.length > 0) {
+    const formatted = excludedIds.map((id) => `"${id}"`).join(',');
+    q = q.not('id', 'in', `(${formatted})`);
+  }
 
   if (cursor) q = q.lt('created_at', cursor);
 

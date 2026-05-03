@@ -80,7 +80,11 @@ export function useFolders() {
       setBuilderOpen(false);
       invalidateFolders();
     },
-    onFolderPress: (id: string) => router.push(`/(app)/folders/${id}`),
+    onFolderPress: (id: string) =>
+      router.push({
+        pathname: '/(app)/folders/[id]',
+        params: { id },
+      }),
     onRefresh: () => {
       setIsPullRefreshing(true);
       void refetch().finally(() => setIsPullRefreshing(false));

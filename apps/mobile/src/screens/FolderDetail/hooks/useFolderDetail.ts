@@ -18,7 +18,7 @@ type SmartRuleRow = {
 function slugify(name: string): string {
   return name
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
@@ -80,11 +80,7 @@ function evalDateOp(isoDate: string, op: string, expected: unknown): boolean {
   return false;
 }
 
-function applySmartRules(
-  items: FolderResource[],
-  rules: SmartRuleRow[],
-  logic: string,
-): FolderResource[] {
+function applySmartRules(items: FolderResource[], rules: SmartRuleRow[], logic: string): FolderResource[] {
   if (rules.length === 0) return [];
 
   return items.filter((item) => {
@@ -102,7 +98,10 @@ function applySmartRules(
         const tagNames = item.tags.map((t) => t.name);
         matches = evalTagOp(tagNames, op, Array.isArray(val) ? (val as string[]) : strVal);
       } else if (field === 'is_read' || field === 'status' || field === 'visto') {
-        const boolVal = typeof val === 'boolean' ? val : ['true', '1', 'yes', 'visto', 'read'].includes(strVal.toLowerCase());
+        const boolVal =
+          typeof val === 'boolean'
+            ? val
+            : ['true', '1', 'yes', 'visto', 'read'].includes(strVal.toLowerCase());
         matches = op === 'not_equals' ? item.isRead !== boolVal : item.isRead === boolVal;
       } else if (field === 'created_at' || field === 'date') {
         matches = evalDateOp(item.createdAt, op, val);
@@ -135,12 +134,11 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
     { data: itemData, error: itemError },
     { data: tagRows },
     { data: rulesData },
+    { data: folderItemRows },
   ] = await Promise.all([
     supabase
       .from('items_with_links')
-      .select(
-        'id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)',
-      )
+      .select('id,type,title,is_read,created_at,url,domain,tags,og_image_url,preview_image_url,favicon_url,metadata(og_title)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(200),
@@ -150,22 +148,39 @@ async function fetchFolderDetail(userId: string, folderId: string): Promise<Fold
       .select('field,operator,value,value_type,is_negated')
       .eq('folder_id', folderId)
       .order('position'),
+    supabase
+      .from('item_folders')
+      .select('item_id')
+      .eq('user_id', userId)
+      .eq('folder_id', folderId),
   ]);
 
   if (itemError) throw new Error('No se pudieron cargar los recursos.');
 
-  const tagColorMap = createTagColorMap((tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[]);
+  const tagColorMap = createTagColorMap(
+    (tagRows ?? []) as { name: string; slug: string | null; color_hex: string | null }[],
+  );
 
   const rows = (itemData ?? []) as unknown as ResourceRow[];
-  const mapped: FolderResource[] = rows.map((row) => mapFolderResource(row, tagColorMap));
+  const mapped = rows.map((row) => mapFolderResource(row, tagColorMap));
+  const assignedItemIds = new Set(
+    ((folderItemRows ?? []) as { item_id: string }[]).map((row) => row.item_id),
+  );
+  const assignedResources = mapped.filter((resource) => assignedItemIds.has(resource.id));
 
   const folderLogic = (folderData.logic as string) ?? 'ALL';
   const smartRules = (rulesData ?? []) as SmartRuleRow[];
+  const ruleBasedResources = smartRules.length > 0 ? applySmartRules(mapped, smartRules, folderLogic) : [];
+
+  const merged = new Map<string, FolderResource>();
+  for (const resource of [...assignedResources, ...ruleBasedResources]) {
+    merged.set(resource.id, resource);
+  }
 
   return {
     folderName: folderData.name || 'Carpeta',
     folderDescription: folderData.description?.trim() || '',
-    resources: applySmartRules(mapped, smartRules, folderLogic),
+    resources: Array.from(merged.values()),
   };
 }
 
@@ -191,7 +206,7 @@ export function useFolderDetail(folderId: string) {
     if (activeQuickFilter === 'new') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      return resources.filter((r) => new Date(r.savedDate) >= sevenDaysAgo);
+      return resources.filter((r) => new Date(r.createdAt) >= sevenDaysAgo);
     }
 
     return resources;
