@@ -18,6 +18,9 @@ export default function FolderDetailRoute() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.items(userId) });
     void queryClient.invalidateQueries({ queryKey: ['search', userId] });
     void queryClient.invalidateQueries({ queryKey: ['folders', userId] });
+    if (id) {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.folderDetail(userId, id) });
+    }
   };
 
   return (

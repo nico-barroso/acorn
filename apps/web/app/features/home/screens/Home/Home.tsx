@@ -143,7 +143,7 @@ export function Home() {
     return resources
   }, [resources, activeFilter])
 
-  const fetchResourcesPage = async (currentCursor: Cursor | null) => {
+  const fetchResourcesPage = async (currentCursor: Cursor | null, uid?: string) => {
     const supabase = getSupabaseBrowserClient()
 
     let excludedIds: string[] = []
