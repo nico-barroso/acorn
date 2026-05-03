@@ -85,7 +85,6 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 ## Demo
 
 - [Demo web](https://acorn-delta.vercel.app/login)
-- Vídeo de demo: <ENLACE_VIDEO_DEMO>
 - [Diseño en Figma](https://www.figma.com/design/D8g2omZuNB5I1v8sAJO6BP/Wireframes-Med-Fi?node-id=0-1&t=xriPaDCRnb4DVIXH-1)
 
 ## Capturas
